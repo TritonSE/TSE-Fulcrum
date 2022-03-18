@@ -1,0 +1,18 @@
+{
+  "name": "fulcrum",
+  "version": "1.0.0",
+  "description": "Applicant tracking system for Triton Software Engineering",
+  "private": true,
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TritonSE/TSE-Fulcrum.git"
+  },
+  "author": "Triton Software Engineering <tse@ucsd.edu>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TritonSE/TSE-Fulcrum/issues"
+  },
+  "homepage": "https://github.com/TritonSE/TSE-Fulcrum#readme"
+}
