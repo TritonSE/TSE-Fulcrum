@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "Applicant tracking system for Triton Software Engineering",
   "private": true,
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TritonSE/TSE-Fulcrum.git"
@@ -14,5 +13,8 @@
   "bugs": {
     "url": "https://github.com/TritonSE/TSE-Fulcrum/issues"
   },
-  "homepage": "https://github.com/TritonSE/TSE-Fulcrum#readme"
+  "homepage": "https://github.com/TritonSE/TSE-Fulcrum#readme",
+  "dependencies": {
+    "react-router-dom": "^6.2.2"
+  }
 }

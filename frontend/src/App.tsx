@@ -1,24 +1,14 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import "./index.scss";
+import { Outlet } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="d-flex flex-row" style={{ minHeight: "100vh" }}>
+      <Sidebar />
+      <div className="p-3 flex-grow-1">
+        <Outlet />
+      </div>
     </div>
   );
 }

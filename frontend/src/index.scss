@@ -1,0 +1,11 @@
+@import "~bootstrap/scss/bootstrap";
+
+// Add margins between children: https://alistapart.com/article/axiomatic-css-and-lobotomized-owls/
+
+.child-ms-3 > * + * {
+  margin-left: $spacer;
+}
+
+.child-mt-3 > * + * {
+  margin-top: $spacer;
+}
