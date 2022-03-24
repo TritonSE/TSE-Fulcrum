@@ -27,6 +27,7 @@
     "lint-check": "eslint --cache --report-unused-disable-directives . && prettier --check .",
     "prepare": "cd .. && husky install .husky"
   },
+  "proxy": "http://localhost:8000",
   "eslintConfig": {
     "extends": [
       "react-app"

@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "Applicant tracking system for Triton Software Engineering",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "install": "npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\""
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TritonSE/TSE-Fulcrum.git"
@@ -16,5 +19,8 @@
   "homepage": "https://github.com/TritonSE/TSE-Fulcrum#readme",
   "dependencies": {
     "react-router-dom": "^6.2.2"
+  },
+  "devDependencies": {
+    "concurrently": "^7.0.0"
   }
 }

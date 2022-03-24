@@ -11,6 +11,7 @@ import {
 } from "react-icons/bs";
 import { IconType } from "react-icons";
 import Button from "react-bootstrap/Button";
+import { useAuth } from "../contexts/AuthContext";
 
 function NavButton({ to, children }: LinkProps) {
   // Determine whether the link points to the current page.
@@ -65,6 +66,11 @@ function Sidebar() {
     ["/admin", BsGearFill, "Admin"],
   ];
 
+  const auth = useAuth();
+  if (auth.user === null) {
+    return null;
+  }
+
   return (
     <div className="border-end child-mt-3" style={{ width: "10rem" }}>
       <nav className="border-bottom">
@@ -72,14 +78,14 @@ function Sidebar() {
           <p className="h5 m-1">TSE Fulcrum</p>
         </NavButton>
         {links.map(([to, icon, name]) => (
-          <NavButton to={to}>
+          <NavButton to={to} key={to}>
             <IconLabel icon={icon} text={name} />
           </NavButton>
         ))}
       </nav>
       <div className="text-center">
         <p className="mb-2" style={{ wordBreak: "break-all" }}>
-          todo@ucsd.edu
+          {auth.user.email}
         </p>
         <Button variant="outline-secondary">Log Out</Button>
       </div>

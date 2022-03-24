@@ -5,16 +5,17 @@ import App from "./App";
 import Applications from "./pages/Applications";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
-import ResetPassword from "./pages/ResetPassword";
+import RequestPasswordReset from "./pages/RequestPasswordReset";
+import { requireAuth } from "./components/RequireAuth";
 
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />}>
-          <Route path="applications" element={<Applications />} />
+          <Route path="applications" element={requireAuth(<Applications />)} />
           <Route path="login" element={<Login />} />
-          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="request-password-reset" element={<RequestPasswordReset />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
