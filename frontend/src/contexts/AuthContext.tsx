@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useMemo } from "react";
+import { createContext, useContext, useState, ReactNode, useMemo } from "react";
 import { logIn } from "../api";
 
 type User = any;
@@ -36,18 +36,6 @@ function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-interface AuthContextProviderChildProps {
-  children: ReactNode;
-  logIn: (...args: Parameters<typeof logIn>) => Promise<boolean>;
-}
-
-/*
-// Change state from a child component to avoid re-rendering.
-function AuthContextProviderChild({ children, logIn }: AuthContextProviderChildProps) {
-
-}
-*/
 
 function useAuth() {
   return useContext(AuthContext);
