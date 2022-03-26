@@ -7,6 +7,7 @@ import env from "../env";
 import { generateRandomPassword } from "../crypto/password";
 import { HydratedDocument } from "mongoose";
 import { User } from "../models/UserModel";
+import { Login } from "../validators/models";
 
 
 /**
@@ -26,11 +27,6 @@ async function getUserBySessionToken(sessionToken: string) {
   return user;
 }
 
-interface LoginFields {
-  email: string;
-  password: string;
-}
-
 async function getUserByEmail(email: string) {
   const user = await UserModel.findOne({ email });
   if (user === null) {
@@ -39,7 +35,7 @@ async function getUserByEmail(email: string) {
   return user;
 }
 
-async function logIn({ email, password }: LoginFields): Promise<[string, HydratedDocument<User>] | [null, null]> {
+async function logIn({ email, password }: Login): Promise<[string, HydratedDocument<User>] | [null, null]> {
   const user = await getUserByEmail(email);
   if (user === null) {
     return [null, null];

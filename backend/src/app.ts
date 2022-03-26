@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from "express";
 import mongoose from "mongoose";
 import morgan from "morgan";
 import { logIn, resetPassword, sendPasswordResetEmail, ensureAdminExists, getUserBySessionToken, userToJSON } from "./services/users";
+import { transformLogin } from "./validators/models";
 
 import env from "./env";
 
@@ -50,8 +51,8 @@ async function main() {
   app.use(cookieParser());
 
   app.post("/api/auth/login", asyncWrapper(async (req, res) => {
-    const { email, password } = req.body;
-    const [sessionToken, user] = await logIn({ email, password });
+    const login = transformLogin(req.body);
+    const [sessionToken, user] = await logIn(login);
     if (sessionToken === null) {
       return { status: 401 };
     }

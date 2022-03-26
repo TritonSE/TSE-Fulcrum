@@ -1,5 +1,3 @@
-import e from "express";
-
 // https://stackoverflow.com/a/50375286
 type UnionToIntersection<U> = (U extends any ? (u: U) => void : never) extends ((u: infer I) => void) ? I : never;
 
@@ -32,13 +30,34 @@ function isPrimitive(input: unknown): input is Primitive {
   }
 }
 
-type Transformer<I, O, E = I> = (input: I) => O;
-
-interface ObjectSpec {
-  readonly [key: string]: Primitive | Transformer<unknown, unknown> | TupleSpec | ObjectSpec | undefined;
+function reprPrimitive(value: Primitive): string {
+  switch (typeof value) {
+    case "bigint":
+      return value.toString() + "n";
+    case "string":
+      return JSON.stringify(value);
+    case "symbol":
+      return value.toString();
+    default:
+      return "" + value;
+  }
 }
 
-type TransformSpec = Exclude<ObjectSpec[string], undefined>;
+
+/*
+paths
+error messages at leaves
+step of the union/chain?
+*/
+
+type Transformer<I, O, E = I> = (input: I) => O;
+
+type TransformSpec = Primitive | Transformer<unknown, unknown> | TupleSpec | ObjectSpec;
+
+interface ObjectSpec {
+  readonly [key: string]: TransformSpec;
+}
+
 type TupleSpec = readonly [] | readonly [TransformSpec, ...TransformSpec[]];
 
 type NarrowestInput<S> = (
@@ -81,7 +100,7 @@ function transformPrimitive<S extends Primitive>(input: WidestInput<S>, spec: S)
   if (input === spec) {
     return spec as Output<S>;
   }
-  throw new Error("Values do not match");
+  throw new Error(`Not equal to ${reprPrimitive(spec)}`);
 }
 
 function transformTuple<S extends TupleSpec>(input: WidestInput<S>, spec: S): Output<S> {
@@ -89,7 +108,7 @@ function transformTuple<S extends TupleSpec>(input: WidestInput<S>, spec: S): Ou
     throw new Error("Not an array");
   }
   if (input.length !== spec.length) {
-    throw new Error("Wrong length");
+    throw new Error(`Length is not ${spec.length}`);
   }
 
   // @ts-ignore
@@ -113,19 +132,15 @@ function transformObject<S extends ObjectSpec>(input: WidestInput<S>, spec: S): 
 
   for (const key of Object.getOwnPropertyNames(input)) {
     if (!(key in spec)) {
-      throw new Error("Extra key");
+      throw new Error(`Unrecognized key: ${reprPrimitive(key)}`);
     }
   }
 
   const transformed = {} as Output<S>;
   for (const key of Object.getOwnPropertyNames(spec)) {
-    const valueSpec = spec[key];
-    if (valueSpec === undefined) {
-      continue;
-    }
     const inputValue: unknown = (input as any)[key];
     try {
-      const transformedValue = transform(inputValue, valueSpec);
+      const transformedValue = transform(inputValue, spec[key]);
       if (transformedValue !== undefined) {
         // @ts-ignore
         transformed[key] = transformedValue;
@@ -137,6 +152,108 @@ function transformObject<S extends ObjectSpec>(input: WidestInput<S>, spec: S): 
 
   return transformed;
 }
+
+interface OneTransformError {
+  error: string;
+}
+
+interface ManyTransformErrors {
+  errors: string[];
+}
+
+interface NestedTransformErrors {
+  fields: {
+    [key: string]: OneTransformError | ManyTransformErrors | NestedTransformErrors;
+  };
+}
+
+
+/*
+{
+  hi: number,
+  bye: number,
+  razzle: [string, string],
+  baz: validateNumber({ min: 3, integer: true }),
+}
+{
+  type: "object",
+  fields: {
+    hi: {
+      type: "function",
+      name: "number"
+    },
+    bye: {
+      type: "function",
+      name: "string"
+    },
+    razzle: {
+      type: "array",
+      elements: [
+        {
+          type: "function",
+          name: "string"
+        },
+        {
+          type: "function",
+          name: "string"
+        },
+      ]
+    },
+    baz: {
+      type: "call",
+      function: "validateNumber",
+      arguments: [
+        {
+          type: "object",
+          fields: {
+            min: {
+              type: "number",
+              value: 3,
+            },
+            integer: {
+              type: "boolean",
+              value: true,
+            }
+          }
+        }
+      ]
+    }
+  },
+}
+{
+  hi: "number",
+  bye: "number",
+  razzle: ["tuple", ["list", "string", "string"]],
+  baz: ["validateNumber", { min: 3, integer: true }]
+}
+{
+  hi: 3,
+  bye: "there",
+  razzle: ["oops", 7],
+  baz: 2.5,
+  huh: "extra",
+}
+{
+  fields: {
+    bye: {
+      "error": "Not a number"
+    },
+    razzle: {
+      fields: {
+        "1": {
+          "error": "Not a string"
+        }
+      }
+    },
+    baz: {
+      "errors": ["Less than the minimum of 3", "Not an integer"]
+    }
+    huh: {
+      "error": "Unrecognized key"
+    }
+  }
+}
+*/
 
 function transform<S extends TransformSpec>(input: WidestInput<S>, spec: S): Output<S> {
   if (isPrimitive(spec)) {
@@ -159,7 +276,7 @@ const boolean: Transformer<unknown, boolean, boolean> = (input) => {
   if (typeof input === "boolean") {
     return input;
   } else {
-    throw new Error();
+    throw new Error("Not a boolean");
   }
 }
 
@@ -167,14 +284,14 @@ const number: Transformer<unknown, number, number> = (input) => {
   if (typeof input === "number") {
     return input;
   }
-  throw new Error();
+  throw new Error("Not a number");
 }
 
 const string: Transformer<unknown, string, string> = (input) => {
   if (typeof input === "string") {
     return input;
   }
-  throw new Error();
+  throw new Error("Not a string");
 }
 
 function replaceWith<T>(value: T): Transformer<unknown, T> {
@@ -225,6 +342,22 @@ type RecursiveTransformerUnion<I, O, E, S> = (
 
 type TransformerUnion<S> = RecursiveTransformerUnion<unknown, never, never, S>;
 
+function transformerUnion<S extends [Function, ...Function[]]>(...transformers: S): Transformer<TransformerUnion<S>[0], TransformerUnion<S>[1], TransformerUnion<S>[2]> {
+  return (input) => {
+    for (let i = 0; i < transformers.length; i++) {
+      try {
+        return transformers[i](input);
+      } catch (e) {
+        throw e;
+      }
+    }
+    throw new Error();
+  }
+}
+
+const frob = transformerUnion((x: string) => x);
+const aoeu = transformerUnion((x: string) => x + "nice", (y: unknown) => 3);
+
 type RecursiveTransformerChain<I, O, E, S> = (
   S extends readonly []
     ? [I, O, E]
@@ -243,65 +376,6 @@ type TransformerChain<S> = (
     : never
 );
 
-/*
-type test = RecursiveTransformerUnion<unknown, never, never, []>;
-type test2 = RecursiveTransformerUnion<unknown, never, never, [typeof number, typeof string]>;
-*/
-
-/*
-function transformerUnion<S extends Transformer<WidestInput<S>, Output<S>>, T extends Transformer<WidestInput<T>, Output<T>>>(first: S, second: T): Transformer<WidestInput<S> & WidestInput<T>, Output<S> | Output<T>, NarrowestInput<S> | NarrowestInput<T>>;
-function transformerUnion<I, O, E = I>(...transformers: Transformer<I, O, E>[]): Transformer<I, O, E>;
-function transformerUnion<I, O, E = I>(...transformers: Transformer<I, O, E>[]): Transformer<I, O, E> {
-*/
-function transformerUnion<S extends [Function, ...Function[]]>(...transformers: S): Transformer<TransformerUnion<S>[0], TransformerUnion<S>[1], TransformerUnion<S>[2]> {
-  return (input) => {
-    for (let i = 0; i < transformers.length; i++) {
-      try {
-        return transformers[i](input);
-      } catch (e) {
-        throw e;
-      }
-    }
-    throw new Error();
-  }
-}
-
-const frob = transformerUnion((x: string) => x);
-const aoeu = transformerUnion((x: string) => x + "nice", (y: unknown) => 3);
-
-/*
-function chain<I, J, S extends Transformer<I, J>, T extends Transformer<J, Output<T>>>(first: S, second: T): Transformer<I, Output<T>, NarrowestInput<S>> {
-  return (input) => second(first(input));
-}
-*/
-
-/*
-function chain<S extends TransformSpec, T extends Transformer<Output<S>, Output<T>>>(first: S, second: T): Transformer<WidestInput<S>, Output<T>, NarrowestInput<S>> {
-  return (input) => second(transform(input, first));
-}
-*/
-
-type TransformerChain2<S extends TransformSpec, T extends Function[]> = TransformerChain<[Transformer<WidestInput<S>, Output<S>, NarrowestInput<S>>, ...T]>;
-
-// type epic = TransformerChain2<{hi: 7}, [(x: number) => string]>;
-
-function chain<S extends TransformSpec, T extends Parameters<typeof transformerChain>>(spec: S, ...transformers: T): Transformer<TransformerChain2<S, T>[0], TransformerChain2<S, T>[1], TransformerChain2<S, T>[2]> {
-  return (input) => {
-    let result = transform(input, spec);
-    for (const transformer of transformers) {
-      result = transformer(input);
-    }
-    return result as any;
-  }
-  // return (input) => transformerChain(...transformers)(transform(input, spec));
-}
-
-/*
-function transformerChain<S extends Transformer<WidestInput<S>, Output<S>>, T extends Transformer<Output<S>, Output<T>>>(first: S, second: T): Transformer<WidestInput<S>, Output<T>, NarrowestInput<S>> {
-  return (input) => second(first(input));
-}
-*/
-
 function transformerChain<S extends [Function, ...Function[]]>(...transformers: S): Transformer<TransformerChain<S>[0], TransformerChain<S>[1], TransformerChain<S>[2]> {
   return (input) => {
     for (const transformer of transformers) {
@@ -309,6 +383,50 @@ function transformerChain<S extends [Function, ...Function[]]>(...transformers: 
     }
     return input;
   }
+}
+
+type Chain<S extends TransformSpec, T extends Function[]> = TransformerChain<[Transformer<WidestInput<S>, Output<S>, NarrowestInput<S>>, ...T]>;
+
+function chain<S extends TransformSpec, T extends Parameters<typeof transformerChain>>(spec: S, ...transformers: T): Transformer<Chain<S, T>[0], Chain<S, T>[1], Chain<S, T>[2]> {
+  return (input) => {
+    let result = transform(input, spec);
+    for (const transformer of transformers) {
+      result = transformer(input);
+    }
+    return result as any;
+  }
+}
+
+function arrayOf<S extends TransformSpec>(spec: S): Transformer<unknown, Output<S>[], NarrowestInput<S>[]> {
+  return (input) => {
+    if (!Array.isArray(input)) {
+      throw new Error("Not an array");
+    }
+    const transformed = [];
+    for (let i = 0; i < input.length; i++) {
+      try {
+        transformed.push(transform(input[i], spec));
+      } catch (e) {
+        throw e;
+      }
+    }
+    return transformed;
+  }
+}
+
+// type PartialSpec<S> = { [K in keyof S]: Transformer<unknown, Output<S[K]> | undefined, NarrowestInput<S[K]> | undefined> };
+type PartialSpec<S> = { [K in keyof S]: Transformer<unknown, Output<S[K]> | undefined, NarrowestInput<S[K]> | undefined> };
+
+function partial<S extends ObjectSpec>(spec: S): PartialSpec<S> {
+  const result = {} as PartialSpec<S>;
+  for (const k of Object.getOwnPropertyNames(spec)) {
+    const key: keyof S = k;
+    const valueSpec = spec[key];
+    if (valueSpec !== undefined) {
+      result[key] = optional(valueSpec) as PartialSpec<S>[keyof S];
+    }
+  }
+  return result as PartialSpec<S>;
 }
 
 const banana = transformerChain((x: string) => x + "hi", (y: number) => y + 3);
@@ -357,11 +475,14 @@ const numberValidationSpec = {
   // max: optional(number),
   // integer: optional(boolean),
   real: boolean,
-  foo: undefined,
   nice: remove,
   awesome: replaceWith(7),
   nested: placeholder,
 };
+
+const partialNumberValidationSpec = partial(numberValidationSpec);
+
+type bazn = typeof partialNumberValidationSpec;
 
 numberValidationSpec.nested = optional(numberValidationSpec);
 
@@ -394,5 +515,19 @@ function validatedNumber(options: NumberValidationInput): Transformer<unknown, n
 const foo = validatedNumber({ real: false })(7);
 
 export {
+  boolean,
   number,
+  string,
+  transform,
+  union,
+  chain,
+  compile,
+  remove,
+  replaceWith,
+  placeholder,
+  Transformer,
+  TransformSpec,
+  Output,
+  WidestInput,
+  NarrowestInput,
 }
