@@ -27,27 +27,36 @@ class Api {
     return this.fetch("post", url, body, headers);
   }
 
-  private async fetch(method: Method, url: string, body: unknown, headers: object): Promise<Response> {
+  private async fetch(
+    method: Method,
+    url: string,
+    body: unknown,
+    headers: object
+  ): Promise<Response> {
     const hasBody = body !== undefined;
-    const newHeaders = {...headers, ...(hasBody ? { "Content-Type": "application/json" } : {})};
+    const newHeaders = { ...headers, ...(hasBody ? { "Content-Type": "application/json" } : {}) };
     const response = await fetch(url, {
       method,
       headers: newHeaders,
       body: hasBody ? JSON.stringify(body) : undefined,
-    })
+    });
 
     if (!response.ok) {
       let message = "";
       try {
-        message = ": " + await response.text();
+        message = ": " + (await response.text());
       } catch (e) {}
 
-      throw new Error([
-        `${response.status} ${response.statusText}${message}`,
-        `${method} ${url}`,
-        ...(Object.keys(newHeaders).length === 0 ? [] : [`headers: ${JSON.stringify(newHeaders, null, 2)}`]),
-        ...(body === undefined ? [] : [`body: ${JSON.stringify(body, null, 2)}`]),
-      ].join("\n\n"));
+      throw new Error(
+        [
+          `${response.status} ${response.statusText}${message}`,
+          `${method} ${url}`,
+          ...(Object.keys(newHeaders).length === 0
+            ? []
+            : [`headers: ${JSON.stringify(newHeaders, null, 2)}`]),
+          ...(body === undefined ? [] : [`body: ${JSON.stringify(body, null, 2)}`]),
+        ].join("\n\n")
+      );
     }
 
     return response;
