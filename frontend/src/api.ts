@@ -19,11 +19,15 @@ class Api {
     return (await this.get("/api/auth/me")).json();
   }
 
-  private async get(url: string, headers: object = {}) {
+  private async get(url: string, headers: Record<string, string> = {}): Promise<Response> {
     return this.fetch("get", url, undefined, headers);
   }
 
-  private async post(url: string, body: unknown, headers: object = {}) {
+  private async post(
+    url: string,
+    body: unknown,
+    headers: Record<string, string> = {}
+  ): Promise<Response> {
     return this.fetch("post", url, body, headers);
   }
 
@@ -31,10 +35,15 @@ class Api {
     method: Method,
     url: string,
     body: unknown,
-    headers: object
+    headers: Record<string, string>
   ): Promise<Response> {
     const hasBody = body !== undefined;
-    const newHeaders = { ...headers, ...(hasBody ? { "Content-Type": "application/json" } : {}) };
+
+    const newHeaders = { ...headers };
+    if (hasBody) {
+      newHeaders["Content-Type"] = "application/json";
+    }
+
     const response = await fetch(url, {
       method,
       headers: newHeaders,
@@ -45,7 +54,9 @@ class Api {
       let message = "";
       try {
         message = ": " + (await response.text());
-      } catch (e) {}
+      } catch (e) {
+        // No error message; ignore.
+      }
 
       throw new Error(
         [

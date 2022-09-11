@@ -168,6 +168,7 @@ function generateConfig() {
       usingReact ? "airbnb" : "airbnb-base",
       ...(usingTypeScript ? [usingReact ? "airbnb-typescript" : "airbnb-typescript/base"] : []),
       "prettier",
+      "plugin:react/jsx-runtime",
     ],
     rules: {
       ...generateRules(usingReact, usingNode),
