@@ -1,7 +1,4 @@
-interface LogInFields {
-  email: string;
-  password: string;
-}
+import { ReqLogin, ReqRequestPasswordReset, ReqResetPassword } from "shared";
 
 async function fetchWrapper<I, O>(method: string, url: string, body?: I) {
   const serializedBody = body ? JSON.stringify(body) : undefined;
@@ -13,12 +10,19 @@ async function fetchWrapper<I, O>(method: string, url: string, body?: I) {
   });
 
   console.log(response);
-
   return response;
 }
 
-async function logIn(fields: LogInFields) {
-  return fetchWrapper("post", "/api/auth/login", fields);
+async function logIn(body: ReqLogin) {
+  return fetchWrapper("post", "/api/auth/login", body);
 }
 
-export { logIn };
+async function requestPasswordReset(body: ReqRequestPasswordReset) {
+  return fetchWrapper("post", "/api/auth/request-password-reset", body);
+}
+
+async function resetPassword(body: ReqResetPassword) {
+  return fetchWrapper("post", "/api/auth/reset-password", body);
+}
+
+export { logIn, requestPasswordReset, resetPassword };

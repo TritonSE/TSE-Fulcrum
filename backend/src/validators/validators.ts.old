@@ -50,9 +50,24 @@ error messages at leaves
 step of the union/chain?
 */
 
-type Transformer<I, O, E = I> = (input: I) => O;
+type TransformFunc<I, O, E = unknown> = (input: I) => O;
 
-type TransformSpec = Primitive | Transformer<unknown, unknown> | TupleSpec | ObjectSpec;
+type Predicate<I> = (input: I) => boolean | string;
+
+function wrapPredicate<I>(predicate: Predicate<I>): TransformFunc<I, I> {
+  return (input) => {
+    const result = predicate(input);
+    if (typeof result === "string") {
+      throw new Error(result);
+    }
+    else if (!result) {
+      throw new Error();
+    }
+    return input;
+  }
+}
+
+type TransformSpec = Primitive | TransformFunc<unknown, unknown> | TupleSpec | ObjectSpec;
 
 interface ObjectSpec {
   readonly [key: string]: TransformSpec;
@@ -60,40 +75,53 @@ interface ObjectSpec {
 
 type TupleSpec = readonly [] | readonly [TransformSpec, ...TransformSpec[]];
 
+// TODO: instead of Function, use () => void?
+
+type test = ((a: number) => number) extends AnyFunction ? true : false;
+type test2 = (() => boolean) extends AnyFunction ? true : false;
+
+type AnyFunction = (...args: any[]) => void;
+
 type NarrowestInput<S> = (
   S extends Primitive
   ? S
-  : S extends Transformer<infer I, infer O, infer E>
-    ? I & E
-      : S extends TupleSpec
-        ? {readonly [K in keyof S]: K extends keyof [] ? S[K] : NarrowestInput<S[K]>}
-        : S extends ObjectSpec
-          ? UndefinedToOptional<{readonly [K in keyof S]: NarrowestInput<S[K]>}>
-          : never
+  : S extends TransformFunc<infer I, infer O, infer E>
+    ? I & E /*
+      : S extends AnyFunction
+        ? never */
+        : S extends TupleSpec
+          ? {readonly [K in keyof S]: K extends keyof [] ? S[K] : NarrowestInput<S[K]>}
+          : S extends ObjectSpec
+            ? UndefinedToOptional<{readonly [K in keyof S]: NarrowestInput<S[K]>}>
+            : never
 );
 
 type WidestInput<S> = (
   S extends Primitive
   ? unknown
-  : S extends Transformer<infer I, infer O, infer E>
-    ? I
-      : S extends TupleSpec
-        ? unknown
-        : S extends ObjectSpec
+  : S extends TransformFunc<infer I, infer O, infer E>
+    ? I /*
+      : S extends AnyFunction
+        ? never */
+        : S extends TupleSpec
           ? unknown
-          : never
+          : S extends ObjectSpec
+            ? unknown
+            : never
 );
 
 type Output<S> = (
   S extends Primitive
     ? S
-    : S extends Transformer<infer I, infer O, infer E>
-      ? O
-      : S extends TupleSpec
-        ? {-readonly [K in keyof S]: K extends keyof [] ? S[K] : Output<S[K]>}
-        : S extends ObjectSpec
-          ? UndefinedToOptional<{-readonly [K in keyof S]: Output<S[K]>}>
-          : never
+    : S extends TransformFunc<infer I, infer O, infer E>
+      ? O /*
+      : S extends AnyFunction
+        ? never */
+        : S extends TupleSpec
+          ? {-readonly [K in keyof S]: K extends keyof [] ? S[K] : Output<S[K]>}
+          : S extends ObjectSpec
+            ? UndefinedToOptional<{-readonly [K in keyof S]: Output<S[K]>}>
+            : never
 );
 
 function transformPrimitive<S extends Primitive>(input: WidestInput<S>, spec: S): Output<S> {
@@ -153,6 +181,8 @@ function transformObject<S extends ObjectSpec>(input: WidestInput<S>, spec: S): 
   return transformed;
 }
 
+/*
+
 interface OneTransformError {
   error: string;
 }
@@ -166,6 +196,8 @@ interface NestedTransformErrors {
     [key: string]: OneTransformError | ManyTransformErrors | NestedTransformErrors;
   };
 }
+
+*/
 
 
 /*
@@ -268,11 +300,11 @@ function transform<S extends TransformSpec>(input: WidestInput<S>, spec: S): Out
   return transformObject(input, spec as ObjectSpec) as Output<S>;
 }
 
-function compile<S extends TransformSpec>(spec: S): Transformer<WidestInput<S>, Output<S>, NarrowestInput<S>> {
+function compile<S extends TransformSpec>(spec: S): TransformFunc<WidestInput<S>, Output<S>, NarrowestInput<S>> {
   return (input) => transform(input, spec);
 }
 
-const boolean: Transformer<unknown, boolean, boolean> = (input) => {
+const boolean: TransformFunc<unknown, boolean, boolean> = (input) => {
   if (typeof input === "boolean") {
     return input;
   } else {
@@ -280,31 +312,54 @@ const boolean: Transformer<unknown, boolean, boolean> = (input) => {
   }
 }
 
-const number: Transformer<unknown, number, number> = (input) => {
-  if (typeof input === "number") {
-    return input;
+const number: TransformFunc<unknown, number, number> = (input, options?: NumberValidationOptions) => {
+  if (typeof input !== "number") {
+    throw new Error("Not a number");
   }
-  throw new Error("Not a number");
+  if (options !== undefined) {
+    const { min, max, integer, finite } = options;
+    if (finite !== undefined) {
+      const isFinite = Number.isFinite(input);
+      if (isFinite !== finite) {
+        throw new Error();
+      }
+    }
+    if (integer !== undefined) {
+      const isInteger = Math.round(input) === input;
+      if (isInteger !== integer) {
+        throw new Error();
+      }
+    }
+    if (min !== undefined && input < min) {
+      throw new Error();
+    }
+    if (max !== undefined && input > max) {
+      throw new Error();
+    }
+  }
+  return input;
 }
 
-const string: Transformer<unknown, string, string> = (input) => {
+const string: TransformFunc<unknown, string, string> = (input) => {
   if (typeof input === "string") {
     return input;
   }
   throw new Error("Not a string");
 }
 
-function replaceWith<T>(value: T): Transformer<unknown, T> {
+const unknown: TransformFunc<unknown, unknown> = (input) => input;
+
+function replaceWith<T>(value: T): TransformFunc<unknown, T> {
   return (input) => value;
 }
 
 const remove = replaceWith(undefined);
 
 const placeholder = ((input) => {
-  throw new Error();
+  throw new Error("Placeholder not replaced");
 }) as TransformSpec;
 
-function optional<S extends TransformSpec>(spec: S): Transformer<WidestInput<S> | undefined, Output<S> | undefined, NarrowestInput<S> | undefined> {
+function optional<S extends TransformSpec>(spec: S): TransformFunc<WidestInput<S> | undefined, Output<S> | undefined, NarrowestInput<S> | undefined> {
   return (input) => {
     if (input === undefined) {
       return undefined;
@@ -313,7 +368,16 @@ function optional<S extends TransformSpec>(spec: S): Transformer<WidestInput<S> 
   };
 }
 
-function union<S extends readonly [TransformSpec, ...TransformSpec[]]>(...specs: S): Transformer<
+function nullable<S extends TransformSpec>(spec: S): TransformFunc<WidestInput<S> | null, Output<S> | null, NarrowestInput<S> | null> {
+  return (input) => {
+    if (input === null) {
+      return null;
+    }
+    return transform(input, spec);
+  }
+}
+
+function union<S extends readonly [TransformSpec, ...TransformSpec[]]>(...specs: S): TransformFunc<
     unknown,
     Output<S>[number],
     // @ts-ignore
@@ -334,7 +398,7 @@ type RecursiveTransformerUnion<I, O, E, S> = (
   S extends readonly []
   ? [I, O, E]
   : S extends readonly [infer T, ...infer R]
-    ? T extends Transformer<infer J, infer P, infer F>
+    ? T extends TransformFunc<infer J, infer P, infer F>
       ? RecursiveTransformerUnion<I & WidestInput<T>, O | Output<T>, E | NarrowestInput<T>, R>
       : never
     : never
@@ -342,7 +406,7 @@ type RecursiveTransformerUnion<I, O, E, S> = (
 
 type TransformerUnion<S> = RecursiveTransformerUnion<unknown, never, never, S>;
 
-function transformerUnion<S extends [Function, ...Function[]]>(...transformers: S): Transformer<TransformerUnion<S>[0], TransformerUnion<S>[1], TransformerUnion<S>[2]> {
+function transformerUnion<S extends [Function, ...Function[]]>(...transformers: S): TransformFunc<TransformerUnion<S>[0], TransformerUnion<S>[1], TransformerUnion<S>[2]> {
   return (input) => {
     for (let i = 0; i < transformers.length; i++) {
       try {
@@ -362,7 +426,7 @@ type RecursiveTransformerChain<I, O, E, S> = (
   S extends readonly []
     ? [I, O, E]
     : S extends readonly [infer T, ...infer R]
-      ? T extends Transformer<O, infer P, infer F>
+      ? T extends TransformFunc<O, infer P>
         ? RecursiveTransformerChain<I, P, E, R>
         : never
       : never
@@ -370,13 +434,13 @@ type RecursiveTransformerChain<I, O, E, S> = (
 
 type TransformerChain<S> = (
   S extends [infer T, ...infer R]
-    ? T extends Transformer<infer I, infer O, infer E>
+    ? T extends TransformFunc<infer I, infer O>
       ? RecursiveTransformerChain<WidestInput<T>, Output<T>, NarrowestInput<T>, R>
       : never
     : never
 );
 
-function transformerChain<S extends [Function, ...Function[]]>(...transformers: S): Transformer<TransformerChain<S>[0], TransformerChain<S>[1], TransformerChain<S>[2]> {
+function transformerChain<S extends [Function, ...Function[]]>(...transformers: S): TransformFunc<TransformerChain<S>[0], TransformerChain<S>[1], TransformerChain<S>[2]> {
   return (input) => {
     for (const transformer of transformers) {
       input = transformer(input);
@@ -385,9 +449,9 @@ function transformerChain<S extends [Function, ...Function[]]>(...transformers: 
   }
 }
 
-type Chain<S extends TransformSpec, T extends Function[]> = TransformerChain<[Transformer<WidestInput<S>, Output<S>, NarrowestInput<S>>, ...T]>;
+type Chain<S extends TransformSpec, T extends Function[]> = TransformerChain<[TransformFunc<WidestInput<S>, Output<S>, NarrowestInput<S>>, ...T]>;
 
-function chain<S extends TransformSpec, T extends Parameters<typeof transformerChain>>(spec: S, ...transformers: T): Transformer<Chain<S, T>[0], Chain<S, T>[1], Chain<S, T>[2]> {
+function chain<S extends TransformSpec, T extends Parameters<typeof transformerChain>>(spec: S, ...transformers: T): TransformFunc<Chain<S, T>[0], Chain<S, T>[1], Chain<S, T>[2]> {
   return (input) => {
     let result = transform(input, spec);
     for (const transformer of transformers) {
@@ -397,15 +461,25 @@ function chain<S extends TransformSpec, T extends Parameters<typeof transformerC
   }
 }
 
-function arrayOf<S extends TransformSpec>(spec: S): Transformer<unknown, Output<S>[], NarrowestInput<S>[]> {
+// two styles: pass in input only (Transformer), or pass in input and validation options... make validation options an optional argument?
+// number, asNumber(options): Transformer<unknown, number, number>
+// validateNumber: (unknown) => as
+// 
+
+// function validateNumber()
+
+function asArrayOf<S extends TransformSpec>(elementSpec: S, options?: ArrayValidationOptions): TransformFunc<unknown, Output<S>[], NarrowestInput<S>[]> {
   return (input) => {
     if (!Array.isArray(input)) {
       throw new Error("Not an array");
     }
+    if (options?.length !== undefined) {
+      number(input.length);
+    };
     const transformed = [];
     for (let i = 0; i < input.length; i++) {
       try {
-        transformed.push(transform(input[i], spec));
+        transformed.push(transform(input[i], elementSpec));
       } catch (e) {
         throw e;
       }
@@ -415,7 +489,7 @@ function arrayOf<S extends TransformSpec>(spec: S): Transformer<unknown, Output<
 }
 
 // type PartialSpec<S> = { [K in keyof S]: Transformer<unknown, Output<S[K]> | undefined, NarrowestInput<S[K]> | undefined> };
-type PartialSpec<S> = { [K in keyof S]: Transformer<unknown, Output<S[K]> | undefined, NarrowestInput<S[K]> | undefined> };
+type PartialSpec<S> = { [K in keyof S]: TransformFunc<unknown, Output<S[K]> | undefined, NarrowestInput<S[K]> | undefined> };
 
 function partial<S extends ObjectSpec>(spec: S): PartialSpec<S> {
   const result = {} as PartialSpec<S>;
@@ -428,6 +502,57 @@ function partial<S extends ObjectSpec>(spec: S): PartialSpec<S> {
   }
   return result as PartialSpec<S>;
 }
+
+function omit<S extends ObjectSpec, T extends [keyof S, ...(keyof S)[]]>(spec: S, ...keys: T): {[K in Exclude<keyof S, T[number]>]: S[K]} {
+  const result = {...spec};
+  for (const key of keys) {
+    delete result[key];
+  }
+  return result;
+}
+
+function pick<S extends ObjectSpec, T extends [keyof S, ...(keyof S)[]]>(spec: S, ...keys: T): {[K in T[number]]: S[K]} {
+  const result: Partial<S> = {};
+  for (const key of keys) {
+    result[key] = spec[key];
+  }
+  return result as {[K in T[number]]: S[K]};
+}
+
+function narrow<S extends TransformSpec>(spec: S): TransformFunc<NarrowestInput<S>, Output<S>> {
+  if (typeof spec === "function") {
+    return spec as TransformFunc<NarrowestInput<S>, Output<S>>;
+  }
+  return compile(spec);
+}
+
+interface RestTupleSpec {
+  elements: TupleSpec,
+  rest: TransformSpec,
+}
+
+const specNumberValidationOptions = {
+  min: optional(number),
+  max: optional(number),
+  integer: optional(boolean),
+  finite: optional(boolean),
+}
+
+type NumberValidationOptions = Output<typeof specNumberValidationOptions>;
+
+interface ArrayValidationOptions {
+  length: number | NumberValidationOptions,
+}
+
+function wrap<S extends TupleSpec, R>(spec: S, func: (...args: Output<S>) => R): (...args: NarrowestInput<S>) => R {
+  return (...args) => func(...transform(args, spec));
+}
+
+/* basically just chain
+function checkedFunction<S extends TupleSpec, R>(spec: S, func: (args: Output<S>) => R): (args: WidestInput<S>) => R {
+  return (input) => func(transform(input, spec));
+}
+*/
 
 const banana = transformerChain((x: string) => x + "hi", (y: number) => y + 3);
 
@@ -459,7 +584,7 @@ type LinkedListOutput = Output<typeof linkedListSpec> & {
   next?: LinkedListOutput;
 }
 
-const transformLinkedList = compile(linkedListSpec) as Transformer<unknown, LinkedListOutput, LinkedListInput>;
+const transformLinkedList = compile(linkedListSpec) as TransformFunc<unknown, LinkedListOutput, LinkedListInput>;
 
 const thing: LinkedListInput = {
   value: 5,
@@ -474,7 +599,7 @@ const numberValidationSpec = {
   min: optional(number),
   // max: optional(number),
   // integer: optional(boolean),
-  real: boolean,
+  real: asArrayOf(boolean),
   nice: remove,
   awesome: replaceWith(7),
   nested: placeholder,
@@ -489,6 +614,9 @@ numberValidationSpec.nested = optional(numberValidationSpec);
 type NumberValidationInput = NarrowestInput<typeof numberValidationSpec>;
 type NumberValidationOutput = Output<typeof numberValidationSpec>;
 
+type PartialNumberValidationInput = NarrowestInput<typeof partialNumberValidationSpec>;
+type PartialNumberValidationOutput = Output<typeof partialNumberValidationSpec>;
+
 type MinValidation = Output<typeof numberValidationSpec["min"]>;
 
 type NumberValidation = Output<typeof numberValidationSpec>;
@@ -501,7 +629,7 @@ type Test = {
   b: number | undefined;
 }
 
-function validatedNumber(options: NumberValidationInput): Transformer<unknown, number> {
+function validatedNumber(options: NumberValidationInput): TransformFunc<unknown, number> {
   return (input) => {
     const num = number(input);
     if (options.min !== undefined && !(options.min <= num)) {
@@ -512,20 +640,25 @@ function validatedNumber(options: NumberValidationInput): Transformer<unknown, n
   };
 }
 
-const foo = validatedNumber({ real: false })(7);
+const foo = validatedNumber({ real: [false] })(7);
 
 export {
   boolean,
   number,
   string,
+  unknown,
   transform,
   union,
   chain,
   compile,
+  partial,
+  omit,
+  pick,
   remove,
   replaceWith,
+  narrow,
   placeholder,
-  Transformer,
+  TransformFunc as Transformer,
   TransformSpec,
   Output,
   WidestInput,

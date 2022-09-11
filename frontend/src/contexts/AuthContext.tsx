@@ -1,10 +1,9 @@
 import { createContext, useContext, useState, ReactNode, useMemo } from "react";
+import { PublicUser } from "shared";
 import { logIn } from "../api";
 
-type User = any;
-
 interface AuthContextType {
-  user: any;
+  user: PublicUser | null;
   logIn: (...args: Parameters<typeof logIn>) => Promise<boolean>;
 }
 
@@ -15,7 +14,7 @@ interface AuthContextProviderProps {
 }
 
 function AuthContextProvider({ children }: AuthContextProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<PublicUser | null>(null);
   const logInWrapper = async (...args: Parameters<typeof logIn>) => {
     const response = await logIn(...args);
     if (response.ok) {

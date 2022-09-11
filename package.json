@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "install": "npm install --prefix backend && npm install --prefix frontend",
-    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\""
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\" \"npm run dev --prefix shared\""
   },
   "repository": {
     "type": "git",

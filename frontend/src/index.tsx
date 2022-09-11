@@ -6,6 +6,7 @@ import Applications from "./pages/Applications";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import RequestPasswordReset from "./pages/RequestPasswordReset";
+import ResetPassword from "./pages/ResetPassword";
 import { requireAuth } from "./components/RequireAuth";
 
 ReactDOM.render(
@@ -16,6 +17,7 @@ ReactDOM.render(
           <Route path="applications" element={requireAuth(<Applications />)} />
           <Route path="login" element={<Login />} />
           <Route path="request-password-reset" element={<RequestPasswordReset />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

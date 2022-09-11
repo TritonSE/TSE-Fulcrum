@@ -1,0 +1,45 @@
+import { boolean, compile, narrow, NarrowestInput, omit, Output, partial, string, Transformer } from "./validators";
+
+const specLogin = {
+  email: string,
+  password: string,
+};
+
+const asLogin = compile(specLogin);
+type LoginInput = NarrowestInput<typeof specLogin>;
+type Login = Output<typeof specLogin>;
+
+const specPublicUser = {
+  id: string,
+  /*
+  email: string,
+  name: string,
+  active: boolean,
+  admin: boolean,
+  */
+}
+
+const asPublicUser = compile(specPublicUser);
+type PublicUserInput = NarrowestInput<typeof specPublicUser>;
+type PublicUser = Output<typeof specPublicUser>;
+
+const asPartialPublicUser = compile(partial(specPublicUser));
+type PartialPublicUserInput = NarrowestInput<typeof asPartialPublicUser>;
+type PartialPublicUser = Output<typeof asPartialPublicUser>;
+
+type Test = Transformer<NarrowestInput<typeof asPublicUser>, Output<typeof asPublicUser>>;
+const foo: Test = asPublicUser;
+
+const bar = narrow(asPublicUser);
+/*
+const bar: Narrow<typeof asPublicUser> = asPublicUser;
+bar("hi");
+*/
+
+const specCreateUserFields = omit(specPublicUser, "id");
+
+export {
+  asLogin,
+  Login,
+  LoginInput,
+};

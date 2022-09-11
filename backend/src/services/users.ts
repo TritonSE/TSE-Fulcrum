@@ -7,8 +7,7 @@ import env from "../env";
 import { generateRandomPassword } from "../crypto/password";
 import { HydratedDocument } from "mongoose";
 import { User } from "../models/UserModel";
-import { Login } from "../validators/models";
-
+import { PublicUser, ReqLogin, ReqResetPassword, ReqUserCreate } from "shared";
 
 /**
  * @returns A Date in the past.
@@ -35,7 +34,7 @@ async function getUserByEmail(email: string) {
   return user;
 }
 
-async function logIn({ email, password }: Login): Promise<[string, HydratedDocument<User>] | [null, null]> {
+async function logIn({ email, password }: ReqLogin): Promise<[string, HydratedDocument<User>] | [null, null]> {
   const user = await getUserByEmail(email);
   if (user === null) {
     return [null, null];
@@ -60,12 +59,6 @@ async function logOut(sessionToken: string) {
     user.sessionExpiration = expiredDate();
     await user.save();
   }
-}
-
-interface PasswordResetFields {
-  email: string;
-  password: string;
-  passwordResetToken: string;
 }
 
 async function sendPasswordResetEmail(email: string) {
@@ -93,7 +86,7 @@ This link will expire in ${env.PASSWORD_RESET_VALID_HRS} hour(s). If you did not
   console.log(`Sent password reset email: ${email}`);
 }
 
-async function resetPassword({ email, password, passwordResetToken }: PasswordResetFields) {
+async function resetPassword({ email, password, passwordResetToken }: ReqResetPassword) {
   const user = await UserModel.findOne({ email });
   if (user === null) {
     console.log(`User not found: ${email}`);
@@ -119,23 +112,17 @@ async function resetPassword({ email, password, passwordResetToken }: PasswordRe
   return true;
 }
 
-interface CreateUserFields {
-  email: string;
-  active: boolean;
-  admin: boolean;
-  name: string;
-}
-
-function userToJSON(user: HydratedDocument<User>) {
+function userToJSON(user: HydratedDocument<User>): PublicUser {
   return {
     id: user._id.toHexString(),
     email: user.email,
     active: user.active,
     admin: user.admin,
+    name: user.name,
   }
 }
 
-async function createUser({ email, active, admin, name }: CreateUserFields) {
+async function createUser({ email, active, admin, name }: ReqUserCreate) {
   // Assign a random password to prevent new users from logging in until they
   // reset their password. This implementation guarantees that the user always
   // has a password, which simplifies things compared to checking for an empty

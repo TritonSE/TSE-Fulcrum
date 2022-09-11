@@ -7,6 +7,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import CenteredPaddedBox from "../components/CenteredPaddedBox";
 import { useAuth } from "../contexts/AuthContext";
 
+function getNextLocation(state: unknown) {
+  try {
+    return (state as any).locationBeforeLoggingIn.pathname || "/";
+  } catch {
+    return "/";
+  }
+}
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +30,7 @@ function Login() {
       .then((success) => {
         console.log({ success });
         if (success) {
-          navigate((location.state as any).locationBeforeLoggingIn?.pathname || "/", {
+          navigate(getNextLocation(location.state), {
             replace: true,
           });
         } else {
