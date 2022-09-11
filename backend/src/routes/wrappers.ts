@@ -5,17 +5,20 @@ import { UserService } from "../services";
 interface AsyncHandlerResult {
   status: number,
   json?: unknown,
+  text?: string,
 }
 
 type AsyncHandler = (req: Request, res: Response) => Promise<AsyncHandlerResult>;
 
 function wrapper(handler: AsyncHandler): RequestHandler {
   return (req, res) => {
-    handler(req, res).then(({ status, json }) => {
+    handler(req, res).then(({ status, json, text }) => {
       res.status(status);
 
       if (json !== undefined) {
         res.json(json);
+      } else if (text !== undefined) {
+        res.send(text);
       } else {
         res.send();
       }
