@@ -1,7 +1,6 @@
 import { Router } from "express";
 
-import UserService from "../services/UserService";
-
+import { UserService } from "../services";
 import { authWrapper } from "./wrappers";
 
 const router = Router();

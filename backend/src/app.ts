@@ -6,7 +6,7 @@ import morgan from "morgan";
 
 import env from "./env";
 import routes from "./routes";
-import UserService from "./services/UserService";
+import { UserService } from "./services";
 
 async function onStartup() {
   // Create the admin account if necessary.

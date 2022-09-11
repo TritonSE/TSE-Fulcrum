@@ -1,6 +1,6 @@
 import { Request, Response, RequestHandler } from "express";
 import { UserDocument } from "../models/UserModel";
-import UserService from "../services/UserService";
+import { UserService } from "../services";
 
 interface AsyncHandlerResult {
   status: number,

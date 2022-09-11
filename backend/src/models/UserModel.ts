@@ -53,5 +53,10 @@ const UserSchema = new Schema<User>({
   }
 });
 
-export default model("User", UserSchema);
-export type UserDocument = HydratedDocument<User>;
+const UserModel = model("User", UserSchema);
+type UserDocument = HydratedDocument<User>;
+
+export {
+  UserModel,
+  UserDocument,
+}

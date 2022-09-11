@@ -1,5 +1,5 @@
 import { DateTime } from "luxon";
-import UserModel, { UserDocument } from "../models/UserModel";
+import { UserDocument, UserModel } from "../models";
 import CryptoService from "./CryptoService";
 import EmailService from "./EmailService";
 import env from "../env";
