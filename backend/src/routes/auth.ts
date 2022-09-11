@@ -39,12 +39,10 @@ router.post(
 
 router.get(
   "/me",
-  authWrapper(async (user) => {
-    return {
-      status: 200,
-      json: UserService.serialize(user),
-    };
-  })
+  authWrapper(async (user) => ({
+    status: 200,
+    json: UserService.serialize(user),
+  }))
 );
 
 export default router;

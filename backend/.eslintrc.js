@@ -8,6 +8,7 @@ const generalRules = {
   "no-continue": "off",
   "prefer-template": "off",
   "prefer-destructuring": "off",
+  "class-methods-use-this": "off",
 
   // Allow leading underscores in identifiers (e.g. _id in MongoDB).
   "no-underscore-dangle": "off",
@@ -152,7 +153,8 @@ function generateConfig() {
   const eslintrcJson = loadEslintrcJson();
   const usingReact = eslintrcJson.plugins !== undefined && eslintrcJson.plugins.includes("react");
   const usingNode = eslintrcJson.env.node;
-  const usingTypeScript = eslintrcJson.plugins !== undefined && eslintrcJson.plugins.includes("@typescript-eslint");
+  const usingTypeScript =
+    eslintrcJson.plugins !== undefined && eslintrcJson.plugins.includes("@typescript-eslint");
 
   const config = {
     settings: {
