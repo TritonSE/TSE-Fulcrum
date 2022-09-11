@@ -152,6 +152,7 @@ function generateConfig() {
   const eslintrcJson = loadEslintrcJson();
   const usingReact = eslintrcJson.plugins !== undefined && eslintrcJson.plugins.includes("react");
   const usingNode = eslintrcJson.env.node;
+  const usingTypeScript = eslintrcJson.plugins !== undefined && eslintrcJson.plugins.includes("@typescript-eslint");
 
   const config = {
     settings: {
@@ -160,8 +161,16 @@ function generateConfig() {
       },
     },
     ...eslintrcJson,
-    extends: ["eslint:recommended", usingReact ? "airbnb" : "airbnb-base", "prettier"],
-    rules: generateRules(usingReact, usingNode),
+    extends: [
+      ...eslintrcJson.extends,
+      usingReact ? "airbnb" : "airbnb-base",
+      ...(usingTypeScript ? [usingReact ? "airbnb-typescript" : "airbnb-typescript/base"] : []),
+      "prettier",
+    ],
+    rules: {
+      ...generateRules(usingReact, usingNode),
+      ...eslintrcJson.rules,
+    },
   };
 
   if (usingReact) {
