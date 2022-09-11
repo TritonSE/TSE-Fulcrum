@@ -14,7 +14,7 @@ function getEnv<T>(key: string, defaultValue: T, parser?: (fromEnv: string) => T
   if (fromEnv === undefined) {
     return defaultValue;
   }
-  return (parser === undefined) ? fromEnv : parser(fromEnv);
+  return parser === undefined ? fromEnv : parser(fromEnv);
 }
 
 const NODE_ENV = getEnv("NODE_ENV", "development");
@@ -57,11 +57,18 @@ const env = {
    */
   ADMIN_EMAIL,
 
-  EMAIL_ENABLED: getEnv("EMAIL_ENABLED", NODE_ENV !== "development", (enabled: string) => !!enabled),
+  EMAIL_ENABLED: getEnv(
+    "EMAIL_ENABLED",
+    NODE_ENV !== "development",
+    (enabled: string) => !!enabled
+  ),
 
   DEPLOYMENT_NAME: getEnv("DEPLOYMENT_NAME", "TSE Fulcrum"),
 
-  EMAIL_FOOTER: getEnv("EMAIL_FOOTER", `This is an automated email, and replies will not be read. Please contact ${ADMIN_EMAIL} if you have any questions or concerns.`),
+  EMAIL_FOOTER: getEnv(
+    "EMAIL_FOOTER",
+    `This is an automated email, and replies will not be read. Please contact ${ADMIN_EMAIL} if you have any questions or concerns.`
+  ),
 
   PASSWORD_RESET_EXPIRATION_MINS: getEnv("PASSWORD_RESET_EXPIRATION_MINS", 15, parseInt),
 

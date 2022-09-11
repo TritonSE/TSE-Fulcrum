@@ -35,7 +35,7 @@ class UserService {
   async create({ email, name }: CreateUserRequest): Promise<UserDocument | null> {
     // TODO: To avoid race conditions, we should try to save, and catch the
     // exception if the user already exists (E11000).
-    if (await this.getByEmail(email) !== null) {
+    if ((await this.getByEmail(email)) !== null) {
       console.error(`User with email already exists: ${email}`);
       return null;
     }
@@ -56,7 +56,7 @@ class UserService {
     const user = new UserModel({
       email,
       name,
-      passwordHash, 
+      passwordHash,
       passwordResetTokenHash,
       passwordResetExpiration,
       sessionTokenHash,
@@ -86,7 +86,7 @@ class UserService {
   async logIn({ email, password }: LogInRequest): Promise<LogInResponse | null> {
     const user = await this.getByEmail(email);
     if (user === null) {
-      console.error(`No user with email address: ${email}`)
+      console.error(`No user with email address: ${email}`);
       return null;
     }
 
@@ -98,7 +98,9 @@ class UserService {
     // Generate a new session token.
     const sessionToken = CryptoService.generateToken();
     user.sessionTokenHash = CryptoService.hashToken(sessionToken);
-    user.sessionExpiration = DateTime.now().plus({ minutes: env.SESSION_EXPIRATION_MINS }).toJSDate();
+    user.sessionExpiration = DateTime.now()
+      .plus({ minutes: env.SESSION_EXPIRATION_MINS })
+      .toJSDate();
     await user.save();
 
     return {
@@ -115,13 +117,15 @@ class UserService {
   async requestPasswordReset(email: string): Promise<void> {
     const user = await this.getByEmail(email);
     if (user === null) {
-      console.error(`No user with email address: ${email}`)
+      console.error(`No user with email address: ${email}`);
       return;
     }
 
     const passwordResetToken = CryptoService.generateToken();
     user.passwordResetTokenHash = CryptoService.hashToken(passwordResetToken);
-    user.passwordResetExpiration = DateTime.now().plus({ minutes: env.PASSWORD_RESET_EXPIRATION_MINS }).toJSDate();
+    user.passwordResetExpiration = DateTime.now()
+      .plus({ minutes: env.PASSWORD_RESET_EXPIRATION_MINS })
+      .toJSDate();
     await user.save();
 
     await EmailService.send({
@@ -134,10 +138,14 @@ class UserService {
     });
   }
 
-  async resetPassword({ email, passwordResetToken, password }: ResetPasswordRequest): Promise<boolean> {
+  async resetPassword({
+    email,
+    passwordResetToken,
+    password,
+  }: ResetPasswordRequest): Promise<boolean> {
     const user = await this.getByEmail(email);
     if (user === null) {
-      console.error(`No user with email address: ${email}`)
+      console.error(`No user with email address: ${email}`);
       return false;
     }
 

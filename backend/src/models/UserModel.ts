@@ -8,7 +8,7 @@ interface User {
 
   passwordResetTokenHash: string;
   passwordResetExpiration: Date;
-  
+
   sessionTokenHash: string;
   sessionExpiration: Date;
 }
@@ -50,13 +50,10 @@ const UserSchema = new Schema<User>({
   sessionExpiration: {
     type: Date,
     required: true,
-  }
+  },
 });
 
 const UserModel = model("User", UserSchema);
 type UserDocument = HydratedDocument<User>;
 
-export {
-  UserModel,
-  UserDocument,
-}
+export { UserModel, UserDocument };

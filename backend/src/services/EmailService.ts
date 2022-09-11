@@ -18,7 +18,7 @@ class EmailService {
       auth: {
         user: env.EMAIL_USERNAME,
         pass: env.EMAIL_PASSWORD,
-      }
+      },
     });
   }
 

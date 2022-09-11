@@ -3,33 +3,39 @@ import { UserDocument } from "../models/UserModel";
 import { UserService } from "../services";
 
 interface AsyncHandlerResult {
-  status: number,
-  json?: unknown,
-  text?: string,
+  status: number;
+  json?: unknown;
+  text?: string;
 }
 
 type AsyncHandler = (req: Request, res: Response) => Promise<AsyncHandlerResult>;
 
 function wrapper(handler: AsyncHandler): RequestHandler {
   return (req, res) => {
-    handler(req, res).then(({ status, json, text }) => {
-      res.status(status);
+    handler(req, res)
+      .then(({ status, json, text }) => {
+        res.status(status);
 
-      if (json !== undefined) {
-        res.json(json);
-      } else if (text !== undefined) {
-        res.send(text);
-      } else {
-        res.send();
-      }
-    }).catch((e) => {
-      console.error(e);
-      res.status(500).send();
-    })
+        if (json !== undefined) {
+          res.json(json);
+        } else if (text !== undefined) {
+          res.send(text);
+        } else {
+          res.send();
+        }
+      })
+      .catch((e) => {
+        console.error(e);
+        res.status(500).send();
+      });
   };
 }
 
-type AsyncAuthHandler = (user: UserDocument, req: Request, res: Response) => Promise<AsyncHandlerResult>;
+type AsyncAuthHandler = (
+  user: UserDocument,
+  req: Request,
+  res: Response
+) => Promise<AsyncHandlerResult>;
 
 function authWrapper(handler: AsyncAuthHandler): RequestHandler {
   return wrapper(async (req, res) => {
@@ -45,10 +51,7 @@ function authWrapper(handler: AsyncAuthHandler): RequestHandler {
     }
 
     return handler(user, req, res);
-  })
+  });
 }
 
-export {
-  wrapper,
-  authWrapper,
-}
+export { wrapper, authWrapper };
