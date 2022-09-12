@@ -1,7 +1,7 @@
 import { ReactElement, useContext, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import api from "./api";
-import { GlobalContext } from "./context/GlobalContext";
+import api from "../api";
+import { GlobalContext } from "../context/GlobalContext";
 
 export default function RequireAuth({ children }: { children: ReactElement }): ReactElement {
   const { user, setUser, setRedirectAfterLogin } = useContext(GlobalContext);
