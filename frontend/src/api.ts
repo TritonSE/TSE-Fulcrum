@@ -1,7 +1,6 @@
 type Method = "get" | "post";
 
 export interface User {
-  id: string;
   email: string;
   name: string;
 }
@@ -11,15 +10,15 @@ interface LogInRequest {
   password: string;
 }
 
-interface CreateUserRequest {
-  email: string;
-  name: string;
-}
-
 interface ResetPasswordRequest {
   email: string;
   password: string;
   passwordResetToken: string;
+}
+
+interface CreateUserRequest {
+  email: string;
+  name: string;
 }
 
 class Api {

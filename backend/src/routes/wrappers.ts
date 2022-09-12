@@ -31,6 +31,15 @@ function wrapper(handler: AsyncHandler): RequestHandler {
   };
 }
 
+async function getUser(req: Request): Promise<UserDocument | null> {
+  const sessionToken = req.cookies.session;
+  if (sessionToken === undefined) {
+    console.log("No session token provided");
+    return null;
+  }
+  return UserService.getBySessionToken(sessionToken);
+}
+
 type AsyncAuthHandler = (
   user: UserDocument,
   req: Request,
@@ -39,13 +48,7 @@ type AsyncAuthHandler = (
 
 function authWrapper(handler: AsyncAuthHandler): RequestHandler {
   return wrapper(async (req, res) => {
-    const sessionToken = req.cookies.session;
-    if (sessionToken === undefined) {
-      console.log("No session token provided");
-      return { status: 401 };
-    }
-
-    const user = await UserService.getBySessionToken(sessionToken);
+    const user = await getUser(req);
     if (user === null) {
       return { status: 401 };
     }
@@ -54,4 +57,4 @@ function authWrapper(handler: AsyncAuthHandler): RequestHandler {
   });
 }
 
-export { wrapper, authWrapper };
+export { wrapper, getUser, authWrapper };

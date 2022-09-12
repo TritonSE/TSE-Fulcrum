@@ -10,6 +10,9 @@ const generalRules = {
   "prefer-destructuring": "off",
   "class-methods-use-this": "off",
 
+  // Allow the use of for...of statements.
+  "no-restricted-syntax": "off",
+
   // Allow leading underscores in identifiers (e.g. _id in MongoDB).
   "no-underscore-dangle": "off",
 
@@ -85,25 +88,6 @@ function getAccessibilityOverrideRules() {
 }
 
 /**
- * Override rules from eslint-config-airbnb-base, if present.
- */
-function getAirbnbOverrideRules() {
-  let airbnbRules;
-  try {
-    airbnbRules = require("eslint-config-airbnb-base/rules/style.js").rules;
-  } catch (e) {
-    return {};
-  }
-
-  return {
-    // Allow the use of for...of statements.
-    "no-restricted-syntax": airbnbRules["no-restricted-syntax"].filter(
-      (item) => item.selector !== "ForOfStatement"
-    ),
-  };
-}
-
-/**
  * Load the .eslintrc.json file, which contains frontend/backend-specific configuration.
  */
 function loadEslintrcJson() {
@@ -128,7 +112,6 @@ function loadEslintrcJson() {
  */
 function generateRules(usingReact, usingNode) {
   const rules = { ...generalRules };
-  Object.assign(rules, getAirbnbOverrideRules());
   if (usingReact) {
     Object.assign(rules, reactRules);
     Object.assign(rules, getAccessibilityOverrideRules());

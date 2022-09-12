@@ -35,9 +35,9 @@ router.post(
 );
 
 router.get(
-  ":id",
+  ":email",
   authWrapper(async (_user, req) => {
-    const user = await UserService.getById(req.params.id);
+    const user = await UserService.getByEmail(req.params.email);
     if (user === null) {
       return {
         status: 404,

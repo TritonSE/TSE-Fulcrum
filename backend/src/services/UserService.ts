@@ -5,7 +5,6 @@ import EmailService from "./EmailService";
 import env from "../env";
 
 interface PublicUser {
-  id: string;
   email: string;
   name: string;
 }
@@ -71,10 +70,6 @@ class UserService {
 
   async getByEmail(email: string): Promise<UserDocument | null> {
     return UserModel.findOne({ email });
-  }
-
-  async getById(id: string): Promise<UserDocument | null> {
-    return UserModel.findById(id);
   }
 
   async getBySessionToken(sessionToken: string): Promise<UserDocument | null> {
@@ -178,7 +173,6 @@ class UserService {
 
   serialize(user: UserDocument): PublicUser {
     return {
-      id: user._id.toHexString(),
       email: user.email,
       name: user.name,
     };

@@ -27,7 +27,7 @@ export default function RequestPasswordReset() {
         <Form.Label>Email address</Form.Label>
         <Form.Control type="email" onChange={(e) => setEmail(e.target.value)} />
       </Form.Group>
-      <Button type="submit">Reset password</Button>
+      <Button type="submit">Request password reset</Button>
       {alerts}
     </Form>
   );
