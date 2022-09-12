@@ -65,8 +65,16 @@ class UserService {
     return user.save();
   }
 
+  async getAll(): Promise<UserDocument[]> {
+    return UserModel.find({});
+  }
+
   async getByEmail(email: string): Promise<UserDocument | null> {
     return UserModel.findOne({ email });
+  }
+
+  async getById(id: string): Promise<UserDocument | null> {
+    return UserModel.findById(id);
   }
 
   async getBySessionToken(sessionToken: string): Promise<UserDocument | null> {

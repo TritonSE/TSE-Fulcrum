@@ -1,6 +1,7 @@
 type Method = "get" | "post";
 
-interface User {
+export interface User {
+  id: string;
   email: string;
   name: string;
 }
@@ -10,20 +11,77 @@ interface LogInRequest {
   password: string;
 }
 
+interface CreateUserRequest {
+  email: string;
+  name: string;
+}
+
+interface ResetPasswordRequest {
+  email: string;
+  password: string;
+  passwordResetToken: string;
+}
+
 class Api {
-  public async logIn(request: LogInRequest): Promise<User> {
-    return (await this.post("/api/auth/log-in", request)).json();
+  async logIn(request: LogInRequest): Promise<User | null> {
+    const response = await this.uncheckedPost("/api/auth/log-in", request);
+    if (response.status === 401) {
+      return null;
+    }
+    await this.assertOk(response);
+    return response.json();
   }
 
-  public async me(): Promise<User> {
-    return (await this.get("/api/auth/me")).json();
+  async logOut(): Promise<void> {
+    await this.post("/api/auth/log-out", undefined);
+  }
+
+  async me(): Promise<User | null> {
+    const response = await this.uncheckedGet("/api/auth/me");
+    if (response.status === 401) {
+      return null;
+    }
+    await this.assertOk(response);
+    return response.json();
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    await this.post("/api/auth/request-password-reset", { email });
+  }
+
+  async resetPassword(request: ResetPasswordRequest): Promise<boolean> {
+    return (await this.post("/api/auth/reset-password", request)).ok;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return (await this.get("/api/user")).json();
+  }
+
+  async createUser(request: CreateUserRequest): Promise<User> {
+    return (await this.post("/api/user", request)).json();
   }
 
   private async get(url: string, headers: Record<string, string> = {}): Promise<Response> {
-    return this.fetch("get", url, undefined, headers);
+    const response = await this.uncheckedGet(url, headers);
+    await this.assertOk(response);
+    return response;
   }
 
   private async post(
+    url: string,
+    body: unknown,
+    headers: Record<string, string> = {}
+  ): Promise<Response> {
+    const response = await this.uncheckedPost(url, body, headers);
+    await this.assertOk(response);
+    return response;
+  }
+
+  private async uncheckedGet(url: string, headers: Record<string, string> = {}): Promise<Response> {
+    return this.fetch("get", url, undefined, headers);
+  }
+
+  private async uncheckedPost(
     url: string,
     body: unknown,
     headers: Record<string, string> = {}
@@ -50,27 +108,26 @@ class Api {
       body: hasBody ? JSON.stringify(body) : undefined,
     });
 
-    if (!response.ok) {
-      let message = "";
-      try {
-        message = ": " + (await response.text());
-      } catch (e) {
-        // No error message; ignore.
-      }
+    return response;
+  }
 
-      throw new Error(
-        [
-          `${response.status} ${response.statusText}${message}`,
-          `${method} ${url}`,
-          ...(Object.keys(newHeaders).length === 0
-            ? []
-            : [`headers: ${JSON.stringify(newHeaders, null, 2)}`]),
-          ...(body === undefined ? [] : [`body: ${JSON.stringify(body, null, 2)}`]),
-        ].join("\n\n")
-      );
+  private async assertOk(response: Response): Promise<void> {
+    if (response.ok) {
+      return;
     }
 
-    return response;
+    const parts = [`${response.status} ${response.statusText}`];
+
+    try {
+      const message = await response.text();
+      if (message) {
+        parts.push(": " + message);
+      }
+    } catch (e) {
+      // Ignore.
+    }
+
+    throw new Error(parts.join(""));
   }
 }
 

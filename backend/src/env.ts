@@ -73,7 +73,7 @@ const env = {
 
   PASSWORD_RESET_EXPIRATION_MINS: getEnv("PASSWORD_RESET_EXPIRATION_MINS", 15, parseInt),
 
-  SESSION_EXPIRATION_MINS: getEnv("SESSION_EXPIRATION_MINS", 60, parseInt),
+  SESSION_EXPIRATION_MINS: getEnv("SESSION_EXPIRATION_MINS", 12 * 60, parseInt),
 
   // Loaded from environment variables.
   NODE_ENV,

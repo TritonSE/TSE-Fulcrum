@@ -45,4 +45,25 @@ router.get(
   }))
 );
 
+router.post(
+  "/request-password-reset",
+  wrapper(async (req) => {
+    await UserService.requestPasswordReset(req.body.email);
+    // We don't want to return an error if the email doesn't exist, because
+    // that would enable unauthenticated clients to check whether an account
+    // exists with a given email.
+    return { status: 200 };
+  })
+);
+
+router.post(
+  "/reset-password",
+  wrapper(async (req) => {
+    if (await UserService.resetPassword(req.body)) {
+      return { status: 200 };
+    }
+    return { status: 400 };
+  })
+);
+
 export default router;

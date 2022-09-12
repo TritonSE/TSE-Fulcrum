@@ -9,6 +9,7 @@ const generalRules = {
   "prefer-template": "off",
   "prefer-destructuring": "off",
   "class-methods-use-this": "off",
+  "max-classes-per-file": "off",
 
   // Allow leading underscores in identifiers (e.g. _id in MongoDB).
   "no-underscore-dangle": "off",

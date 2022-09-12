@@ -9,6 +9,7 @@ interface User {
   passwordResetTokenHash: string;
   passwordResetExpiration: Date;
 
+  // TODO: move these to a separate model so a user can have multiple sessions
   sessionTokenHash: string;
   sessionExpiration: Date;
 }
