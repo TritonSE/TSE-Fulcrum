@@ -10,8 +10,6 @@ interface FormField {
 
 interface Form {
   identifier: string;
-  authRequired: boolean;
-  active: boolean;
   fields: Record<string, FormField>;
   displayName: string;
   displayOrder: string[];
@@ -23,7 +21,10 @@ const FormFieldSchema = new Schema<FormField>({
     enum: ["string", "number", "boolean"],
     required: true,
   },
-  choices: Array,
+  choices: {
+    type: Array,
+    required: true,
+  },
   allowOther: {
     type: Boolean,
     required: true,
@@ -44,14 +45,6 @@ const FormSchema = new Schema<Form>({
     required: true,
     unique: true,
     immutable: true,
-  },
-  authRequired: {
-    type: Boolean,
-    required: true,
-  },
-  active: {
-    type: Boolean,
-    required: true,
   },
   fields: {
     type: Map,

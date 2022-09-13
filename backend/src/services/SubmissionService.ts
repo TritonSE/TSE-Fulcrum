@@ -2,23 +2,12 @@ import { Submission, SubmissionDocument, SubmissionModel } from "../models";
 import FormService from "./FormService";
 
 class SubmissionService {
-  async create(
-    submission: Submission,
-    authenticated: boolean
-  ): Promise<SubmissionDocument | string> {
+  async create(submission: Submission): Promise<SubmissionDocument | string> {
     const formIdentifier = submission.formIdentifier;
 
     const form = await FormService.getByIdentifier(formIdentifier);
     if (form === null) {
       return `No form with identifier: ${formIdentifier}`;
-    }
-
-    if (!form.active) {
-      return `Form is not active: ${formIdentifier}`;
-    }
-
-    if (form.authRequired && !authenticated) {
-      return `Form requires authentication: ${formIdentifier}`;
     }
 
     for (const [key, value] of Object.entries(submission.fields)) {
@@ -50,10 +39,12 @@ class SubmissionService {
   serialize(submission: SubmissionDocument) {
     return {
       id: submission._id.toHexString(),
+      formIdentifier: submission.formIdentifier,
       fields: submission.fields,
+      draft: submission.draft,
       ownerEmail: submission.ownerEmail,
-      parent: submission.parent?.toHexString(),
-    }
+      applicationId: submission.application.toHexString(),
+    };
   }
 }
 
