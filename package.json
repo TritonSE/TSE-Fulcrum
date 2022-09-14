@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "install": "npm install --prefix backend && npm install --prefix frontend",
-    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\""
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm start --prefix frontend\"",
+    "lint-check": "npm run lint-check --prefix backend && npm run lint-check --prefix frontend",
+    "lint-fix": "(npm run lint-fix --prefix backend || true) && npm run lint-fix --prefix frontend"
   },
   "devDependencies": {
     "concurrently": "^7.4.0"
