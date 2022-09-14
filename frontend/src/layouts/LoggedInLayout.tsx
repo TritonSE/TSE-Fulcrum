@@ -24,11 +24,13 @@ export default function LoggedInLayout() {
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-end">
             <Navbar.Text>{user?.email}</Navbar.Text>
-            <Button variant="outline-secondary" onClick={onLogOut}>Log out</Button>
+            <Button variant="outline-secondary" onClick={onLogOut}>
+              Log out
+            </Button>
           </Navbar.Collapse>
         </Navbar>
         <Outlet />
       </>
     </RequireAuth>
-  )
+  );
 }
