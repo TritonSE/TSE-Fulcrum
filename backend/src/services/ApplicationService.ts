@@ -1,4 +1,5 @@
 import { Application, ApplicationModel } from "../models";
+
 import EmailService from "./EmailService";
 
 class ApplicationService {

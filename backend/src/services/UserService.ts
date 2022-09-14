@@ -1,8 +1,10 @@
 import { DateTime } from "luxon";
+
+import env from "../env";
 import { UserDocument, UserModel } from "../models";
+
 import CryptoService from "./CryptoService";
 import EmailService from "./EmailService";
-import env from "../env";
 
 interface PublicUser {
   email: string;

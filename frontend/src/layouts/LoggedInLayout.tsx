@@ -1,8 +1,10 @@
 import { useContext } from "react";
 import { Button, Navbar } from "react-bootstrap";
 import { Outlet, useNavigate } from "react-router-dom";
+
 import api from "../api";
 import { GlobalContext } from "../context/GlobalContext";
+
 import RequireAuth from "./RequireAuth";
 
 export default function LoggedInLayout() {

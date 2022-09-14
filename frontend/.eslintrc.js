@@ -43,6 +43,17 @@ const generalRules = {
   // Not necessary for some APIs (consistency reasons)
   "import/prefer-default-export": "off",
 
+  // Enforce consistent import ordering.
+  "import/order": [
+    "warn",
+    {
+      "newlines-between": "always",
+      alphabetize: {
+        order: "asc",
+      },
+    },
+  ],
+
   // Stylistic rules.
   "lines-between-class-members": "off",
 };

@@ -1,12 +1,12 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import Login from "./pages/Login";
 import { GlobalContextProvider } from "./context/GlobalContext";
+import LoggedInLayout from "./layouts/LoggedInLayout";
 import Home from "./pages/Home";
-import Users from "./pages/Users";
+import Login from "./pages/Login";
 import RequestPasswordReset from "./pages/RequestPasswordReset";
 import ResetPassword from "./pages/ResetPassword";
-import LoggedInLayout from "./layouts/LoggedInLayout";
+import Users from "./pages/Users";
 
 export default function App() {
   return (
