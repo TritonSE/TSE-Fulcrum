@@ -115,18 +115,18 @@ class Api {
       return;
     }
 
-    const parts = [`${response.status} ${response.statusText}`];
+    let message = `${response.status} ${response.statusText}`;
 
     try {
-      const message = await response.text();
-      if (message) {
-        parts.push(": " + message);
+      const text = await response.text();
+      if (text) {
+        message += ": " + text;
       }
     } catch (e) {
       // Ignore.
     }
 
-    throw new Error(parts.join(""));
+    throw new Error(message);
   }
 }
 
