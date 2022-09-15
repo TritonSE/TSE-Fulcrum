@@ -17,7 +17,7 @@ class ReviewService {
       application,
       completed: false,
       fields: {},
-      ...(reviewerEmail !== null ? { ownerEmail: reviewerEmail } : {}),
+      ...(reviewerEmail !== null ? { reviewerEmail } : {}),
     }).save();
 
     if (reviewerEmail !== null) {
@@ -32,7 +32,7 @@ class ReviewService {
   // cannot update review after it's completed
 
   private async sendAssignEmail(review: ReviewDocument): Promise<void> {
-    if (typeof review.ownerEmail !== "string") {
+    if (typeof review.reviewerEmail !== "string") {
       throw new Error(`No reviewer assigned to review: ${review._id.toHexString()}`);
     }
 
@@ -41,7 +41,7 @@ class ReviewService {
     const stage = await StageService.getById(review.stage);
 
     return EmailService.send({
-      recipient: review.ownerEmail,
+      recipient: review.reviewerEmail,
       subject: `${stage?.name} for ${application?.name}`,
       body: `${env.DEPLOYMENT_URL}/review/${review._id.toHexString()}`,
     });
@@ -61,7 +61,7 @@ class ReviewService {
     const excludingPreviousReviewers = [];
     for (const reviewerEmail of reviewerEmails) {
       // eslint-disable-next-line no-await-in-loop
-      if ((await ReviewModel.findOne({ ownerEmail: reviewerEmail, application })) === null) {
+      if ((await ReviewModel.findOne({ reviewerEmail, application })) === null) {
         excludingPreviousReviewers.push(reviewerEmail);
       }
     }
@@ -73,9 +73,7 @@ class ReviewService {
     // TODO: don't count applications in preceding years
     const countsAndEmails = await Promise.all(
       reviewerEmails.map((reviewerEmail) =>
-        ReviewModel.count({ ownerEmail: reviewerEmail }).then(
-          (count) => [count, reviewerEmail] as const
-        )
+        ReviewModel.count({ reviewerEmail }).then((count) => [count, reviewerEmail] as const)
       )
     );
 

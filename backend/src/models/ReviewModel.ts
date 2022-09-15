@@ -3,8 +3,7 @@ import { HydratedDocument, model, Schema, Types } from "mongoose";
 interface Review {
   stage: Types.ObjectId;
   application: Types.ObjectId;
-  // TODO: rename to reviewerEmail for consistency
-  ownerEmail?: string;
+  reviewerEmail?: string;
   completed: boolean;
   fields: Record<string, string | number | boolean>;
 }
@@ -20,7 +19,7 @@ const ReviewSchema = new Schema<Review>({
     ref: "Application",
     required: true,
   },
-  ownerEmail: {
+  reviewerEmail: {
     type: String,
     index: true,
     // Not required, because reviews are created without an owner when they
@@ -40,7 +39,7 @@ const ReviewSchema = new Schema<Review>({
 ReviewSchema.index({ stage: 1, application: 1 });
 
 // Used to determine if a reviewer has seen an application before.
-ReviewSchema.index({ ownerEmail: 1, application: 1 });
+ReviewSchema.index({ reviewerEmail: 1, application: 1 });
 
 const ReviewModel = model("Review", ReviewSchema);
 type ReviewDocument = HydratedDocument<Review>;
