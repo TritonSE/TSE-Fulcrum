@@ -30,11 +30,11 @@ export default function ResetPassword() {
     <Form onSubmit={onSubmit}>
       <Form.Group controlId="email">
         <Form.Label>Email address</Form.Label>
-        <Form.Control type="email" onChange={(e) => setField("email", e.target.value)} />
+        <Form.Control required type="email" onChange={(e) => setField("email", e.target.value)} />
       </Form.Group>
       <Form.Group controlId="name">
         <Form.Label>Name</Form.Label>
-        <Form.Control type="text" onChange={(e) => setField("name", e.target.value)} />
+        <Form.Control required type="text" onChange={(e) => setField("name", e.target.value)} />
       </Form.Group>
       <Button type="submit">Create user</Button>
       {alerts}

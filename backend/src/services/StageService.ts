@@ -3,6 +3,20 @@ import { Types } from "mongoose";
 import { StageDocument, StageModel } from "../models";
 
 class StageService {
+  async create(pipeline: Types.ObjectId, pipelineIndex: number): Promise<StageDocument> {
+    return StageModel.create({
+      pipeline,
+      pipelineIndex,
+      numReviews: 1,
+      name: `Stage ${pipelineIndex + 1}`,
+      fields: {},
+      fieldOrder: [],
+      reviewerEmails: [],
+      autoAssignReviewers: false,
+      notifyReviewersWhenAssigned: true,
+    });
+  }
+
   async getById(id: Types.ObjectId): Promise<StageDocument | null> {
     return StageModel.findById(id);
   }

@@ -85,6 +85,9 @@ const StageSchema = new Schema<Stage>({
   },
 });
 
+// Used to get all stages for a pipeline, ordered by index.
+StageSchema.index({ pipeline: 1, pipelineIndex: 1 });
+
 const StageModel = model("Stage", StageSchema);
 type StageDocument = HydratedDocument<Stage>;
 

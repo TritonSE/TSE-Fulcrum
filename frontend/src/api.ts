@@ -1,4 +1,4 @@
-type Method = "get" | "post";
+type Method = "get" | "post" | "put";
 
 export interface User {
   email: string;
@@ -19,6 +19,18 @@ interface ResetPasswordRequest {
 interface CreateUserRequest {
   email: string;
   name: string;
+}
+
+export interface Pipeline {
+  _id: string;
+  identifier: string;
+  name: string;
+}
+
+interface CreatePipelineRequest {
+  identifier: string;
+  name: string;
+  stages: number;
 }
 
 class Api {
@@ -60,6 +72,18 @@ class Api {
     return (await this.post("/api/user", request)).json();
   }
 
+  async getAllPipelines(): Promise<Pipeline[]> {
+    return (await this.get("/api/pipeline")).json();
+  }
+
+  async createPipeline(request: CreatePipelineRequest): Promise<Pipeline> {
+    return (await this.post("/api/pipeline", request)).json();
+  }
+
+  async updatePipeline(request: Pipeline): Promise<Pipeline> {
+    return (await this.put(`/api/pipeline/${request._id}`, request)).json();
+  }
+
   private async get(url: string, headers: Record<string, string> = {}): Promise<Response> {
     const response = await this.uncheckedGet(url, headers);
     await this.assertOk(response);
@@ -76,6 +100,16 @@ class Api {
     return response;
   }
 
+  private async put(
+    url: string,
+    body: unknown,
+    headers: Record<string, string> = {}
+  ): Promise<Response> {
+    const response = await this.fetch("put", url, body, headers);
+    await this.assertOk(response);
+    return response;
+  }
+
   private async uncheckedGet(url: string, headers: Record<string, string> = {}): Promise<Response> {
     return this.fetch("get", url, undefined, headers);
   }
@@ -86,6 +120,14 @@ class Api {
     headers: Record<string, string> = {}
   ): Promise<Response> {
     return this.fetch("post", url, body, headers);
+  }
+
+  private async uncheckedPut(
+    url: string,
+    body: unknown,
+    headers: Record<string, string> = {}
+  ): Promise<Response> {
+    return this.fetch("put", url, body, headers);
   }
 
   private async fetch(

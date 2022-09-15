@@ -1,5 +1,7 @@
 import ApplicationService from "./ApplicationService";
-import SubmissionService from "./ReviewService";
+import PipelineService from "./PipelineService";
+import ReviewService from "./ReviewService";
+import StageService from "./StageService";
 import UserService from "./UserService";
 
-export { ApplicationService, SubmissionService, UserService };
+export { ApplicationService, PipelineService, StageService, ReviewService, UserService };

@@ -14,11 +14,14 @@ interface AlertData {
 
 function useAlerts(): UseAlertsResult {
   const [alertList, setAlertList] = useState<AlertData[]>([]);
+
   return {
     alerts: (
       <div>
         {alertList.map(({ message, variant }, i: number) => (
           <Alert
+            /* eslint-disable-next-line react/no-array-index-key */
+            key={i}
             variant={variant}
             dismissible
             onClose={() => setAlertList(alertList.filter((_, j) => j !== i))}
