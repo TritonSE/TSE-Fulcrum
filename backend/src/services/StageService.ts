@@ -7,6 +7,8 @@ class StageService {
     return StageModel.findById(id);
   }
 
+  // TODO: update stages - don't allow index to be changed
+
   async getByPipelineAndIndex(
     pipeline: Types.ObjectId,
     index: number

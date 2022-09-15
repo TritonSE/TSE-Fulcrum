@@ -1,6 +1,7 @@
 import { HydratedDocument, model, Schema, Types } from "mongoose";
 
 interface Review {
+  _id: Types.ObjectId;
   stage: Types.ObjectId;
   application: Types.ObjectId;
   reviewerEmail?: string;

@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 
 import env from "../env";
-import { ApplicationModel, ReviewDocument, ReviewModel, StageDocument } from "../models";
+import { ApplicationModel, Review, ReviewDocument, ReviewModel, StageDocument } from "../models";
 
 import EmailService from "./EmailService";
 import StageService from "./StageService";
@@ -25,6 +25,36 @@ class ReviewService {
     }
 
     return review;
+  }
+
+  async update(review: Review): Promise<ReviewDocument | string> {
+    const existing = await ReviewModel.findById(review._id);
+    if (existing === null) {
+      return `No review with id: ${review._id}`;
+    }
+
+    if (existing.completed) {
+      return `Cannot update completed review: ${review._id}`;
+    }
+
+    const existingEmail = existing.reviewerEmail;
+    const newEmail = review.reviewerEmail;
+
+    const reviewDocument = await ReviewModel.findByIdAndUpdate(review._id, review, {
+      overwrite: true,
+    });
+    if (reviewDocument === null) {
+      // Shouldn't happen because we just queried for the old document.
+      // This is mostly for TypeScript control flow analysis.
+      return `Race condition: review with id deleted? ${review._id}`;
+    }
+
+    if (typeof newEmail === "string" && newEmail !== existingEmail) {
+      // Review was assigned or reassigned.
+      await this.sendAssignEmail(reviewDocument);
+    }
+
+    return reviewDocument;
   }
 
   // TODO: update review
