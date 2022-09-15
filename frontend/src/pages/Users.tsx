@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Table } from "react-bootstrap";
 
 import api, { User } from "../api";
 import { useAlerts } from "../hooks";
@@ -12,13 +13,24 @@ export default function Users() {
   }, []);
 
   return (
-    <div>
-      {users.map((user, i: number) => (
-        <p key={i}>
-          email: {user.email}, name: {user.name}
-        </p>
-      ))}
+    <>
+      <Table striped bordered>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.email}>
+              <td>{user.email}</td>
+              <td>{user.name}</td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
       {alerts}
-    </div>
+    </>
   );
 }
