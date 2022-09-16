@@ -40,8 +40,8 @@ class ReviewService {
     const existingEmail = existing.reviewerEmail;
     const newEmail = review.reviewerEmail;
 
-    const reviewDocument = await ReviewModel.findByIdAndUpdate(review._id, review, {
-      overwrite: true,
+    const reviewDocument = await ReviewModel.findOneAndReplace({ _id: review._id }, review, {
+      returnDocument: "after",
     });
     if (reviewDocument === null) {
       // Shouldn't happen because we just queried for the old document.
@@ -56,10 +56,6 @@ class ReviewService {
 
     return reviewDocument;
   }
-
-  // TODO: update review
-  // send email if reviewer is changed
-  // cannot update review after it's completed
 
   private async sendAssignEmail(review: ReviewDocument): Promise<void> {
     if (typeof review.reviewerEmail !== "string") {
@@ -80,12 +76,13 @@ class ReviewService {
   private async getAutoAssignedReviewer(
     stage: StageDocument,
     application: Types.ObjectId
-  ): Promise<string> {
+  ): Promise<string | null> {
     let reviewerEmails = stage.reviewerEmails;
     if (reviewerEmails.length === 0) {
-      throw new Error(
+      console.error(
         `Cannot auto-assign reviewer because stage has no reviewers: ${stage._id.toHexString()}`
       );
+      return null;
     }
 
     const excludingPreviousReviewers = [];
