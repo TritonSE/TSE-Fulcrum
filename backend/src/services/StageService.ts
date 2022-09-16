@@ -25,9 +25,9 @@ class StageService {
 
   async getByPipelineAndIndex(
     pipeline: Types.ObjectId,
-    index: number
+    pipelineIndex: number
   ): Promise<StageDocument | null> {
-    const stages = await StageModel.find({ pipeline, index });
+    const stages = await StageModel.find({ pipeline, pipelineIndex });
     if (stages.length === 0) {
       return null;
     }
@@ -37,7 +37,7 @@ class StageService {
     throw new Error(
       `Internal invariant violated: pipeline ${pipeline.toHexString()} has ${
         stages.length
-      } stages with index ${index}, expected 1`
+      } stages with index ${pipelineIndex}, expected 1`
     );
   }
 }

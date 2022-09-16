@@ -14,7 +14,7 @@ function PipelineView({ id }: { id: string }) {
     api
       .getAllPipelines()
       .then((pipelines) => {
-        setPipeline(pipelines.filter((p) => p._id === id)[0]);
+        setPipeline(pipelines.filter((p) => p._id === id)[0] || null);
       })
       .catch(addAlert);
   }, []);
@@ -34,7 +34,8 @@ function PipelineView({ id }: { id: string }) {
     api
       .updatePipeline(pipeline)
       .then(setPipeline)
-      .then(() => addAlert("Pipeline saved.", "success"));
+      .then(() => addAlert("Pipeline saved.", "success"))
+      .catch(addAlert);
   };
 
   return (

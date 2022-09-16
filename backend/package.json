@@ -2,6 +2,8 @@
   "name": "backend",
   "version": "1.0.0",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
     "dev": "nodemon --watch src --ext ts --exec ts-node src/app.ts",
     "format": "prettier --write .",
     "lint-fix": "(eslint --fix --cache --report-unused-disable-directives . || true) && prettier --write .",
