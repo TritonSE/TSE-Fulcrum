@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 
 import api, { Pipeline } from "../api";
-import { useAlerts } from "../hooks";
+import { useAlerts, useStateHelper } from "../hooks";
 
 function PipelineView({ id }: { id: string }) {
-  const [pipeline, setPipeline] = useState<Pipeline | null>(null);
+  const [pipeline, setPipeline, { getField, setField }] = useStateHelper<Pipeline>();
   const { alerts, addAlert } = useAlerts();
 
   useEffect(() => {
@@ -18,10 +18,6 @@ function PipelineView({ id }: { id: string }) {
       })
       .catch(addAlert);
   }, []);
-
-  const setField = <K extends keyof Pipeline>(key: K, value: Pipeline[K]) => {
-    setPipeline(pipeline === null ? null : { ...pipeline, [key]: value });
-  };
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -45,7 +41,8 @@ function PipelineView({ id }: { id: string }) {
         <Form.Control
           required
           type="text"
-          value={pipeline?.name || ""}
+          disabled={pipeline === null}
+          value={getField("name") || ""}
           onChange={(e) => setField("name", e.target.value)}
         />
       </Form.Group>
@@ -54,7 +51,8 @@ function PipelineView({ id }: { id: string }) {
         <Form.Control
           required
           type="text"
-          value={pipeline?.identifier || ""}
+          disabled={pipeline === null}
+          value={getField("identifier") || ""}
           onChange={(e) => setField("identifier", e.target.value)}
         />
       </Form.Group>

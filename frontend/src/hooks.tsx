@@ -41,4 +41,29 @@ function useAlerts(): UseAlertsResult {
   };
 }
 
-export { useAlerts };
+type UseStateHelperResult<T extends object> = [
+  T | null,
+  (value: T) => void,
+  {
+    getField: <K extends keyof T>(key: K) => T[K] | null;
+    setField: <K extends keyof T>(key: K, value: T[K]) => void;
+  }
+];
+
+function useStateHelper<T extends object>(initialState: T | null = null): UseStateHelperResult<T> {
+  const [state, setState] = useState<T | null>(initialState);
+  return [
+    state,
+    setState,
+    {
+      getField: (key) => (state === null ? null : state[key]),
+      setField: (key, value) => {
+        if (state !== null) {
+          setState({ ...state, [key]: value });
+        }
+      },
+    },
+  ];
+}
+
+export { useAlerts, useStateHelper };
