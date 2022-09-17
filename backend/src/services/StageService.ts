@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { StageDocument, StageModel } from "../models";
+import { Stage, StageDocument, StageModel, UserModel } from "../models";
 
 class StageService {
   async create(pipeline: Types.ObjectId, pipelineIndex: number): Promise<StageDocument> {
@@ -17,11 +17,42 @@ class StageService {
     });
   }
 
-  async getById(id: Types.ObjectId): Promise<StageDocument | null> {
+  async getById(id: Types.ObjectId | string): Promise<StageDocument | null> {
     return StageModel.findById(id);
   }
 
-  // TODO: update stages - don't allow index to be changed
+  async update(stage: Stage): Promise<StageDocument | string> {
+    const existing = await StageModel.findById(stage._id);
+    if (existing === null) {
+      // TODO: find a way to indicate 404 here
+      return `No stage with id: ${stage._id}`;
+    }
+
+    if (stage.pipelineIndex !== existing.pipelineIndex) {
+      return `Cannot change pipelineIndex from ${existing.pipelineIndex} to ${stage.pipelineIndex}`;
+    }
+
+    // TODO: filter on active users once we add the ability to deactivate users
+    const reviewers = await UserModel.find().where("email").in(stage.reviewerEmails).exec();
+    const missingEmails = stage.reviewerEmails.filter(
+      (email) => !reviewers.some((reviewer) => reviewer.email === email)
+    );
+    if (missingEmails.length > 0) {
+      return `Email addresses not valid: ${missingEmails}`;
+    }
+
+    const updatedStage = await StageModel.findOneAndReplace({ _id: stage._id }, stage, {
+      returnDocument: "after",
+    });
+    if (updatedStage === null) {
+      return `Race condition: stage with id deleted? ${stage._id}`;
+    }
+    return updatedStage;
+  }
+
+  async getByPipeline(pipeline: Types.ObjectId | string): Promise<StageDocument[]> {
+    return StageModel.find({ pipeline }).sort({ pipelineIndex: 1 });
+  }
 
   async getByPipelineAndIndex(
     pipeline: Types.ObjectId,
@@ -39,6 +70,21 @@ class StageService {
         stages.length
       } stages with index ${pipelineIndex}, expected 1`
     );
+  }
+
+  serialize(stage: StageDocument) {
+    return {
+      _id: stage._id.toHexString(),
+      pipeline: stage.pipeline.toHexString(),
+      pipelineIndex: stage.pipelineIndex,
+      numReviews: stage.numReviews,
+      name: stage.name,
+      fields: stage.fields,
+      fieldOrder: stage.fieldOrder,
+      reviewerEmails: stage.reviewerEmails,
+      autoAssignReviewers: stage.autoAssignReviewers,
+      notifyReviewersWhenAssigned: stage.notifyReviewersWhenAssigned,
+    };
   }
 }
 

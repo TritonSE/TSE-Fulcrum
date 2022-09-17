@@ -33,6 +33,7 @@ const FormFieldSchema = new Schema<FormField>({
 });
 
 interface Stage {
+  _id: Types.ObjectId;
   pipeline: Types.ObjectId;
   pipelineIndex: number;
   numReviews: number;

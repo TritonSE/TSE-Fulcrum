@@ -37,6 +37,8 @@ class ReviewService {
       return `Cannot update completed review: ${review._id}`;
     }
 
+    // TODO: validate fields against stage?
+
     const existingEmail = existing.reviewerEmail;
     const newEmail = review.reviewerEmail;
 

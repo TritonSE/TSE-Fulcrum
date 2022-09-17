@@ -33,6 +33,27 @@ interface CreatePipelineRequest {
   stages: number;
 }
 
+interface FormField {
+  type: "string" | "number" | "boolean";
+  choices: unknown[];
+  allowOther: boolean;
+  label: string;
+  description: string;
+}
+
+export interface Stage {
+  _id: string;
+  pipeline: string;
+  pipelineIndex: number;
+  numReviews: number;
+  name: string;
+  fields: Record<string, FormField>;
+  fieldOrder: string[];
+  reviewerEmails: string[];
+  autoAssignReviewers: boolean;
+  notifyReviewersWhenAssigned: boolean;
+}
+
 class Api {
   async logIn(request: LogInRequest): Promise<User | null> {
     const response = await this.uncheckedPost("/api/auth/log-in", request);
@@ -82,6 +103,18 @@ class Api {
 
   async updatePipeline(request: Pipeline): Promise<Pipeline> {
     return (await this.put(`/api/pipeline/${request._id}`, request)).json();
+  }
+
+  async getStageById(stageId: string): Promise<Stage> {
+    return (await this.get(`/api/stage/${stageId}`)).json();
+  }
+
+  async getStagesByPipeline(pipelineId: string): Promise<Stage[]> {
+    return (await this.get(`/api/stage?pipeline=${pipelineId}`)).json();
+  }
+
+  async updateStage(request: Stage): Promise<Stage> {
+    return (await this.put(`/api/stage/${request._id}`, request)).json();
   }
 
   private async get(url: string, headers: Record<string, string> = {}): Promise<Response> {
