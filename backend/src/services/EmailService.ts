@@ -31,16 +31,21 @@ class EmailService {
     console.log(`Email ends here`);
 
     if (!env.EMAIL_ENABLED) {
+      console.log("Email not enabled; not sending");
       return;
     }
 
     // TODO: implement a dead-letter queue for emails that fail to send?
 
-    await this.transporter.sendMail({
-      to: recipient,
-      subject,
-      text: body,
-    });
+    try {
+      await this.transporter.sendMail({
+        to: recipient,
+        subject,
+        text: body,
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 

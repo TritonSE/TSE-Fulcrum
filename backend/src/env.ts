@@ -85,4 +85,6 @@ if (env.EMAIL_ENABLED && !(env.EMAIL_USERNAME && env.EMAIL_PASSWORD && env.EMAIL
   env.EMAIL_ENABLED = false;
 }
 
+console.log(`env: ${JSON.stringify(env, null, 2)}`);
+
 export default env;
