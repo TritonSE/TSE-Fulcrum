@@ -1,0 +1,10 @@
+**/.git
+**/node_modules
+
+backend/dist
+backend/public
+backend/.env
+backend/.eslintcache
+
+frontend/build
+frontend/.eslintcache
