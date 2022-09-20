@@ -2,8 +2,8 @@ import { HydratedDocument, model, Schema } from "mongoose";
 
 interface Application {
   name: string;
-  email: string;
   pronouns: string;
+  email: string;
   phone: string;
 
   // Calendar year, e.g. 2022.
@@ -13,6 +13,10 @@ interface Application {
   // This makes it easy to sort chronologically.
   startQuarter: number;
   gradQuarter: number;
+
+  major: string;
+  majorDept: string;
+  prevTest: string;
 
   resumeUrl: string;
 
@@ -28,11 +32,11 @@ const ApplicationSchema = new Schema<Application>({
     type: String,
     required: true,
   },
-  email: {
+  pronouns: {
     type: String,
     required: true,
   },
-  pronouns: {
+  email: {
     type: String,
     required: true,
   },
@@ -50,6 +54,18 @@ const ApplicationSchema = new Schema<Application>({
   },
   gradQuarter: {
     type: Number,
+    required: true,
+  },
+  major: {
+    type: String,
+    required: true,
+  },
+  majorDept: {
+    type: String,
+    required: true,
+  },
+  prevTest: {
+    type: String,
     required: true,
   },
   resumeUrl: {
