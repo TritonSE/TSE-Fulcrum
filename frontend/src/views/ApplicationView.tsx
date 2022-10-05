@@ -44,7 +44,7 @@ export default function ApplicationView({ id }: { id: string }) {
         {row("Started", formatQuarter(application?.startQuarter || 0))}
         {row("Graduating", formatQuarter(application?.gradQuarter || 0))}
         {row("Major", `${application?.major} (${application?.majorDept})`)}
-        {row("Previously in TEST?", application?.prevTest ? "Yes" : "No")}
+        {row("Previously in TEST?", application?.prevTest)}
       </table>
       <a href={application?.resumeUrl} target="_blank" rel="noreferrer noopener">
         View resume
