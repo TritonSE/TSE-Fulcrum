@@ -7,6 +7,19 @@ import { authWrapper } from "./wrappers";
 const router = Router();
 
 router.get(
+  "/",
+  authWrapper(async (_user, req) => {
+    const result = await ReviewService.getFiltered(
+      Object.fromEntries(Object.entries(req.query).map(([k, v]) => [k, "" + v]))
+    );
+    return {
+      status: 200,
+      json: result.map(ReviewService.serialize),
+    };
+  })
+);
+
+router.get(
   "/:reviewId",
   authWrapper(async (_user, req) => {
     const result = await ReviewService.getById(req.params.reviewId);

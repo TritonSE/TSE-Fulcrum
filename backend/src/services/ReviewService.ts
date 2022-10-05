@@ -130,11 +130,17 @@ class ReviewService {
     return ReviewModel.findById(id);
   }
 
+  async getFiltered(filter: Record<string, string>): Promise<ReviewDocument[]> {
+    return ReviewModel.find({ ...filter, completed: false })
+      .populate("stage")
+      .populate("application");
+  }
+
   serialize(review: ReviewDocument) {
     return {
       _id: review._id.toHexString(),
-      stage: review.stage.toHexString(),
-      application: review.application.toHexString(),
+      stage: review.stage.toJSON(),
+      application: review.application.toJSON(),
       reviewerEmail: review.reviewerEmail,
       completed: review.completed,
       fields: review.fields,

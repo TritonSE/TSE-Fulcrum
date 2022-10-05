@@ -50,6 +50,11 @@ export interface Review {
   fields: Record<string, string | number | boolean>;
 }
 
+export type PopulatedReview = Omit<Review, "stage" | "application"> & {
+  stage: Stage;
+  application: Application;
+};
+
 export interface Stage {
   _id: string;
   pipeline: string;
@@ -144,6 +149,10 @@ class Api {
 
   async getApplicationById(applicationId: string): Promise<Application> {
     return (await this.get(`/api/application/${applicationId}`)).json();
+  }
+
+  async getFilteredReviews(filter: Record<string, string>): Promise<PopulatedReview[]> {
+    return (await this.get(`/api/review?${new URLSearchParams(Object.entries(filter))}`)).json();
   }
 
   async getReviewById(reviewId: string): Promise<Review> {
