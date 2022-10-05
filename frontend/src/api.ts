@@ -35,10 +35,19 @@ interface CreatePipelineRequest {
 
 interface FormField {
   type: "string" | "number" | "boolean";
-  choices: unknown[];
+  choices: (string | number | boolean)[];
   allowOther: boolean;
   label: string;
   description: string;
+}
+
+export interface Review {
+  _id: string;
+  stage: string;
+  application: string;
+  reviewerEmail?: string;
+  completed: boolean;
+  fields: Record<string, string | number | boolean>;
 }
 
 export interface Stage {
@@ -52,6 +61,34 @@ export interface Stage {
   reviewerEmails: string[];
   autoAssignReviewers: boolean;
   notifyReviewersWhenAssigned: boolean;
+}
+
+export interface Application {
+  _id: string;
+  name: string;
+  pronouns: string;
+  email: string;
+  phone: string;
+
+  // Calendar year, e.g. 2022.
+  yearApplied: number;
+
+  // 4 * year + quarter - 8088 is winter 2022, 8089 is spring 2022, etc.
+  // This makes it easy to sort chronologically.
+  startQuarter: number;
+  gradQuarter: number;
+
+  major: string;
+  majorDept: string;
+  prevTest: string;
+
+  resumeUrl: string;
+
+  aboutPrompt: string;
+  interestPrompt: string;
+
+  // Map role identifiers to the corresponding prompts.
+  rolePrompts: Record<string, string>;
 }
 
 class Api {
@@ -103,6 +140,18 @@ class Api {
 
   async updatePipeline(request: Pipeline): Promise<Pipeline> {
     return (await this.put(`/api/pipeline/${request._id}`, request)).json();
+  }
+
+  async getApplicationById(applicationId: string): Promise<Application> {
+    return (await this.get(`/api/application/${applicationId}`)).json();
+  }
+
+  async getReviewById(reviewId: string): Promise<Review> {
+    return (await this.get(`/api/review/${reviewId}`)).json();
+  }
+
+  async updateReview(request: Review): Promise<Review> {
+    return (await this.put(`/api/review/${request._id}`, request)).json();
   }
 
   async getStageById(stageId: string): Promise<Stage> {

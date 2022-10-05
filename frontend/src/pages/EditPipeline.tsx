@@ -3,7 +3,32 @@ import { Button, Form } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 
 import api, { Pipeline, Stage } from "../api";
-import { useAlerts, useStateHelper } from "../hooks";
+import { useAlert, useAlerts, useStateHelper } from "../hooks";
+
+// TODO: warn user if attempting to leave page with unsaved changes
+
+function JSONEdit<T>({ value, onChange }: { value: T; onChange: (value: T) => void }) {
+  // const [text, setText] = useState(JSON.stringify(value, null, 2) || "");
+  const { alert, setAlert } = useAlert();
+  return (
+    <>
+      <textarea
+        className="form-control"
+        value={JSON.stringify(value, null, 2)}
+        onChange={(e) => {
+          // setText(e.target.value);
+          try {
+            onChange(JSON.parse(e.target.value));
+            setAlert(null);
+          } catch (error) {
+            setAlert(error);
+          }
+        }}
+      />
+      {alert}
+    </>
+  );
+}
 
 function StageView({ id }: { id: string }) {
   const [stage, setStage, { getField, setField }] = useStateHelper<Stage>();
@@ -78,11 +103,26 @@ function StageView({ id }: { id: string }) {
         onChange={(e) => setField("notifyReviewersWhenAssigned", e.target.checked)}
         id={`${id}-notifyReviewersWhenAssigned`}
       />
+      <Form.Group controlId={`${id}-fields`}>
+        <Form.Label>Fields</Form.Label>
+        <JSONEdit
+          value={getField("fields") || {}}
+          onChange={(value) => setField("fields", value || {})}
+        />
+      </Form.Group>
+      <Form.Group controlId={`${id}-fieldOrder`}>
+        <Form.Label>Field order</Form.Label>
+        <JSONEdit
+          value={getField("fieldOrder") || []}
+          onChange={(value) => setField("fieldOrder", value || [])}
+        />
+      </Form.Group>
       <Button type="submit">Save stage</Button>
       {alerts}
     </Form>
   );
 }
+
 function PipelineView({ id }: { id: string }) {
   const [pipeline, setPipeline, { getField, setField }] = useStateHelper<Pipeline>();
   const [stageIds, setStageIds] = useState<string[]>([]);

@@ -2,9 +2,23 @@ import { Router } from "express";
 
 import { ApplicationService } from "../services";
 
-import { wrapper } from "./wrappers";
+import { authWrapper, wrapper } from "./wrappers";
 
 const router = Router();
+
+router.get(
+  "/:applicationId",
+  authWrapper(async (_user, req) => {
+    const result = await ApplicationService.getById(req.params.applicationId);
+    if (result === null) {
+      return { status: 404 };
+    }
+    return {
+      status: 200,
+      json: ApplicationService.serialize(result),
+    };
+  })
+);
 
 router.post(
   "/",

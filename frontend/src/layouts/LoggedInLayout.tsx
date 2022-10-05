@@ -21,7 +21,7 @@ export default function LoggedInLayout() {
   return (
     <RequireAuth>
       <>
-        <Navbar expand="lg" sticky="top">
+        <Navbar expand="md" sticky="top" style={{ background: "#eeeeee" }}>
           <Navbar.Brand href="/">TSE Fulcrum</Navbar.Brand>
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-end">

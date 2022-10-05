@@ -37,6 +37,7 @@ class ReviewService {
       return `Cannot update completed review: ${review._id}`;
     }
 
+    // TODO: enforce that only the assigned reviewer can change fields
     // TODO: validate fields against stage?
 
     const existingEmail = existing.reviewerEmail;
@@ -123,6 +124,21 @@ class ReviewService {
     application: Types.ObjectId
   ): Promise<ReviewDocument[]> {
     return ReviewModel.find({ stage, application });
+  }
+
+  async getById(id: string | Types.ObjectId): Promise<ReviewDocument | null> {
+    return ReviewModel.findById(id);
+  }
+
+  serialize(review: ReviewDocument) {
+    return {
+      _id: review._id.toHexString(),
+      stage: review.stage.toHexString(),
+      application: review.application.toHexString(),
+      reviewerEmail: review.reviewerEmail,
+      completed: review.completed,
+      fields: review.fields,
+    };
   }
 }
 

@@ -52,8 +52,12 @@ class ApplicationService {
     return result;
   }
 
-  async getById(id: Types.ObjectId): Promise<ApplicationDocument | null> {
+  async getById(id: string | Types.ObjectId): Promise<ApplicationDocument | null> {
     return ApplicationModel.findById(id);
+  }
+
+  serialize(application: ApplicationDocument) {
+    return application.toJSON();
   }
 }
 

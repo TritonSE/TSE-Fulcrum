@@ -8,30 +8,6 @@ interface FormField {
   description: string;
 }
 
-const FormFieldSchema = new Schema<FormField>({
-  type: {
-    type: String,
-    enum: ["string", "number", "boolean"],
-    required: true,
-  },
-  choices: {
-    type: Array,
-    required: true,
-  },
-  allowOther: {
-    type: Boolean,
-    required: true,
-  },
-  label: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-});
-
 interface Stage {
   _id: Types.ObjectId;
   pipeline: Types.ObjectId;
@@ -65,8 +41,31 @@ const StageSchema = new Schema<Stage>({
   },
   fields: {
     type: Map,
-    of: FormFieldSchema,
     required: true,
+    of: {
+      _id: false,
+      type: {
+        type: String,
+        enum: ["string", "number", "boolean"],
+        required: true,
+      },
+      choices: {
+        type: Array,
+        required: true,
+      },
+      allowOther: {
+        type: Boolean,
+        required: true,
+      },
+      label: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: true,
+      },
+    },
   },
   fieldOrder: {
     type: [String],

@@ -41,6 +41,25 @@ function useAlerts(): UseAlertsResult {
   };
 }
 
+interface UseAlertResult {
+  alert: React.ReactNode;
+  setAlert: (alert: unknown, variant?: string) => void;
+}
+
+function useAlert(): UseAlertResult {
+  const { alerts, addAlert, clearAlerts } = useAlerts();
+  return {
+    alert: alerts,
+    setAlert: (alert, variant) => {
+      // TODO: why does this not work?
+      clearAlerts();
+      if (alert) {
+        addAlert(alert, variant);
+      }
+    },
+  };
+}
+
 type UseStateHelperResult<T extends object> = [
   T | null,
   (value: T) => void,
@@ -66,4 +85,4 @@ function useStateHelper<T extends object>(initialState: T | null = null): UseSta
   ];
 }
 
-export { useAlerts, useStateHelper };
+export { useAlert, useAlerts, useStateHelper };
