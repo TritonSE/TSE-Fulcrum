@@ -89,6 +89,7 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                 <a href={`/review/${review._id}/edit`}>{review.application.name}</a>
               </td>
               <td>
+                {/* TODO: figure out why the button styling is broken when put in a table */}
                 {review.reviewerEmail || <AutoAssignButton id={review._id} addAlert={addAlert} />}
               </td>
             </tr>

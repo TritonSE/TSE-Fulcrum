@@ -142,10 +142,10 @@ class ReviewService {
       )
     );
 
-    // Sort in descending order by count.
-    countsAndEmails.sort((a, b) => b[0] - a[0]);
+    // Sort in ascending order by count.
+    countsAndEmails.sort((a, b) => a[0] - b[0]);
 
-    // Get all reviewers who are tied for the maximum count.
+    // Get all reviewers who are tied for the minimum count.
     reviewerEmails = countsAndEmails
       .filter((pair) => pair[0] === countsAndEmails[0][0])
       .map((pair) => pair[1]);
