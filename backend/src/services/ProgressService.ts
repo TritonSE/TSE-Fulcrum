@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { ApplicationModel, ProgressDocument, ProgressModel, ReviewDocument } from "../models";
+import { ApplicationModel, ProgressDocument, ProgressModel } from "../models";
 
 import EmailService from "./EmailService";
 import PipelineService from "./PipelineService";
@@ -81,11 +81,12 @@ class ProgressService {
     progress.stageIndex = nextIndex;
 
     // Create blank reviews for the new stage.
-    const reviewPromises: Promise<ReviewDocument>[] = [];
     for (let i = 0; i < nextStage.numReviews; i++) {
-      reviewPromises.push(ReviewService.create(nextStage, application));
+      // Doing these in parallel might cause a race condition that auto-assigns
+      // the same reviewer to multiple reviews. I'm not 100% sure though.
+      // eslint-disable-next-line no-await-in-loop
+      await ReviewService.create(nextStage, application);
     }
-    await Promise.all(reviewPromises);
 
     return progress.save();
   }
