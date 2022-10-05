@@ -13,6 +13,7 @@ import RequestPasswordReset from "./pages/RequestPasswordReset";
 import ResetPassword from "./pages/ResetPassword";
 import Users from "./pages/Users";
 import ViewApplication from "./pages/ViewApplication";
+import ViewReviews from "./pages/ViewReviews";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/pipelines" element={<Pipelines />} />
             <Route path="/pipelines/create" element={<CreatePipeline />} />
             <Route path="/review/:reviewId/edit" element={<EditReview />} />
+            <Route path="/reviews" element={<ViewReviews />} />
             <Route path="/users" element={<Users />} />
             <Route path="/users/create" element={<CreateUser />} />
           </Route>

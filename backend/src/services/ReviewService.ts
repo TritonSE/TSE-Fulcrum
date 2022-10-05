@@ -1,7 +1,14 @@
 import { Types } from "mongoose";
 
 import env from "../env";
-import { ApplicationModel, Review, ReviewDocument, ReviewModel, StageDocument } from "../models";
+import {
+  ApplicationModel,
+  Review,
+  ReviewDocument,
+  ReviewModel,
+  StageDocument,
+  StageModel,
+} from "../models";
 
 import EmailService from "./EmailService";
 import StageService from "./StageService";
@@ -24,6 +31,34 @@ class ReviewService {
       await this.sendAssignEmail(review);
     }
 
+    return review;
+  }
+
+  async autoAssign(id: string): Promise<ReviewDocument | string> {
+    const review = await ReviewModel.findById(id);
+    if (review === null) {
+      return "Review not found";
+    }
+
+    if (review?.reviewerEmail) {
+      return `Already assigned to ${review?.reviewerEmail}`;
+    }
+
+    const stage = await StageModel.findById(review.stage);
+    if (stage === null) {
+      return "Stage missing - this shouldn't happen";
+    }
+
+    const reviewerEmail = await this.getAutoAssignedReviewer(stage, review.application);
+    if (reviewerEmail === null) {
+      return "Failed to assign reviewer";
+    }
+    review.reviewerEmail = reviewerEmail;
+    await review.save();
+
+    if (stage.notifyReviewersWhenAssigned) {
+      await this.sendAssignEmail(review);
+    }
     return review;
   }
 
@@ -72,7 +107,7 @@ class ReviewService {
     return EmailService.send({
       recipient: review.reviewerEmail,
       subject: `${stage?.name} for ${application?.name}`,
-      body: `${env.DEPLOYMENT_URL}/review/${review._id.toHexString()}`,
+      body: `${env.DEPLOYMENT_URL}/review/${review._id.toHexString()}/edit`,
     });
   }
 

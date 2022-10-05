@@ -44,4 +44,15 @@ router.put(
   })
 );
 
+router.post(
+  "/:reviewId/auto-assign",
+  authWrapper(async (_user, req) => {
+    const result = await ReviewService.autoAssign(req.params.reviewId);
+    if (typeof result === "string") {
+      return { status: 400, text: result };
+    }
+    return { status: 200, json: ReviewService.serialize(result) };
+  })
+);
+
 export default router;

@@ -155,6 +155,10 @@ class Api {
     return (await this.get(`/api/review?${new URLSearchParams(Object.entries(filter))}`)).json();
   }
 
+  async autoAssignReview(id: string): Promise<Review> {
+    return (await this.post(`/api/review/${id}/auto-assign`, undefined)).json();
+  }
+
   async getReviewById(reviewId: string): Promise<Review> {
     return (await this.get(`/api/review/${reviewId}`)).json();
   }
