@@ -71,6 +71,9 @@ function ReviewView({ id }: { id: string }) {
                     type="number"
                     value={"" + getReviewField(fieldName)}
                     onChange={(e) => setReviewField(fieldName, parseFloat(e.target.value))}
+                    onWheel={
+                      (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
+                    }
                   />
                 );
                 break;
