@@ -36,15 +36,18 @@ export default function ApplicationView({ id }: { id: string }) {
   return (
     <div>
       <table>
-        {row("Name", application?.name)}
-        {row("Pronouns", application?.pronouns)}
-        {row("Email", application?.email)}
-        {row("Phone", application?.phone)}
-        {row("Year applied", application?.yearApplied)}
-        {row("Started", formatQuarter(application?.startQuarter || 0))}
-        {row("Graduating", formatQuarter(application?.gradQuarter || 0))}
-        {row("Major", `${application?.major} (${application?.majorDept})`)}
-        {row("Previously in TEST?", application?.prevTest)}
+        <tbody>
+          {row("ID", application?._id)}
+          {row("Name", application?.name)}
+          {row("Pronouns", application?.pronouns)}
+          {row("Email", application?.email)}
+          {row("Phone", application?.phone)}
+          {row("Year applied", application?.yearApplied)}
+          {row("Started", formatQuarter(application?.startQuarter || 0))}
+          {row("Graduating", formatQuarter(application?.gradQuarter || 0))}
+          {row("Major", `${application?.major} (${application?.majorDept})`)}
+          {row("Previously in TEST?", application?.prevTest)}
+        </tbody>
       </table>
       <a href={application?.resumeUrl} target="_blank" rel="noreferrer noopener">
         View resume

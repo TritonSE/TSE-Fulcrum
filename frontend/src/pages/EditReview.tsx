@@ -93,14 +93,12 @@ function ReviewView({ id }: { id: string }) {
                 break;
             }
             return (
-              <>
-                <Form.Group controlId={`${id}-${fieldName}`} key={id + fieldName}>
-                  <Form.Label>{field.label}</Form.Label>
-                  {control}
-                  {field.description && <Form.Text>{field.description}</Form.Text>}
-                </Form.Group>
+              <Form.Group controlId={`${id}-${fieldName}`} key={id + fieldName}>
+                <Form.Label>{field.label}</Form.Label>
+                {control}
+                {field.description && <Form.Text>{field.description}</Form.Text>}
                 <br />
-              </>
+              </Form.Group>
             );
           })}
         <Form.Check
