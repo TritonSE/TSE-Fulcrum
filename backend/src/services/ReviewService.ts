@@ -170,7 +170,7 @@ class ReviewService {
   }
 
   async getFiltered(filter: Record<string, string>): Promise<ReviewDocument[]> {
-    return ReviewModel.find({ ...filter, completed: false })
+    return ReviewModel.find({ ...filter })
       .populate("stage")
       .populate("application");
   }

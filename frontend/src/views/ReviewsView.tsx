@@ -81,19 +81,29 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
             <th>Stage</th>
             <th>Name</th>
             <th>Reviewer</th>
+            <th>Status</th>
           </tr>
-          {reviews.map((review) => (
-            <tr key={review._id}>
-              <td>{review.stage.name}</td>
-              <td>
-                <a href={`/review/${review._id}/edit`}>{review.application.name}</a>
-              </td>
-              <td>
-                {/* TODO: figure out why the button styling is broken when put in a table */}
-                {review.reviewerEmail || <AutoAssignButton id={review._id} addAlert={addAlert} />}
-              </td>
-            </tr>
-          ))}
+          {reviews.map((review) => {
+            let status: string;
+            if (review.completed) {
+              status = "complete";
+            } else {
+              status = Object.keys(review.fields).length > 0 ? "draft" : "blank";
+            }
+            return (
+              <tr key={review._id}>
+                <td>{review.stage.name}</td>
+                <td>
+                  <a href={`/review/${review._id}/edit`}>{review.application.name}</a>
+                </td>
+                <td>
+                  {/* TODO: figure out why the button styling is broken when put in a table */}
+                  {review.reviewerEmail || <AutoAssignButton id={review._id} addAlert={addAlert} />}
+                </td>
+                <td>{status}</td>
+              </tr>
+            );
+          })}
         </Table>
       )}
       {alerts}
