@@ -20,6 +20,23 @@ router.get(
   })
 );
 
+router.delete(
+  "/:applicationId",
+  authWrapper(async (_user, req) => {
+    const result = await ApplicationService.deleteById(req.params.applicationId);
+    if (typeof result === "string") {
+      return {
+        status: 404,
+        text: result,
+      };
+    }
+    return {
+      status: 200,
+      json: ApplicationService.serialize(result),
+    };
+  })
+);
+
 router.post(
   "/",
   wrapper(async (req) => {
