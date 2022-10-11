@@ -72,6 +72,10 @@ class StageService {
     );
   }
 
+  async getAll(): Promise<StageDocument[]> {
+    return StageModel.find();
+  }
+
   serialize(stage: StageDocument) {
     return {
       _id: stage._id.toHexString(),

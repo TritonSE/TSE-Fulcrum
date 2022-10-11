@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { Table } from "react-bootstrap";
 
-import api, { Pipeline } from "../api";
+import api, { Stage } from "../api";
 import { useAlerts } from "../hooks";
 
-export default function Pipelines() {
-  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+export default function Stages() {
+  const [stages, setStages] = useState<Stage[]>([]);
   const { alerts, addAlert } = useAlerts();
 
   useEffect(() => {
-    api.getAllPipelines().then(setPipelines).catch(addAlert);
+    api.getAllStages().then(setStages).catch(addAlert);
   }, []);
 
   return (
@@ -18,16 +18,16 @@ export default function Pipelines() {
         <thead>
           <tr>
             <th>Name</th>
-            <th>External Identifier</th>
+            <th>Reviewers</th>
           </tr>
         </thead>
         <tbody>
-          {pipelines.map((pipeline) => (
-            <tr key={pipeline._id}>
+          {stages.map((stage) => (
+            <tr key={stage._id}>
               <td>
-                <a href={`/pipeline/${pipeline._id}/edit`}>{pipeline.name}</a>
+                <a href={`/stage/${stage._id}/applications`}>{stage.name}</a>
               </td>
-              <td>{pipeline.identifier}</td>
+              <td>{stage.reviewerEmails.join(" ")}</td>
             </tr>
           ))}
         </tbody>

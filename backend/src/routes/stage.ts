@@ -10,17 +10,26 @@ router.get(
   "/",
   authWrapper(async (_user, req) => {
     const pipeline = req.query.pipeline;
-    if (typeof pipeline !== "string") {
+
+    if (typeof pipeline === "string") {
+      const result = await StageService.getByPipeline(pipeline);
+      const mapped = result.map(StageService.serialize);
       return {
-        status: 400,
-        text: "Pipeline not specified or wrong format",
+        status: 200,
+        json: mapped,
       };
     }
-    const result = await StageService.getByPipeline(pipeline);
-    const mapped = result.map(StageService.serialize);
+
+    if (pipeline === undefined) {
+      return {
+        status: 200,
+        json: (await StageService.getAll()).map(StageService.serialize),
+      };
+    }
+
     return {
-      status: 200,
-      json: mapped,
+      status: 400,
+      text: "Invalid format for pipeline",
     };
   })
 );

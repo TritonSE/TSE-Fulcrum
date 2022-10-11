@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Pipelines from "./pages/Pipelines";
 import RequestPasswordReset from "./pages/RequestPasswordReset";
 import ResetPassword from "./pages/ResetPassword";
+import Stages from "./pages/Stages";
 import Users from "./pages/Users";
 import ViewApplication from "./pages/ViewApplication";
 import ViewReviews from "./pages/ViewReviews";
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/pipelines/create" element={<CreatePipeline />} />
             <Route path="/review/:reviewId/edit" element={<EditReview />} />
             <Route path="/reviews" element={<ViewReviews />} />
+            <Route path="/stages" element={<Stages />} />
             <Route path="/users" element={<Users />} />
             <Route path="/users/create" element={<CreateUser />} />
           </Route>

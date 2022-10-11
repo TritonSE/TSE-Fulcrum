@@ -136,14 +136,14 @@ function PipelineView({ id }: { id: string }) {
         setPipeline(pipelines.filter((p) => p._id === id)[0] || null);
       })
       .catch(addAlert);
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     api
       .getStagesByPipeline(id)
       .then((stages) => setStageIds(stages.map((stage) => stage._id)))
       .catch(addAlert);
-  }, []);
+  }, [id]);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

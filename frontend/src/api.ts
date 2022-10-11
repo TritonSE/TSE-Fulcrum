@@ -181,6 +181,10 @@ class Api {
     return (await this.get(`/api/stage?pipeline=${pipelineId}`)).json();
   }
 
+  async getAllStages(): Promise<Stage[]> {
+    return (await this.get("/api/stage")).json();
+  }
+
   async updateStage(request: Stage): Promise<Stage> {
     return (await this.put(`/api/stage/${request._id}`, request)).json();
   }

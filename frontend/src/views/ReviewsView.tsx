@@ -150,9 +150,9 @@ export default function ReviewsView({
                     )}
                   </td>
                   <td>{status}</td>
-                  {showReassign && !review.completed && (
+                  {showReassign && (
                     <td>
-                      <ManualAssign id={review._id} addAlert={addAlert} />
+                      {!review.completed && <ManualAssign id={review._id} addAlert={addAlert} />}
                     </td>
                   )}
                 </tr>
