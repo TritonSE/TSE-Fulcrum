@@ -80,10 +80,11 @@ class ProgressService {
     console.info(`Advancing to stage ${nextIndex}: ${progress._id.toHexString()}`);
     progress.stageIndex = nextIndex;
 
-    // Create blank reviews for the new stage.
+    // Create reviews for the new stage.
+    // We have to do this sequentially to avoid race conditions when
+    // auto-assigning reviewers (e.g. assigning both reviews to the same
+    // reviewer).
     for (let i = 0; i < nextStage.numReviews; i++) {
-      // Doing these in parallel might cause a race condition that auto-assigns
-      // the same reviewer to multiple reviews. I'm not 100% sure though.
       // eslint-disable-next-line no-await-in-loop
       await ReviewService.create(nextStage, application);
     }

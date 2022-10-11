@@ -12,36 +12,37 @@ import {
 
 import EmailService from "./EmailService";
 import StageService from "./StageService";
+import UserService from "./UserService";
 
 class ReviewService {
   async create(stage: StageDocument, application: Types.ObjectId): Promise<ReviewDocument> {
-    const reviewerEmail = stage.autoAssignReviewers
-      ? await this.getAutoAssignedReviewer(stage, application)
-      : null;
-
     const review = await new ReviewModel({
       stage,
       application,
       completed: false,
       fields: {},
-      ...(reviewerEmail !== null ? { reviewerEmail } : {}),
     }).save();
 
-    if (reviewerEmail !== null) {
-      await this.sendAssignEmail(review);
+    if (!stage.autoAssignReviewers) {
+      return review;
     }
 
-    return review;
+    const result = await this.assign(review._id.toHexString(), null);
+    if (typeof result === "string") {
+      // Failed to auto-assign, but application still created successfully.
+      console.error(
+        `Failed to auto-assign reviewer when creating review ${review._id.toHexString()}: ${result}`
+      );
+      return review;
+    }
+    // Review updated with reviewer email.
+    return result;
   }
 
-  async autoAssign(id: string): Promise<ReviewDocument | string> {
+  async assign(id: string, reviewerEmail: string | null): Promise<ReviewDocument | string> {
     const review = await ReviewModel.findById(id);
     if (review === null) {
       return "Review not found";
-    }
-
-    if (review?.reviewerEmail) {
-      return `Already assigned to ${review?.reviewerEmail}`;
     }
 
     const stage = await StageModel.findById(review.stage);
@@ -49,10 +50,18 @@ class ReviewService {
       return "Stage missing - this shouldn't happen";
     }
 
-    const reviewerEmail = await this.getAutoAssignedReviewer(stage, review.application);
     if (reviewerEmail === null) {
-      return "Failed to assign reviewer";
+      reviewerEmail = await this.getAutoAssignedReviewer(stage, review.application);
     }
+    if (reviewerEmail === null) {
+      return "Could not auto-assign reviewer";
+    }
+
+    const reviewer = await UserService.getByEmail(reviewerEmail);
+    if (reviewer === null) {
+      return "Reviewer email is invalid";
+    }
+
     review.reviewerEmail = reviewerEmail;
     await review.save();
 
@@ -75,9 +84,6 @@ class ReviewService {
     // TODO: enforce that only the assigned reviewer can change fields
     // TODO: validate fields against stage?
 
-    const existingEmail = existing.reviewerEmail;
-    const newEmail = review.reviewerEmail;
-
     const reviewDocument = await ReviewModel.findOneAndReplace({ _id: review._id }, review, {
       returnDocument: "after",
     });
@@ -87,10 +93,8 @@ class ReviewService {
       return `Race condition: review with id deleted? ${review._id}`;
     }
 
-    if (typeof newEmail === "string" && newEmail !== existingEmail) {
-      // Review was assigned or reassigned.
-      await this.sendAssignEmail(reviewDocument);
-    }
+    // NOTE: we should send an email if reviewerEmail changes and stage has notifications,
+    // but for now, we assume all email changes are done through the assign() method
 
     return reviewDocument;
   }

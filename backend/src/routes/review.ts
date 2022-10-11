@@ -44,10 +44,23 @@ router.put(
   })
 );
 
+// TODO: consolidate auto-assign and assign into one endpoint
+
 router.post(
   "/:reviewId/auto-assign",
   authWrapper(async (_user, req) => {
-    const result = await ReviewService.autoAssign(req.params.reviewId);
+    const result = await ReviewService.assign(req.params.reviewId, null);
+    if (typeof result === "string") {
+      return { status: 400, text: result };
+    }
+    return { status: 200, json: ReviewService.serialize(result) };
+  })
+);
+
+router.post(
+  "/:reviewId/assign/:reviewerEmail",
+  authWrapper(async (_user, req) => {
+    const result = await ReviewService.assign(req.params.reviewId, req.params.reviewerEmail);
     if (typeof result === "string") {
       return { status: 400, text: result };
     }
