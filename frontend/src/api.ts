@@ -159,6 +159,12 @@ class Api {
     return (await this.post(`/api/review/${id}/auto-assign`, undefined)).json();
   }
 
+  async assignReview(id: string, reviewerEmail: string): Promise<Review> {
+    return (
+      await this.post(`/api/review/${id}/assign/${encodeURIComponent(reviewerEmail)}`, undefined)
+    ).json();
+  }
+
   async getReviewById(reviewId: string): Promise<Review> {
     return (await this.get(`/api/review/${reviewId}`)).json();
   }
