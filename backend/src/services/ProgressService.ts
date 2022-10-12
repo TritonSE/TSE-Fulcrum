@@ -41,7 +41,7 @@ class ProgressService {
     if (currentStage !== null) {
       const reviews = await ReviewService.getByStageAndApplication(currentStage._id, application);
       if (reviews.some((review) => !review.completed)) {
-        return `Not all reviews for the preceding stage (${progress.stageIndex}) are complete`;
+        return `At least one review for the preceding stage (${progress.stageIndex}) is incomplete`;
       }
     }
 
@@ -54,6 +54,7 @@ class ProgressService {
       progress.state = "accepted";
       await progress.save();
 
+      /*
       // TODO: using ApplicationService creates a dependency cycle
       const applicationDocument = await ApplicationModel.findById(application);
       if (applicationDocument === null) {
@@ -73,6 +74,7 @@ class ProgressService {
           `We were impressed with your qualifications and interview performance, and we would like to invite you to join Triton Software Engineering as a ${pipelineDocument.name}! We will follow up with you shortly to share more details.`,
         ].join("\n\n"),
       });
+      */
 
       return progress;
     }
@@ -117,11 +119,14 @@ class ProgressService {
 
     await EmailService.send({
       recipient: applicationDocument.email,
-      subject: "Triton Software Engineering Application Update",
+      subject: `Triton Software Engineering - ${pipelineDocument.name} Application Update`,
       body: [
         `Dear ${applicationDocument.name},`,
-        `Thank you for applying to the ${pipelineDocument.name} position at Triton Software Engineering. Unfortunately, our application process is very competitive, and we are not able to move forward with your application at this time. If you applied for other roles at TSE, you will receive updates about those separately.`,
-        "You are welcome to reapply in the future, and we wish you the best in your academic and professional endeavors.",
+        `Thank you for your interest in Triton Software Engineering. Unfortunately, we cannot offer you a ${pipelineDocument.name} position in our organization at this time. If you applied for other roles at TSE, you will hear back separately for each role.`,
+        `Our team was impressed by your skills and accomplishments, and we invite you to apply again next year as our organization grows and more spots open up.`,
+        `We wish you the best for your future professional and collegiate endeavors.`,
+        `Regards,`,
+        `The TSE Team`,
       ].join("\n\n"),
     });
 
