@@ -92,18 +92,24 @@ export function ReviewView({
                 );
                 break;
               default:
-                control = (
+                control = editable ? (
                   <Form.Control
                     required
-                    type="text"
+                    as="textarea"
+                    rows={10}
                     value={
                       typeof getReviewField(fieldName) === "undefined"
                         ? ""
                         : getReviewField(fieldName) + ""
                     }
                     onChange={(e) => setReviewField(fieldName, e.target.value)}
-                    disabled={!editable}
                   />
+                ) : (
+                  <div style={{ whiteSpace: "pre-line" }}>
+                    {typeof getReviewField(fieldName) === "undefined"
+                      ? ""
+                      : getReviewField(fieldName) + ""}
+                  </div>
                 );
                 break;
             }
