@@ -57,7 +57,7 @@ export function ReviewView({
       {showApplication && (
         <>
           <h2>Application</h2>
-          {review && <ApplicationView id={review._id} />}
+          {review && <ApplicationView id={review.application} />}
         </>
       )}
       <h2>{`${stage && stage.name} (${(review && review.reviewerEmail) || "unassigned"})`}</h2>
