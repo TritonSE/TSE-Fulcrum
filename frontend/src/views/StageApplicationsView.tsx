@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Table } from "react-bootstrap";
 
-import api, { Application, PopulatedReview } from "../api";
+import api, { Application, PopulatedReview, Stage } from "../api";
 import { useAlerts } from "../hooks";
 import { makeComparator } from "../util";
 
@@ -9,10 +9,15 @@ const SCORE_REGEX = /^(.*_)?score$/;
 
 export default function StageApplicationsView({ stageId }: { stageId: string }) {
   const [reviews, setReviews] = useState<PopulatedReview[]>([]);
+  const [stage, setStage] = useState<Stage | null>(null);
   const { alerts, addAlert } = useAlerts();
 
   useEffect(() => {
     api.getFilteredReviews({ stage: stageId }).then(setReviews).catch(addAlert);
+  }, [stageId]);
+
+  useEffect(() => {
+    api.getStageById(stageId).then(setStage).catch(addAlert);
   }, [stageId]);
 
   const scoreAlerts: string[] = [];
@@ -70,6 +75,10 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
 
   return (
     <div>
+      {stage && <h2>{stage.name}</h2>}
+      {scoreAlerts.map((alert) => (
+        <Alert variant="danger">{alert}</Alert>
+      ))}
       {withScores.length === 0 ? (
         "No applications to display."
       ) : (
@@ -114,9 +123,6 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
         </Table>
       )}
       {alerts}
-      {scoreAlerts.map((alert) => (
-        <Alert>{alert}</Alert>
-      ))}
     </div>
   );
 }
