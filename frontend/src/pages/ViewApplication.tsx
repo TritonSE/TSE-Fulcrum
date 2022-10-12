@@ -21,7 +21,7 @@ export default function ViewApplication() {
 
   return (
     <>
-      <ApplicationView id={applicationId || ""} />;
+      <ApplicationView id={applicationId || ""} />
       {reviews.map((r) => (
         <ReviewView key={r._id} id={r._id} editable={false} showApplication={false} />
       ))}
