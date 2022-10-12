@@ -36,6 +36,16 @@ const generalRules = {
     "warn",
     {
       argsIgnorePattern: "^_",
+      destructuredArrayIgnorePattern: "^_",
+      varsIgnorePattern: "^_",
+    },
+  ],
+
+  "@typescript-eslint/no-unused-vars": [
+    "warn",
+    {
+      argsIgnorePattern: "^_",
+      destructuredArrayIgnorePattern: "^_",
       varsIgnorePattern: "^_",
     },
   ],
