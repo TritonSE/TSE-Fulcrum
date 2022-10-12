@@ -1,14 +1,68 @@
 import { useEffect, useState } from "react";
-import { Alert, Table } from "react-bootstrap";
+import { Alert, Button, Form, Table } from "react-bootstrap";
 
-import api, { Application, PopulatedReview, Stage } from "../api";
+import api, { Application, PopulatedReview, Progress, Stage } from "../api";
 import { useAlerts } from "../hooks";
 import { makeComparator } from "../util";
 
 const SCORE_REGEX = /^(.*_)?score$/;
 
+function AdvanceButton({
+  progressId,
+  addAlert,
+  onAdvanced,
+}: {
+  progressId: string;
+  addAlert: (message: unknown) => void;
+  onAdvanced: () => void;
+}) {
+  const [enabled, setEnabled] = useState(true);
+  const onClick = () => {
+    api
+      .advanceApplication(progressId)
+      .then(() => {
+        setEnabled(false);
+        onAdvanced();
+      })
+      .catch(addAlert);
+  };
+  return (
+    <Button variant="success" onClick={onClick} disabled={!enabled}>
+      Advance
+    </Button>
+  );
+}
+
+function RejectButton({
+  progressId,
+  addAlert,
+  onRejected,
+}: {
+  progressId: string;
+  addAlert: (message: unknown) => void;
+  onRejected: () => void;
+}) {
+  const [enabled, setEnabled] = useState(true);
+  const onClick = () => {
+    api
+      .rejectApplication(progressId)
+      .then(() => {
+        setEnabled(false);
+        onRejected();
+      })
+      .catch(addAlert);
+  };
+  return (
+    <Button variant="danger" onClick={onClick} disabled={!enabled}>
+      Reject
+    </Button>
+  );
+}
+
 export default function StageApplicationsView({ stageId }: { stageId: string }) {
+  const [progresses, setProgresses] = useState<Progress[]>([]);
   const [reviews, setReviews] = useState<PopulatedReview[]>([]);
+  const [selectedAction, setSelectedAction] = useState("none");
   const [stage, setStage] = useState<Stage | null>(null);
   const { alerts, addAlert } = useAlerts();
 
@@ -17,7 +71,16 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
   }, [stageId]);
 
   useEffect(() => {
-    api.getStageById(stageId).then(setStage).catch(addAlert);
+    api
+      .getStageById(stageId)
+      .then((newStage) => {
+        setStage(newStage);
+        api
+          .getFilteredProgresses({ pipeline: newStage.pipeline })
+          .then(setProgresses)
+          .catch(addAlert);
+      })
+      .catch(addAlert);
   }, [stageId]);
 
   const scoreAlerts: string[] = [];
@@ -73,6 +136,8 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
 
   withScores.sort(makeComparator(([app, _appReviews, avgScore]) => [-avgScore, app.name]));
 
+  const progressesByApplication = Object.fromEntries(progresses.map((p) => [p.application, p]));
+
   return (
     <div>
       {stage && <h2>{stage.name}</h2>}
@@ -88,21 +153,86 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
               <td>Average Score</td>
               <td>Name</td>
               <td>Review Status</td>
+              <td>
+                Select action:
+                <Form.Select
+                  style={{ width: "10em" }}
+                  onChange={(e) => setSelectedAction(e.target.value)}
+                >
+                  <option value="none">None</option>
+                  <option value="advance">Advance</option>
+                  <option value="reject">Reject</option>
+                </Form.Select>
+              </td>
+              <td>Application Status</td>
               <td>Raw Data</td>
             </tr>
           </thead>
           <tbody>
             {withScores.map(([app, appReviews, score]) => {
               const incompleteCount = appReviews.filter((r) => !r.completed).length;
+              const allComplete = incompleteCount === 0;
+
+              const progress: Progress | undefined = progressesByApplication[app._id];
+              let progressMessage: string;
+              let pendingAtThisStage = false;
+              if (progress === undefined) {
+                progressMessage = `error: no progress for application ${app._id} and pipeline ${stage?.pipeline}`;
+              } else if (!stage) {
+                progressMessage = "waiting for stage to load...";
+              } else {
+                const progressIndex = progress.stageIndex;
+                const stageIndex = stage.pipelineIndex;
+                let stageDescription;
+                if (progressIndex < stageIndex) {
+                  stageDescription =
+                    "at earlier stage (ERROR: why do reviews exist for this stage then?)";
+                } else if (progressIndex === stageIndex) {
+                  stageDescription = "at this stage";
+                  if (progress.state === "pending") {
+                    pendingAtThisStage = true;
+                  }
+                } else {
+                  stageDescription = "at later stage";
+                }
+                progressMessage = `${progress.state} ${stageDescription}`;
+              }
+
+              const onAdvanced = () =>
+                addAlert(`Advanced ${app.name}'s application to the next stage.`, "success");
+              const onRejected = () => addAlert(`Rejected ${app.name}'s application`, "info");
+
               return (
                 <tr key={app._id}>
                   <td>{score}</td>
                   <td>
                     <a href={`/application/${app._id}`}>{app.name}</a>
                   </td>
+                  <td>{allComplete ? "all completed" : `${incompleteCount} incomplete`}</td>
                   <td>
-                    {incompleteCount === 0 ? "all completed" : `${incompleteCount} incomplete`}
+                    {pendingAtThisStage && allComplete ? (
+                      <>
+                        {selectedAction === "advance" && (
+                          <AdvanceButton
+                            progressId={progress._id}
+                            addAlert={addAlert}
+                            onAdvanced={onAdvanced}
+                          />
+                        )}
+                        {selectedAction === "reject" && (
+                          <RejectButton
+                            progressId={progress._id}
+                            addAlert={addAlert}
+                            onRejected={onRejected}
+                          />
+                        )}
+                        {selectedAction === "none" && "(no action selected)"}
+                      </>
+                    ) : (
+                      "(unavailable)"
+                    )}
                   </td>
+                  <td>{progressMessage}</td>
                   <td>
                     {appReviews.map((r) => (
                       <p key={r._id}>

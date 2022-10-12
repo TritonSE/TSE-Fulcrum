@@ -170,9 +170,7 @@ class ReviewService {
   }
 
   async getFiltered(filter: Record<string, string>): Promise<ReviewDocument[]> {
-    return ReviewModel.find({ ...filter })
-      .populate("stage")
-      .populate("application");
+    return ReviewModel.find(filter).populate("stage").populate("application");
   }
 
   serialize(review: ReviewDocument) {

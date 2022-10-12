@@ -132,6 +132,24 @@ class ProgressService {
 
     return progress;
   }
+
+  async getFiltered(filter: Record<string, string>): Promise<ProgressDocument[]> {
+    return ProgressModel.find(filter);
+  }
+
+  async getById(id: string): Promise<ProgressDocument | null> {
+    return ProgressModel.findById(id);
+  }
+
+  serialize(progress: ProgressDocument) {
+    return {
+      _id: progress._id.toHexString(),
+      pipeline: progress.pipeline.toHexString(),
+      application: progress.application.toHexString(),
+      stageIndex: progress.stageIndex,
+      state: progress.state,
+    };
+  }
 }
 
 export default new ProgressService();

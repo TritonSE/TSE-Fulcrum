@@ -55,6 +55,14 @@ export type PopulatedReview = Omit<Review, "stage" | "application"> & {
   application: Application;
 };
 
+export interface Progress {
+  _id: string;
+  pipeline: string;
+  application: string;
+  stageIndex: number;
+  state: "pending" | "rejected" | "accepted";
+}
+
 export interface Stage {
   _id: string;
   pipeline: string;
@@ -173,6 +181,10 @@ class Api {
     return (await this.put(`/api/review/${request._id}`, request)).json();
   }
 
+  async getFilteredProgresses(filter: Record<string, string>): Promise<Progress[]> {
+    return (await this.get(`/api/progress?${new URLSearchParams(Object.entries(filter))}`)).json();
+  }
+
   async getStageById(stageId: string): Promise<Stage> {
     return (await this.get(`/api/stage/${stageId}`)).json();
   }
@@ -187,6 +199,14 @@ class Api {
 
   async updateStage(request: Stage): Promise<Stage> {
     return (await this.put(`/api/stage/${request._id}`, request)).json();
+  }
+
+  async advanceApplication(progressId: string): Promise<Progress> {
+    return (await this.post(`/api/progress/${progressId}/advance`, undefined)).json();
+  }
+
+  async rejectApplication(progressId: string): Promise<Progress> {
+    return (await this.post(`/api/progress/${progressId}/reject`, undefined)).json();
   }
 
   private async get(url: string, headers: Record<string, string> = {}): Promise<Response> {
