@@ -6,7 +6,15 @@ import api, { Review, Stage } from "../api";
 import { useAlerts, useStateHelper } from "../hooks";
 import ApplicationView from "../views/ApplicationView";
 
-function ReviewView({ id }: { id: string }) {
+export function ReviewView({
+  id,
+  editable,
+  showApplication,
+}: {
+  id: string;
+  editable: boolean;
+  showApplication: boolean;
+}) {
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
   const [stage, setStage] = useStateHelper<Stage>();
   const { alerts, addAlert } = useAlerts();
@@ -46,9 +54,13 @@ function ReviewView({ id }: { id: string }) {
 
   return (
     <>
-      <h2>Application</h2>
-      {review && <ApplicationView id={review.application} />}
-      <h2>{stage && stage.name}</h2>
+      {showApplication && (
+        <>
+          <h2>Application</h2>
+          {review && <ApplicationView id={review._id} />}
+        </>
+      )}
+      <h2>{`${stage && stage.name} (${(review && review.reviewerEmail) || "unassigned"})`}</h2>
       <Form onSubmit={onSubmit}>
         {stage &&
           stage.fieldOrder.map((fieldName) => {
@@ -61,6 +73,7 @@ function ReviewView({ id }: { id: string }) {
                     type="checkbox"
                     checked={!!getReviewField(fieldName)}
                     onChange={(e) => setReviewField(fieldName, e.target.checked)}
+                    disabled={!editable}
                   />
                 );
                 break;
@@ -74,6 +87,7 @@ function ReviewView({ id }: { id: string }) {
                     onWheel={
                       (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
                     }
+                    disabled={!editable}
                   />
                 );
                 break;
@@ -88,6 +102,7 @@ function ReviewView({ id }: { id: string }) {
                         : getReviewField(fieldName) + ""
                     }
                     onChange={(e) => setReviewField(fieldName, e.target.value)}
+                    disabled={!editable}
                   />
                 );
                 break;
@@ -101,16 +116,20 @@ function ReviewView({ id }: { id: string }) {
               </Form.Group>
             );
           })}
-        <Form.Check
-          label="I am finished with this review"
-          checked={!!getField("completed")}
-          onChange={(e) => setField("completed", e.target.checked)}
-        />
-        <Form.Text>Leave this unchecked if you want to save a draft</Form.Text>
-        <br />
-        <Button type="submit" variant="success">
-          Save
-        </Button>
+        {editable && (
+          <>
+            <Form.Check
+              label="I am finished with this review"
+              checked={!!getField("completed")}
+              onChange={(e) => setField("completed", e.target.checked)}
+            />
+            <Form.Text>Leave this unchecked if you want to save a draft</Form.Text>
+            <br />
+            <Button type="submit" variant="success">
+              Save
+            </Button>
+          </>
+        )}
         {alerts}
       </Form>
     </>
@@ -119,5 +138,5 @@ function ReviewView({ id }: { id: string }) {
 
 export default function EditReview() {
   const { reviewId } = useParams();
-  return <ReviewView id={reviewId || ""} />;
+  return <ReviewView id={reviewId || ""} editable showApplication />;
 }

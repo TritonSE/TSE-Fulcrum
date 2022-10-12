@@ -65,7 +65,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
     return [app, appReviews, avgScore] as const;
   });
 
-  withScores.sort(makeComparator(([app, _appReviews, avgScore]) => [avgScore, app.name]));
+  withScores.sort(makeComparator(([app, _appReviews, avgScore]) => [-avgScore, app.name]));
 
   return (
     <div>
