@@ -25,28 +25,29 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
     grouped[appId][1].push(review);
   });
 
-  let scoreKeys: string[];
-  reviews.forEach((review) => {
-    const currentScoreKeys = Object.keys(review.fields)
-      .filter((k) => SCORE_REGEX.test(k))
-      .sort();
-    if (scoreKeys === undefined) {
-      scoreKeys = currentScoreKeys;
-    } else if (JSON.stringify(scoreKeys) !== JSON.stringify(currentScoreKeys)) {
-      // ^^^ crummy way of checking array equality
-      addScoreAlert(
-        `Mismatched score fields - score calculation is probably incorrect! ${JSON.stringify(
-          scoreKeys
-        )}, ${JSON.stringify(currentScoreKeys)}`
-      );
-    }
-  });
-
-  // console.log({ scoreKeys });
+  let scoreKeys: string[] = [];
+  reviews
+    .filter((r) => r.completed)
+    .forEach((review) => {
+      const currentScoreKeys = Object.keys(review.fields)
+        .filter((k) => SCORE_REGEX.test(k))
+        .sort();
+      if (scoreKeys.length === 0) {
+        scoreKeys = currentScoreKeys;
+      } else if (JSON.stringify(scoreKeys) !== JSON.stringify(currentScoreKeys)) {
+        // ^^^ crummy way of checking array equality
+        addScoreAlert(
+          `Mismatched score fields - score calculation is probably incorrect! ${JSON.stringify(
+            scoreKeys
+          )}, ${JSON.stringify(currentScoreKeys)}`
+        );
+      }
+    });
 
   const withScores = Object.values(grouped).map(([app, appReviews]) => {
     const avgScore =
       appReviews
+        .filter((r) => r.completed)
         .map((review) =>
           scoreKeys
             .map((scoreKey) => {
@@ -77,29 +78,38 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
             <tr>
               <td>Average Score</td>
               <td>Name</td>
+              <td>Review Status</td>
               <td>Raw Data</td>
             </tr>
           </thead>
           <tbody>
-            {withScores.map(([app, appReviews, score]) => (
-              <tr key={app._id}>
-                <td>{score}</td>
-                <td>
-                  <a href={`/application/${app._id}`}>{app.name}</a>
-                </td>
-                <td>
-                  {appReviews.map((r) => (
-                    <p key={r._id}>
-                      {`${r.reviewerEmail || "(no reviewer assigned)"}: ${JSON.stringify(
-                        Object.fromEntries(
-                          Object.entries(r.fields).filter(([k, _v]) => SCORE_REGEX.test(k))
-                        )
-                      )}`}
-                    </p>
-                  ))}
-                </td>
-              </tr>
-            ))}
+            {withScores.map(([app, appReviews, score]) => {
+              const incompleteCount = appReviews.filter((r) => !r.completed).length;
+              return (
+                <tr key={app._id}>
+                  <td>{score}</td>
+                  <td>
+                    <a href={`/application/${app._id}`}>{app.name}</a>
+                  </td>
+                  <td>
+                    {incompleteCount === 0 ? "all completed" : `${incompleteCount} incomplete`}
+                  </td>
+                  <td>
+                    {appReviews.map((r) => (
+                      <p key={r._id}>
+                        {`${r.reviewerEmail || "(no reviewer assigned)"}${
+                          r.completed ? "" : " (incomplete)"
+                        }: ${JSON.stringify(
+                          Object.fromEntries(
+                            Object.entries(r.fields).filter(([k, _v]) => SCORE_REGEX.test(k))
+                          )
+                        )}`}
+                      </p>
+                    ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </Table>
       )}
