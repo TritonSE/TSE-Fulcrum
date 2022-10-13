@@ -240,7 +240,9 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                           r.completed ? "" : " (incomplete)"
                         }: ${JSON.stringify(
                           Object.fromEntries(
-                            Object.entries(r.fields).filter(([k, _v]) => SCORE_REGEX.test(k))
+                            Object.entries(r.fields)
+                              .filter(([k, _v]) => SCORE_REGEX.test(k))
+                              .sort(makeComparator(([k, _v]) => [k]))
                           )
                         )}`}
                       </p>
