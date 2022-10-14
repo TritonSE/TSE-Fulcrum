@@ -150,6 +150,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
         <Table>
           <thead>
             <tr>
+              <td>Row</td>
               <td>Average Score</td>
               <td>Name</td>
               <td>Review Status</td>
@@ -166,10 +167,11 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
               </td>
               <td>Application Status</td>
               <td>Raw Data</td>
+              <td>Max Score Difference</td>
             </tr>
           </thead>
           <tbody>
-            {withScores.map(([app, appReviews, score]) => {
+            {withScores.map(([app, appReviews, score], i) => {
               const incompleteCount = appReviews.filter((r) => !r.completed).length;
               const allComplete = incompleteCount === 0;
 
@@ -204,6 +206,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
 
               return (
                 <tr key={app._id}>
+                  <td>{i + 1}</td>
                   <td>{score}</td>
                   <td>
                     <a href={`/application/${app._id}`}>{app.name}</a>
@@ -247,6 +250,16 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                         )}`}
                       </p>
                     ))}
+                  </td>
+                  <td>
+                    {scoreKeys
+                      .map((scoreKey) => {
+                        const scores = appReviews
+                          .map((r) => r.fields[scoreKey])
+                          .map((s) => (typeof s === "number" ? s : 0));
+                        return Math.max(...scores) - Math.min(...scores);
+                      })
+                      .reduce((a, b) => Math.max(a, b), 0)}
                   </td>
                 </tr>
               );
