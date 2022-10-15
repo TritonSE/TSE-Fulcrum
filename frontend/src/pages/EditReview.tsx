@@ -116,8 +116,13 @@ export function ReviewView({
             return (
               <Form.Group controlId={`${id}-${fieldName}`} key={id + fieldName}>
                 <Form.Label>{field.label}</Form.Label>
+                {field.description && (
+                  <>
+                    <br />
+                    <Form.Text>{field.description}</Form.Text>
+                  </>
+                )}
                 {control}
-                {field.description && <Form.Text>{field.description}</Form.Text>}
                 <br />
               </Form.Group>
             );
