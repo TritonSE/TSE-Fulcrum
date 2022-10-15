@@ -142,7 +142,9 @@ class ReviewService {
     // TODO: don't count applications in preceding years
     const countsAndEmails = await Promise.all(
       reviewerEmails.map((reviewerEmail) =>
-        ReviewModel.count({ reviewerEmail }).then((count) => [count, reviewerEmail] as const)
+        ReviewModel.count({ reviewerEmail, stage: stage._id }).then(
+          (count) => [count, reviewerEmail] as const
+        )
       )
     );
 
