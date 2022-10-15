@@ -37,6 +37,10 @@ class ProgressService {
       return `No progress indicator exists for pipeline ${pipeline.toHexString()} and application ${application.toHexString()}`;
     }
 
+    if (progress.state !== "pending") {
+      return `Cannot advance; application is already ${progress.state}`;
+    }
+
     const currentStage = await StageService.getByPipelineAndIndex(pipeline, progress.stageIndex);
     if (currentStage !== null) {
       const reviews = await ReviewService.getByStageAndApplication(currentStage._id, application);
@@ -103,8 +107,9 @@ class ProgressService {
       return `No progress indicator exists for pipeline ${pipeline.toHexString()} and application ${application.toHexString()}`;
     }
 
-    progress.state = "rejected";
-    await progress.save();
+    if (progress.state !== "pending") {
+      return `Cannot reject; application is already ${progress.state}`;
+    }
 
     // TODO: using ApplicationService creates a dependency cycle
     const applicationDocument = await ApplicationModel.findById(application);
@@ -117,7 +122,7 @@ class ProgressService {
       return `Pipeline not found: ${pipeline.toHexString}`;
     }
 
-    await EmailService.send({
+    const emailSuccessful = await EmailService.send({
       recipient: applicationDocument.email,
       subject: `Triton Software Engineering - ${pipelineDocument.name} Application Update`,
       body: [
@@ -129,6 +134,12 @@ class ProgressService {
         `The TSE Team`,
       ].join("\n\n"),
     });
+    if (!emailSuccessful) {
+      return "Failed to send rejection email - please talk to VP Technology";
+    }
+
+    progress.state = "rejected";
+    await progress.save();
 
     return progress;
   }

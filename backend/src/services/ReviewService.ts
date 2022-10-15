@@ -108,7 +108,7 @@ class ReviewService {
     const application = await ApplicationModel.findById(review.application);
     const stage = await StageService.getById(review.stage);
 
-    return EmailService.send({
+    await EmailService.send({
       recipient: review.reviewerEmail,
       subject: `${stage?.name} for ${application?.name}`,
       body: `${env.DEPLOYMENT_URL}/review/${review._id.toHexString()}/edit`,

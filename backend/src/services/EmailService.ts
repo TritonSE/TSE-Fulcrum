@@ -23,7 +23,7 @@ class EmailService {
     });
   }
 
-  async send({ recipient, subject, body }: EmailMessage): Promise<void> {
+  async send({ recipient, subject, body }: EmailMessage): Promise<boolean> {
     body = body.trim() + "\n\n" + env.EMAIL_FOOTER;
 
     console.log(`Email starts here, recipient: ${recipient}, subject: ${subject}`);
@@ -31,8 +31,8 @@ class EmailService {
     console.log(`Email ends here`);
 
     if (!env.EMAIL_ENABLED) {
-      console.log("Email not enabled; not sending");
-      return;
+      console.log("Email not enabled; not actually sending");
+      return true;
     }
 
     // TODO: implement a dead-letter queue for emails that fail to send?
@@ -43,8 +43,10 @@ class EmailService {
         subject,
         text: body,
       });
+      return true;
     } catch (e) {
       console.error(e);
+      return false;
     }
   }
 }
