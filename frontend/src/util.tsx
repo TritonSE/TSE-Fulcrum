@@ -16,4 +16,9 @@ function makeComparator<T, K extends (number | string)[]>(
   };
 }
 
-export { makeComparator };
+function formatQuarter(quarter: number): string {
+  const quarterNames = ["Winter", "Spring", "Summer", "Fall"];
+  return `${quarterNames[quarter % 4]} ${Math.floor(quarter / 4)}`;
+}
+
+export { makeComparator, formatQuarter };

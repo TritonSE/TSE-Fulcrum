@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import api, { Application } from "../api";
 import { useAlerts, useStateHelper } from "../hooks";
+import { formatQuarter } from "../util";
 
 function row(label: unknown, value: unknown) {
   return (
@@ -12,11 +13,6 @@ function row(label: unknown, value: unknown) {
       <td>{value + ""}</td>
     </tr>
   );
-}
-
-function formatQuarter(quarter: number): string {
-  const quarterNames = ["Winter", "Spring", "Summer", "Fall"];
-  return `${quarterNames[quarter % 4]} ${Math.floor(quarter / 4)}`;
 }
 
 export default function ApplicationView({ id }: { id: string }) {

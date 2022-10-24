@@ -3,7 +3,7 @@ import { Alert, Button, Form, Table } from "react-bootstrap";
 
 import api, { Application, PopulatedReview, Progress, Stage } from "../api";
 import { useAlerts } from "../hooks";
-import { makeComparator } from "../util";
+import { makeComparator, formatQuarter } from "../util";
 
 const SCORE_REGEX = /^(.*_)?score$/;
 
@@ -153,6 +153,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
               <td>Row</td>
               <td>Average Score</td>
               <td>Name</td>
+              <td>Degree Timeline</td>
               <td>Review Status</td>
               <td>
                 Select action:
@@ -211,6 +212,9 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                   <td>
                     <a href={`/application/${app._id}`}>{app.name}</a>
                   </td>
+                  <td>{`${formatQuarter(app.startQuarter)} to ${formatQuarter(
+                    app.gradQuarter
+                  )}`}</td>
                   <td>{allComplete ? "all completed" : `${incompleteCount} incomplete`}</td>
                   <td>
                     {pendingAtThisStage && allComplete ? (
