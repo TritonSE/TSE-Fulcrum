@@ -3,7 +3,7 @@ import { Button, Form, Table } from "react-bootstrap";
 
 import api, { PopulatedReview } from "../api";
 import { useAlerts } from "../hooks";
-import { makeComparator } from "../util";
+import { formatQuarter, makeComparator } from "../util";
 
 function AutoAssignButton({
   id,
@@ -108,6 +108,7 @@ export default function ReviewsView({
             <tr>
               <th>Stage</th>
               <th>Name</th>
+              <th>Degree Timeline</th>
               <th>Reviewer</th>
               <th>Status</th>
               {showReassign && <th>Reassign</th>}
@@ -127,6 +128,9 @@ export default function ReviewsView({
                   <td>
                     <a href={`/review/${review._id}/edit`}>{review.application.name}</a>
                   </td>
+                  <td>{`${formatQuarter(review.application.startQuarter)} to ${formatQuarter(
+                    review.application.gradQuarter
+                  )}`}</td>
                   <td>
                     {review.reviewerEmail || (
                       <AutoAssignButton id={review._id} addAlert={addAlert} />
