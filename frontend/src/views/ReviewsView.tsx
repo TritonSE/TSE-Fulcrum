@@ -109,6 +109,7 @@ export default function ReviewsView({
               <th>Stage</th>
               <th>Name</th>
               <th>Degree Timeline</th>
+              <th>Past Reviewers</th>
               <th>Reviewer</th>
               <th>Status</th>
               {showReassign && <th>Reassign</th>}
@@ -122,6 +123,15 @@ export default function ReviewsView({
               } else {
                 status = Object.keys(review.fields).length > 0 ? "draft" : "blank";
               }
+              const pastReviewers = Object.entries(
+                reviews
+                  .filter((r) => review.application._id === r.application._id)
+                  .map((r) => [r.stage.name, r.reviewerEmail || "(unassigned)"])
+                  .reduce(
+                    (o, [stage, reviewer]) => ({ ...o, [stage]: [...(o[stage] || []), reviewer] }),
+                    {} as Record<string, string[]>
+                  )
+              ).sort();
               return (
                 <tr key={review._id}>
                   <td>{review.stage.name}</td>
@@ -131,6 +141,13 @@ export default function ReviewsView({
                   <td>{`${formatQuarter(review.application.startQuarter)} to ${formatQuarter(
                     review.application.gradQuarter
                   )}`}</td>
+                  <td>
+                    {pastReviewers.length === 0
+                      ? "(none)"
+                      : pastReviewers.map(([stage, reviewers]) => (
+                          <p key={stage}>{`${stage}: ${reviewers.slice().sort().join(" ")}`}</p>
+                        ))}
+                  </td>
                   <td>
                     {review.reviewerEmail || (
                       <AutoAssignButton id={review._id} addAlert={addAlert} />
