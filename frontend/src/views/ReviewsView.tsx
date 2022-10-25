@@ -88,6 +88,7 @@ export default function ReviewsView({
             .sort(
               makeComparator((r) => [
                 r.stage.name,
+                r.application.gradQuarter,
                 r.application.name,
                 r.reviewerEmail || "",
                 r._id,
