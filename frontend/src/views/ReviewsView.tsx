@@ -122,8 +122,8 @@ export default function ReviewsView({
               <th>Stage</th>
               <th>Name</th>
               <th>Degree Timeline</th>
-              <th>Past Reviewers</th>
-              <th>Reviewer</th>
+              {!homepage && <th>Past Reviewers</th>}
+              {!homepage && <th>Reviewer</th>}
               <th>Status</th>
               {showReassign && <th>Reassign</th>}
             </tr>
@@ -154,18 +154,22 @@ export default function ReviewsView({
                   <td>{`${formatQuarter(review.application.startQuarter)} to ${formatQuarter(
                     review.application.gradQuarter
                   )}`}</td>
-                  <td>
-                    {pastReviewers.length === 0
-                      ? "(none)"
-                      : pastReviewers.map(([stage, reviewers]) => (
-                          <p key={stage}>{`${stage}: ${reviewers.slice().sort().join(" ")}`}</p>
-                        ))}
-                  </td>
-                  <td>
-                    {review.reviewerEmail || (
-                      <AutoAssignButton id={review._id} addAlert={addAlert} />
-                    )}
-                  </td>
+                  {!homepage && (
+                    <td>
+                      {pastReviewers.length === 0
+                        ? "(none)"
+                        : pastReviewers.map(([stage, reviewers]) => (
+                            <p key={stage}>{`${stage}: ${reviewers.slice().sort().join(" ")}`}</p>
+                          ))}
+                    </td>
+                  )}
+                  {!homepage && (
+                    <td>
+                      {review.reviewerEmail || (
+                        <AutoAssignButton id={review._id} addAlert={addAlert} />
+                      )}
+                    </td>
+                  )}
                   <td>{status}</td>
                   {showReassign && (
                     <td>
