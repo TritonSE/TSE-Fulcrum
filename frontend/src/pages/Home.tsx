@@ -5,5 +5,5 @@ import ReviewsView from "../views/ReviewsView";
 
 export default function Home() {
   const { user } = useContext(GlobalContext);
-  return <ReviewsView filter={{ reviewerEmail: user?.email || "" }} />;
+  return <ReviewsView filter={{ reviewerEmail: user?.email || "" }} homepage />;
 }

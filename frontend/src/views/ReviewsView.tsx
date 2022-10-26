@@ -70,9 +70,11 @@ function ManualAssign({
 export default function ReviewsView({
   filter,
   showReassign,
+  homepage = false,
 }: {
   filter: Record<string, string>;
   showReassign?: boolean;
+  homepage?: boolean;
 }) {
   const [reviews, setReviews] = useState<PopulatedReview[]>([]);
   const { alerts, addAlert } = useAlerts();
@@ -83,17 +85,27 @@ export default function ReviewsView({
       .getFilteredReviews(filter)
       .then((newReviews) =>
         setReviews(
-          newReviews
-            .slice()
-            .sort(
-              makeComparator((r) => [
-                r.stage.name,
-                r.application.gradQuarter,
-                r.application.name,
-                r.reviewerEmail || "",
-                r._id,
-              ])
+          newReviews.slice().sort(
+            makeComparator((r) =>
+              homepage
+                ? [
+                    // eslint-disable-next-line no-nested-ternary
+                    r.completed ? 2 : Object.entries(r.fields).length > 0 ? 1 : 0,
+                    r.stage.name,
+                    r.application.gradQuarter,
+                    r.application.name,
+                    r.reviewerEmail || "",
+                    r._id,
+                  ]
+                : [
+                    r.stage.name,
+                    r.application.gradQuarter,
+                    r.application.name,
+                    r.reviewerEmail || "",
+                    r._id,
+                  ]
             )
+          )
         )
       )
       .catch(addAlert);
@@ -173,4 +185,5 @@ export default function ReviewsView({
 
 ReviewsView.defaultProps = {
   showReassign: false,
+  homepage: false,
 };
