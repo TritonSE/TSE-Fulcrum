@@ -6,6 +6,7 @@ import { useAlerts } from "../hooks";
 import { makeComparator, formatQuarter } from "../util";
 
 const SCORE_REGEX = /^(.*_)?score$/;
+const RATING_REGEX = /^(.*_)?rating$/;
 
 function AdvanceButton({
   progressId,
@@ -168,6 +169,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
               </td>
               <td>Application Status</td>
               <td>Raw Data</td>
+              <td>Ratings</td>
               <td>Max Score Difference</td>
             </tr>
           </thead>
@@ -249,6 +251,21 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                           Object.fromEntries(
                             Object.entries(r.fields)
                               .filter(([k, _v]) => SCORE_REGEX.test(k))
+                              .sort(makeComparator(([k, _v]) => [k]))
+                          )
+                        )}`}
+                      </p>
+                    ))}
+                  </td>
+                  <td>
+                    {appReviews.map((r) => (
+                      <p key={r._id}>
+                        {`${r.reviewerEmail || "(no reviewer assigned)"}${
+                          r.completed ? "" : " (incomplete)"
+                        }: ${JSON.stringify(
+                          Object.fromEntries(
+                            Object.entries(r.fields)
+                              .filter(([k, _v]) => RATING_REGEX.test(k))
                               .sort(makeComparator(([k, _v]) => [k]))
                           )
                         )}`}
