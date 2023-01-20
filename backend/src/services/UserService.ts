@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 
+import { CreateUserRequest, LogInRequest, ResetPasswordRequest } from "../cakes";
 import env from "../env";
 import { UserDocument, UserModel } from "../models";
 
@@ -11,25 +12,9 @@ interface PublicUser {
   name: string;
 }
 
-interface CreateUserRequest {
-  email: string;
-  name: string;
-}
-
-interface LogInRequest {
-  email: string;
-  password: string;
-}
-
 interface LogInResponse {
   user: UserDocument;
   sessionToken: string;
-}
-
-interface ResetPasswordRequest {
-  email: string;
-  passwordResetToken: string;
-  password: string;
 }
 
 class UserService {

@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { CreateUserRequest } from "../cakes";
 import { UserService } from "../services";
 
 import { authWrapper } from "./wrappers";
@@ -20,7 +21,14 @@ router.get(
 router.post(
   "/",
   authWrapper(async (_user, req) => {
-    const user = await UserService.create(req.body);
+    const bodyResult = CreateUserRequest.check(req.body);
+    if (!bodyResult.ok) {
+      return {
+        status: 400,
+        text: bodyResult.error.toString(),
+      };
+    }
+    const user = await UserService.create(bodyResult.value);
     if (user === null) {
       return {
         status: 409,

@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { LogInRequest, ResetPasswordRequest } from "../cakes";
 import env from "../env";
 import { UserService } from "../services";
 
@@ -10,6 +11,14 @@ const router = Router();
 router.post(
   "/log-in",
   wrapper(async (req, res) => {
+    const bodyResult = LogInRequest.check(req.body);
+    if (!bodyResult.ok) {
+      return {
+        status: 400,
+        text: bodyResult.error.toString(),
+      };
+    }
+
     const result = await UserService.logIn(req.body);
 
     if (result === null) {
@@ -61,7 +70,15 @@ router.post(
 router.post(
   "/reset-password",
   wrapper(async (req) => {
-    if (await UserService.resetPassword(req.body)) {
+    const bodyResult = ResetPasswordRequest.check(req.body);
+    if (!bodyResult.ok) {
+      return {
+        status: 400,
+        text: bodyResult.error.toString(),
+      };
+    }
+
+    if (await UserService.resetPassword(bodyResult.value)) {
       return { status: 200 };
     }
     return { status: 400 };
