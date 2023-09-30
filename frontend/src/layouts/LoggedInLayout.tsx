@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Button, Navbar } from "react-bootstrap";
+import { Button, Nav, NavDropdown, Navbar } from "react-bootstrap";
 import { Outlet, useNavigate } from "react-router-dom";
 
 import api from "../api";
@@ -21,14 +21,22 @@ export default function LoggedInLayout() {
   return (
     <RequireAuth>
       <>
-        <Navbar expand="md" sticky="top" style={{ background: "#eeeeee" }}>
+        <Navbar expand="sm" sticky="top" style={{ background: "#eeeeee" }}>
           <Navbar.Brand href="/">TSE Fulcrum</Navbar.Brand>
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
-          <Navbar.Collapse id="responsive-navbar-nav" className="justify-content-end">
-            <Navbar.Text>{user?.email}</Navbar.Text>
-            <Button variant="outline-secondary" onClick={onLogOut}>
-              Log out
-            </Button>
+          <Navbar.Collapse id="responsive-navbar-nav">
+            <Nav className="me-auto">
+              <NavDropdown title="Admin use only">
+                <NavDropdown.Item href="/reviews">Reassign reviewers</NavDropdown.Item>
+                <NavDropdown.Item href="/stages">View all candidates by stage</NavDropdown.Item>
+              </NavDropdown>
+            </Nav>
+            <Nav>
+              <Navbar.Text>{user?.email}</Navbar.Text>
+              <Button variant="outline-secondary" onClick={onLogOut}>
+                Log out
+              </Button>
+            </Nav>
           </Navbar.Collapse>
         </Navbar>
         <Outlet />
