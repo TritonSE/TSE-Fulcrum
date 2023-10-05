@@ -7,6 +7,7 @@ import CreateUser from "./pages/CreateUser";
 import EditPipeline from "./pages/EditPipeline";
 import EditReview from "./pages/EditReview";
 import Home from "./pages/Home";
+import Interview from "./pages/Interview";
 import Login from "./pages/Login";
 import Pipelines from "./pages/Pipelines";
 import RequestPasswordReset from "./pages/RequestPasswordReset";
@@ -29,6 +30,7 @@ export default function App() {
             <Route path="/pipelines" element={<Pipelines />} />
             <Route path="/pipelines/create" element={<CreatePipeline />} />
             <Route path="/review/:reviewId/edit" element={<EditReview />} />
+            <Route path="/review/:reviewId/interview" element={<Interview />} />
             <Route path="/reviews" element={<ViewReviews />} />
             <Route path="/stages" element={<Stages />} />
             <Route path="/stage/:stageId/applications" element={<StageApplications />} />
@@ -38,6 +40,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/request-password-reset" element={<RequestPasswordReset />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/interview/:reviewId" element={<Interview />} />
         </Routes>
       </BrowserRouter>
     </GlobalContextProvider>

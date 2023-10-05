@@ -1,4 +1,5 @@
 import ApplicationService from "./ApplicationService";
+import InterviewService from "./InterviewService";
 import PipelineService from "./PipelineService";
 import ProgressService from "./ProgressService";
 import ReviewService from "./ReviewService";
@@ -7,6 +8,7 @@ import UserService from "./UserService";
 
 export {
   ApplicationService,
+  InterviewService,
   PipelineService,
   ProgressService,
   StageService,

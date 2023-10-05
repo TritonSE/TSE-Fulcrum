@@ -1,3 +1,4 @@
+import http from "http";
 import path from "path";
 
 import bodyParser from "body-parser";
@@ -9,7 +10,7 @@ import morgan from "morgan";
 
 import env from "./env";
 import routes from "./routes";
-import { UserService } from "./services";
+import { UserService, InterviewService } from "./services";
 
 async function onStartup() {
   // Create the admin account if necessary.
@@ -42,7 +43,9 @@ async function main() {
     res.sendFile("index.html", { root: path.join(__dirname, "../public/") });
   });
 
-  app.listen(env.PORT, () => {
+  const server = http.createServer(app);
+  InterviewService.create(server);
+  server.listen(env.PORT, () => {
     console.log(`Listening on port ${env.PORT}`);
   });
 }
