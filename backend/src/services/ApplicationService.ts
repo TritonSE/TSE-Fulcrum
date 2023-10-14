@@ -25,7 +25,7 @@ class ApplicationService {
     const { email } = application;
     const existingApplication = await ApplicationModel.findOne({ email, yearApplied });
     if (existingApplication !== null) {
-      return `The email address ${email} was already used to submit an application in ${yearApplied}.`;
+      return `You have already submitted an application in ${yearApplied}.`;
     }
 
     const pipelines: PipelineDocument[] = [];
