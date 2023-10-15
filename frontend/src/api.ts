@@ -74,6 +74,7 @@ export interface Stage {
   reviewerEmails: string[];
   autoAssignReviewers: boolean;
   notifyReviewersWhenAssigned: boolean;
+  hasTechnicalInterview?: boolean;
 }
 
 export interface Application {

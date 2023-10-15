@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Button, Form } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 
 import api, { Review, Stage } from "../api";
 import { useAlerts, useStateHelper } from "../hooks";
@@ -18,6 +18,7 @@ export function ReviewView({
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
   const [stage, setStage] = useStateHelper<Stage>();
   const { alerts, addAlert } = useAlerts();
+  const location = useLocation();
 
   const getReviewField = (fieldName: string) => review?.fields[fieldName];
   const setReviewField = (fieldName: string, value: boolean | number | string) => {
@@ -62,6 +63,15 @@ export function ReviewView({
       )}
       <h2>{`${stage && stage.name} (${(review && review.reviewerEmail) || "unassigned"})`}</h2>
       <Form onSubmit={onSubmit}>
+        {stage && stage.hasTechnicalInterview && (
+          <a
+            href={location.pathname.replace("edit", "interview")}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Technical interview
+          </a>
+        )}
         {stage &&
           stage.fieldOrder.map((fieldName) => {
             const field = stage.fields[fieldName];

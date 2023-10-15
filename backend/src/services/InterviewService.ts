@@ -3,6 +3,7 @@ import { type Server as HTTPServer } from "http";
 import { Server } from "socket.io";
 
 import { InterviewModel, type InterviewState } from "../models/InterviewModel";
+import { ReviewModel } from "../models/ReviewModel";
 
 interface Payload {
   userId: string;
@@ -10,7 +11,13 @@ interface Payload {
   value: string | boolean;
 }
 
-const DB_UPDATE_INTERVAL = 30 * 1000; // 30 seconds
+interface SelectionPayload {
+  role: number;
+  from: number;
+  to: number;
+}
+
+const DB_UPDATE_INTERVAL = 10 * 1000; // 10 seconds
 
 class InterviewService {
   interviews: Map<string, InterviewState>;
@@ -19,17 +26,30 @@ class InterviewService {
     this.interviews = new Map();
   }
 
+  // TODO: This function does no error handling.
   async upsert(interview: InterviewState) {
     const prev = this.interviews.get(interview.room);
 
     this.interviews.set(interview.room, interview);
 
     if (prev && new Date().getTime() < prev.lastUpdate.getTime() + DB_UPDATE_INTERVAL) {
-      return true;
+      return;
     }
 
     interview.lastUpdate = new Date();
-    return InterviewModel.findOneAndUpdate({ room: interview.room }, interview, { upsert: true });
+    const res = await InterviewModel.findOneAndUpdate({ room: interview.room }, interview, {
+      new: true,
+      upsert: true,
+      rawResult: true,
+    });
+
+    if (res?.lastErrorObject?.updatedExisting === false) {
+      // Add Interview to Review only if newly created
+      await ReviewModel.update(
+        { _id: interview.room },
+        { interview: res.lastErrorObject.upserted }
+      );
+    }
   }
 
   async create(server: HTTPServer) {
@@ -58,9 +78,11 @@ class InterviewService {
       socket.on("message", async (payload: Payload) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (obj as any)[payload.key] = payload.value;
-        await this.upsert(obj);
-
         io.to(room).emit("message", payload);
+        await this.upsert(obj);
+      });
+      socket.on("select", (payload: SelectionPayload) => {
+        io.to(room).emit("select", payload);
       });
       socket.on("getState", () => socket.emit("state", obj));
     });

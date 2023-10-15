@@ -88,6 +88,7 @@ class StageService {
       reviewerEmails: stage.reviewerEmails,
       autoAssignReviewers: stage.autoAssignReviewers,
       notifyReviewersWhenAssigned: stage.notifyReviewersWhenAssigned,
+      hasTechnicalInterview: stage.hasTechnicalInterview,
     };
   }
 }

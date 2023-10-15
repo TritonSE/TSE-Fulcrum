@@ -103,6 +103,14 @@ function StageView({ id }: { id: string }) {
         onChange={(e) => setField("notifyReviewersWhenAssigned", e.target.checked)}
         id={`${id}-notifyReviewersWhenAssigned`}
       />
+      <Form.Check
+        label="Has technical interview"
+        type="checkbox"
+        disabled={stage === null}
+        checked={!!getField("hasTechnicalInterview")}
+        onChange={(e) => setField("hasTechnicalInterview", e.target.checked)}
+        id={`${id}-hasTechnicalInterview`}
+      />
       <Form.Group controlId={`${id}-fields`}>
         <Form.Label>Fields</Form.Label>
         <JSONEdit
