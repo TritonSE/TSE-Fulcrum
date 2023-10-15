@@ -1,6 +1,6 @@
+import { RemoteSelectionManager } from "@convergencelabs/monaco-collab-ext";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import { type editor as MonacoEditor } from "monaco-editor";
-// import { RemoteCursorManager } from "@convergencelabs/monaco-collab-ext";
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Button, Dropdown } from "react-bootstrap";
 import Markdown from "react-markdown";
@@ -28,6 +28,12 @@ interface Payload {
   value: string | boolean;
 }
 
+interface SelectionPayload {
+  role: number;
+  from: number;
+  to: number;
+}
+
 interface Callbacks {
   [key: string]: (p: Payload) => void;
 }
@@ -40,6 +46,12 @@ interface EditorInstance {
 interface CodeProps {
   children?: ReactNode;
   className?: string;
+}
+
+interface RemoteSelection {
+  setOffsets: (start: number, end: number) => void;
+  show: () => void;
+  hide: () => void;
 }
 
 function CodeBlock({ children, className, ...rest }: CodeProps) {
@@ -72,6 +84,11 @@ export default function Interview() {
 
   const questionEditor = useRef<EditorInstance | null>(null);
   const codeEditor = useRef<EditorInstance | null>(null);
+  const remoteSelection = useRef<RemoteSelection | null>(null);
+
+  useEffect(() => {
+    document.title = "TSE Technical Interview";
+  });
 
   const role = location.pathname.includes("/review/") ? INTERVIEWER : INTERVIEWEE;
   const editorOptions = {
@@ -97,6 +114,29 @@ export default function Interview() {
     (isCode: boolean) => (editor: MonacoEditor.IStandaloneCodeEditor, monaco: Monaco) => {
       if (isCode) {
         codeEditor.current = { editor, monaco };
+
+        const selMgr = new RemoteSelectionManager({ editor });
+        remoteSelection.current = selMgr.addSelection(
+          role === INTERVIEWER ? "Interviewee" : "Interviewer",
+          "blue"
+        );
+
+        editor.onDidChangeCursorSelection((e) => {
+          const mod = editor.getModel();
+          if (!mod || !socket) return;
+
+          const sel = e.selection;
+          const from = mod.getOffsetAt({
+            column: sel.startColumn,
+            lineNumber: sel.startLineNumber,
+          });
+          const to = mod.getOffsetAt({
+            column: sel.endColumn,
+            lineNumber: sel.endLineNumber,
+          });
+
+          socket.emit("select", { role, from, to });
+        });
       } else {
         questionEditor.current = { editor, monaco };
       }
@@ -180,6 +220,11 @@ export default function Interview() {
           key: event as string,
           value,
         });
+      });
+      sock.on("select", (select: SelectionPayload) => {
+        if (select.role === role || remoteSelection.current === null) return;
+
+        remoteSelection.current.setOffsets(select.from, select.to);
       });
     });
   }, []);

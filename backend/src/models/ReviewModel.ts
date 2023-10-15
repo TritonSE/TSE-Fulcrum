@@ -4,6 +4,7 @@ interface Review {
   _id: Types.ObjectId;
   stage: Types.ObjectId;
   application: Types.ObjectId;
+  interview?: Types.ObjectId;
   reviewerEmail?: string;
   completed: boolean;
   fields: Record<string, string | number | boolean>;
@@ -19,6 +20,10 @@ const ReviewSchema = new Schema<Review>({
     type: Schema.Types.ObjectId,
     ref: "Application",
     required: true,
+  },
+  interview: {
+    type: Schema.Types.ObjectId,
+    ref: "Interview",
   },
   reviewerEmail: {
     type: String,

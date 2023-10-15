@@ -19,6 +19,7 @@ interface Stage {
   reviewerEmails: string[];
   autoAssignReviewers: boolean;
   notifyReviewersWhenAssigned: boolean;
+  hasTechnicalInterview?: boolean;
 }
 
 const StageSchema = new Schema<Stage>({
@@ -82,6 +83,10 @@ const StageSchema = new Schema<Stage>({
   notifyReviewersWhenAssigned: {
     type: Boolean,
     required: true,
+  },
+  hasTechnicalInterview: {
+    type: Boolean,
+    default: false, // Backward compatibility for existing stages in prod
   },
 });
 

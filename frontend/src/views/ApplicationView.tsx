@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 
 import api, { Application } from "../api";
 import { useAlerts, useStateHelper } from "../hooks";
@@ -19,7 +18,6 @@ function row(label: unknown, value: unknown) {
 export default function ApplicationView({ id }: { id: string }) {
   const [application, setApplication] = useStateHelper<Application>();
   const { alerts, addAlert } = useAlerts();
-  const location = useLocation();
 
   useEffect(() => {
     api.getApplicationById(id).then(setApplication).catch(addAlert);
@@ -49,14 +47,6 @@ export default function ApplicationView({ id }: { id: string }) {
       </table>
       <a href={application?.resumeUrl} target="_blank" rel="noreferrer noopener">
         View resume
-      </a>
-      <br />
-      <a
-        href={location.pathname.replace("edit", "interview")}
-        target="_blank"
-        rel="noreferrer noopener"
-      >
-        Technical interview
       </a>
       <br />
       <strong>Prompts</strong>
