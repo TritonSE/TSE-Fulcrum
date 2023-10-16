@@ -64,13 +64,17 @@ export function ReviewView({
       <h2>{`${stage && stage.name} (${(review && review.reviewerEmail) || "unassigned"})`}</h2>
       <Form onSubmit={onSubmit}>
         {stage && stage.hasTechnicalInterview && (
-          <a
-            href={location.pathname.replace("edit", "interview")}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            Technical interview
-          </a>
+          <>
+            <a
+              href={location.pathname.replace("edit", "interview")}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Technical interview
+            </a>
+            <br />
+            <br />
+          </>
         )}
         {stage &&
           stage.fieldOrder.map((fieldName) => {

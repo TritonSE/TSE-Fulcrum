@@ -27,12 +27,12 @@ class InterviewService {
   }
 
   // TODO: This function does no error handling.
-  async upsert(interview: InterviewState) {
+  async upsert(interview: InterviewState, force = false) {
     const prev = this.interviews.get(interview.room);
 
     this.interviews.set(interview.room, interview);
 
-    if (prev && new Date().getTime() < prev.lastUpdate.getTime() + DB_UPDATE_INTERVAL) {
+    if (!force && prev && new Date().getTime() < prev.lastUpdate.getTime() + DB_UPDATE_INTERVAL) {
       return;
     }
 
@@ -76,6 +76,8 @@ class InterviewService {
       // Join room based on review ID
       socket.join(room);
       socket.on("message", async (payload: Payload) => {
+        if (!obj.active && payload.key !== "active") return;
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (obj as any)[payload.key] = payload.value;
         io.to(room).emit("message", payload);
@@ -83,6 +85,9 @@ class InterviewService {
       });
       socket.on("select", (payload: SelectionPayload) => {
         io.to(room).emit("select", payload);
+      });
+      socket.on("save", async () => {
+        await this.upsert(obj, true);
       });
       socket.on("getState", () => socket.emit("state", obj));
     });

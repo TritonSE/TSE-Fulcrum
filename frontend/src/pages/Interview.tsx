@@ -13,6 +13,12 @@ const LANGS = ["python", "javascript", "java", "cpp"];
 const INTERVIEWEE = 0;
 const INTERVIEWER = 1;
 
+const css = `
+  .divider:hover {
+    background: var(--bs-primary) !important;
+  }
+`;
+
 interface InterviewState {
   room: string;
   question: string;
@@ -48,6 +54,10 @@ interface CodeProps {
   className?: string;
 }
 
+interface LoadingProps {
+  msg: string;
+}
+
 interface RemoteSelection {
   setOffsets: (start: number, end: number) => void;
   show: () => void;
@@ -69,6 +79,28 @@ function CodeBlock({ children, className, ...rest }: CodeProps) {
 }
 CodeBlock.defaultProps = { children: [], className: "" };
 
+function LoadingScreen({ msg }: LoadingProps) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        textAlign: "center",
+        background: "#0c2a34",
+        color: "white",
+      }}
+    >
+      <div>
+        <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
+        <br />
+        <h1>{msg}</h1>
+      </div>
+    </div>
+  );
+}
+
 export default function Interview() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -88,7 +120,15 @@ export default function Interview() {
 
   useEffect(() => {
     document.title = "TSE Technical Interview";
-  });
+
+    const unload = () => {
+      if (!socket) return;
+      socket.emit("save");
+    };
+    window.addEventListener("beforeunload", unload);
+
+    return () => window.removeEventListener("beforeunload", unload);
+  }, []);
 
   const role = location.pathname.includes("/review/") ? INTERVIEWER : INTERVIEWEE;
   const editorOptions = {
@@ -230,18 +270,21 @@ export default function Interview() {
   }, []);
 
   if (!socket) {
-    return <h1>Connecting...</h1>;
+    return <LoadingScreen msg="Connecting..." />;
   }
 
   return (
     <>
+      <style>{css}</style>
       {role === INTERVIEWER && (
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            height: "38px",
+            height: "48px",
+            background: "rgb(238, 238, 238)",
+            padding: "5px",
           }}
         >
           <Button onClick={() => navigate(-1)}>← Back to Review</Button>
@@ -249,10 +292,18 @@ export default function Interview() {
           <Button variant={active ? "warning" : "success"} onClick={toggleInterview}>
             {active ? "End" : "Begin"} Interview
           </Button>
-          <div>&nbsp;</div>
-          <a href={location.pathname.replace("/interview", "").replace("/review/", "/interview/")}>
-            Link for interviewee
-          </a>
+          <div>&nbsp;&nbsp;&nbsp;</div>
+          <Button
+            variant="success"
+            onClick={() => {
+              navigator.clipboard.writeText(
+                window.location.origin +
+                  location.pathname.replace("/interview", "").replace("/review/", "/interview/")
+              );
+            }}
+          >
+            Copy Link for Interviewee
+          </Button>
           <div style={{ flex: 1 }}>&nbsp;</div>
           <Dropdown>
             <Dropdown.Toggle>Set Language</Dropdown.Toggle>
@@ -293,6 +344,10 @@ export default function Interview() {
               width: `calc(${editorWidth}vw - ${separatorWidth / 2}px)`,
               height: "100vh",
               overflow: "auto",
+              padding: "10px",
+              boxSizing: "border-box",
+              background: "#1e1e1e",
+              color: "white",
             }}
           >
             <Markdown
@@ -306,10 +361,11 @@ export default function Interview() {
         )}
         <div
           role="presentation"
+          className="divider"
           style={{
             width: separatorWidth + "px",
             height: "100vh",
-            background: "blue",
+            background: mouseDown ? "var(--bs-primary)" : "gray",
             cursor: "ew-resize",
           }}
           onMouseDown={() => setMouseDown(true)}
@@ -323,7 +379,9 @@ export default function Interview() {
           onMount={onMount(true)}
         />
       </div>
-      {role === INTERVIEWEE && !active && <h1>Interview not active.</h1>}
+      {role === INTERVIEWEE && !active && (
+        <LoadingScreen msg="Please wait for your interviewer..." />
+      )}
     </>
   );
 }
