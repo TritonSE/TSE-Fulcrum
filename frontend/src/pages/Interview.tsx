@@ -113,6 +113,7 @@ export default function Interview() {
   const [questionContent, setQuestionContent] = useState<string>();
   const [editorWidth, setEditorWidth] = useState<number>(50);
   const [mouseDown, setMouseDown] = useState<boolean>(false);
+  const [blinking, setBlinking] = useState<boolean>(false);
 
   const questionEditor = useRef<EditorInstance | null>(null);
   const codeEditor = useRef<EditorInstance | null>(null);
@@ -294,12 +295,14 @@ export default function Interview() {
           </Button>
           <div>&nbsp;&nbsp;&nbsp;</div>
           <Button
-            variant="success"
+            variant={blinking ? "success" : "secondary"}
             onClick={() => {
               navigator.clipboard.writeText(
                 window.location.origin +
                   location.pathname.replace("/interview", "").replace("/review/", "/interview/")
               );
+              setBlinking(true);
+              setTimeout(() => setBlinking(false), 250);
             }}
           >
             Copy Link for Interviewee
@@ -379,9 +382,7 @@ export default function Interview() {
           onMount={onMount(true)}
         />
       </div>
-      {role === INTERVIEWEE && !active && (
-        <LoadingScreen msg="Please wait for your interviewer..." />
-      )}
+      {role === INTERVIEWEE && !active && <LoadingScreen msg="Please wait for your interviewer." />}
     </>
   );
 }
