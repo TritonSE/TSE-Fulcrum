@@ -121,6 +121,7 @@ export default function ReviewsView({
             <tr>
               <th>Stage</th>
               <th>Name</th>
+              {homepage && <th>Email</th>}
               <th>Degree Timeline</th>
               {!homepage && <th>Past Reviewers</th>}
               {!homepage && <th>Reviewer</th>}
@@ -151,6 +152,7 @@ export default function ReviewsView({
                   <td>
                     <a href={`/review/${review._id}/edit`}>{review.application.name}</a>
                   </td>
+                  {homepage && <td>{review.application.email}</td>}
                   <td>{`${formatQuarter(review.application.startQuarter)} to ${formatQuarter(
                     review.application.gradQuarter
                   )}`}</td>
