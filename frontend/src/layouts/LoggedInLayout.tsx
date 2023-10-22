@@ -21,7 +21,11 @@ export default function LoggedInLayout() {
   return (
     <RequireAuth>
       <>
-        <Navbar expand="sm" sticky="top" style={{ background: "#eeeeee" }}>
+        <Navbar
+          expand="sm"
+          sticky="top"
+          style={{ background: "#eeeeee", paddingLeft: "10px", paddingRight: "10px" }}
+        >
           <Navbar.Brand href="/">TSE Fulcrum</Navbar.Brand>
           <Navbar.Toggle aria-controls="responsive-navbar-nav" />
           <Navbar.Collapse id="responsive-navbar-nav">
@@ -32,7 +36,7 @@ export default function LoggedInLayout() {
               </NavDropdown>
             </Nav>
             <Nav>
-              <Navbar.Text>{user?.email}</Navbar.Text>
+              <Navbar.Text>{user?.email}&nbsp;&nbsp;</Navbar.Text>
               <Button variant="outline-secondary" onClick={onLogOut}>
                 Log out
               </Button>

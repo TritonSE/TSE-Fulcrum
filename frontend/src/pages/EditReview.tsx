@@ -28,6 +28,7 @@ export function ReviewView({
   };
 
   useEffect(() => {
+    document.title = "TSE Fulcrum - Application Review";
     api
       .getReviewById(id)
       .then((newReview) => {
@@ -54,7 +55,7 @@ export function ReviewView({
   };
 
   return (
-    <>
+    <div style={{ padding: "10px" }}>
       {showApplication && (
         <>
           <h2>Application</h2>
@@ -99,6 +100,7 @@ export function ReviewView({
                     value={"" + getReviewField(fieldName)}
                     onChange={(e) => setReviewField(fieldName, parseFloat(e.target.value))}
                     onWheel={
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
                     }
                     disabled={!editable}
@@ -157,7 +159,7 @@ export function ReviewView({
         )}
         {alerts}
       </Form>
-    </>
+    </div>
   );
 }
 
