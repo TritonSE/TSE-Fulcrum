@@ -4,12 +4,12 @@ import { type editor as MonacoEditor } from "monaco-editor";
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Button, Dropdown } from "react-bootstrap";
 import Markdown from "react-markdown";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { io, type Socket } from "socket.io-client";
 
-const LANGS = ["python", "javascript", "java", "cpp"];
+const LANGS = ["python", "javascript", "java", "cpp", "text"];
 const INTERVIEWEE = 0;
 const INTERVIEWER = 1;
 
@@ -103,7 +103,6 @@ function LoadingScreen({ msg }: LoadingProps) {
 
 export default function Interview() {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const [socket, setSocket] = useState<Socket>();
 
@@ -114,22 +113,12 @@ export default function Interview() {
   const [editorWidth, setEditorWidth] = useState<number>(50);
   const [mouseDown, setMouseDown] = useState<boolean>(false);
   const [blinking, setBlinking] = useState<boolean>(false);
+  const [selectFrom, setSelectFrom] = useState<number>(-1);
+  const [selectTo, setSelectTo] = useState<number>(-1);
 
   const questionEditor = useRef<EditorInstance | null>(null);
   const codeEditor = useRef<EditorInstance | null>(null);
   const remoteSelection = useRef<RemoteSelection | null>(null);
-
-  useEffect(() => {
-    document.title = "TSE Technical Interview";
-
-    const unload = () => {
-      if (!socket) return;
-      socket.emit("save");
-    };
-    window.addEventListener("beforeunload", unload);
-
-    return () => window.removeEventListener("beforeunload", unload);
-  }, []);
 
   const role = location.pathname.includes("/review/") ? INTERVIEWER : INTERVIEWEE;
   const editorOptions = {
@@ -142,10 +131,31 @@ export default function Interview() {
   };
   const separatorWidth = 5;
 
+  useEffect(() => {
+    document.title = "TSE Fulcrum - Technical Interview";
+
+    const unload = () => {
+      if (!socket) return;
+      socket.emit("save");
+    };
+    window.addEventListener("beforeunload", unload);
+
+    return () => window.removeEventListener("beforeunload", unload);
+  }, []);
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.volatile.emit("select", {
+      role,
+      from: selectFrom,
+      to: selectTo,
+    });
+  }, [selectFrom, selectTo]);
+
   const sendMessage = (key: string, value: string | boolean) => {
     if (!socket || !socket.connected) return;
 
-    socket.emit("message", {
+    socket.volatile.emit("message", {
       userId,
       key,
       value,
@@ -176,7 +186,11 @@ export default function Interview() {
             lineNumber: sel.endLineNumber,
           });
 
-          socket.emit("select", { role, from, to });
+          // Debounce duplicate events
+          if (selectFrom === from && selectTo === to) return;
+
+          setSelectFrom(from);
+          setSelectTo(to);
         });
       } else {
         questionEditor.current = { editor, monaco };
@@ -288,7 +302,7 @@ export default function Interview() {
             padding: "5px",
           }}
         >
-          <Button onClick={() => navigate(-1)}>← Back to Review</Button>
+          <Button onClick={() => window.close()}>← Back to Review</Button>
           <div style={{ flex: 1 }}>&nbsp;</div>
           <Button variant={active ? "warning" : "success"} onClick={toggleInterview}>
             {active ? "End" : "Begin"} Interview
@@ -368,8 +382,9 @@ export default function Interview() {
           style={{
             width: separatorWidth + "px",
             height: "100vh",
-            background: mouseDown ? "var(--bs-primary)" : "gray",
             cursor: "ew-resize",
+            background: mouseDown ? "var(--bs-primary)" : "gray",
+            transition: "background 0.2s",
           }}
           onMouseDown={() => setMouseDown(true)}
         />
