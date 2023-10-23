@@ -75,6 +75,8 @@ const env = {
 
   SESSION_EXPIRATION_MINS: getEnv("SESSION_EXPIRATION_MINS", 12 * 60, parseInt),
 
+  DB_UPDATE_INTERVAL: getEnv("DB_UPDATE_INTERVAL", 10 * 1000, parseInt),
+
   // Loaded from environment variables.
   NODE_ENV,
   PORT: getEnv("PORT", 8000, parseInt),
