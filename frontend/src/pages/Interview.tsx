@@ -122,35 +122,14 @@ export default function Interview() {
 
   const role = location.pathname.includes("/review/") ? INTERVIEWER : INTERVIEWEE;
   const editorOptions = {
-    quickSuggestions: false,
+    /* quickSuggestions: false,
     suggest: {
       showFields: false,
       showFunctions: false,
-    },
+    }, */
     minimap: { enabled: false },
   };
   const separatorWidth = 5;
-
-  useEffect(() => {
-    document.title = "TSE Fulcrum - Technical Interview";
-
-    const unload = () => {
-      if (!socket) return;
-      socket.emit("save");
-    };
-    window.addEventListener("beforeunload", unload);
-
-    return () => window.removeEventListener("beforeunload", unload);
-  }, []);
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.volatile.emit("select", {
-      role,
-      from: selectFrom,
-      to: selectTo,
-    });
-  }, [selectFrom, selectTo]);
 
   const sendMessage = (key: string, value: string | boolean) => {
     if (!socket || !socket.connected) return;
@@ -255,6 +234,8 @@ export default function Interview() {
   };
 
   useEffect(() => {
+    document.title = "TSE Fulcrum - Technical Interview";
+
     const sock = io();
     sock.on("connect", () => {
       setSocket(sock);
@@ -282,7 +263,20 @@ export default function Interview() {
         remoteSelection.current.setOffsets(select.from, select.to);
       });
     });
+
+    const unload = () => sock.emit("save");
+    window.addEventListener("beforeunload", unload);
+    return () => window.removeEventListener("beforeunload", unload);
   }, []);
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.volatile.emit("select", {
+      role,
+      from: selectFrom,
+      to: selectTo,
+    });
+  }, [selectFrom, selectTo]);
 
   if (!socket) {
     return <LoadingScreen msg="Connecting..." />;
@@ -334,69 +328,71 @@ export default function Interview() {
           </Dropdown>
         </div>
       )}
-      <div
-        role="presentation"
-        style={{
-          display: role === INTERVIEWEE && !active ? "none" : "flex",
-          userSelect: mouseDown ? "none" : "unset",
-        }}
-        onMouseMove={(e) => {
-          if (!mouseDown) return;
-          setEditorWidth((100 * e.pageX) / window.innerWidth);
-        }}
-        onMouseUp={() => setMouseDown(false)}
-      >
-        {role === INTERVIEWER ? (
-          <Editor
-            width={`calc(${editorWidth}vw - ${separatorWidth / 2}px)`}
-            height="100vh"
-            theme="vs-dark"
-            language="markdown"
-            options={editorOptions}
-            onMount={onMount(false)}
-          />
-        ) : (
-          <div
-            style={{
-              width: `calc(${editorWidth}vw - ${separatorWidth / 2}px)`,
-              height: "100vh",
-              overflow: "auto",
-              padding: "10px",
-              boxSizing: "border-box",
-              background: "#1e1e1e",
-              color: "white",
-            }}
-          >
-            <Markdown
-              components={{
-                code: CodeBlock,
-              }}
-            >
-              {questionContent}
-            </Markdown>
-          </div>
-        )}
+      {(role === INTERVIEWER || (role === INTERVIEWEE && active)) && (
         <div
           role="presentation"
-          className="divider"
           style={{
-            width: separatorWidth + "px",
-            height: "100vh",
-            cursor: "ew-resize",
-            background: mouseDown ? "var(--bs-primary)" : "gray",
-            transition: "background 0.2s",
+            display: role === INTERVIEWEE && !active ? "none" : "flex",
+            userSelect: mouseDown ? "none" : "unset",
           }}
-          onMouseDown={() => setMouseDown(true)}
-        />
-        <Editor
-          width={`calc(${100 - editorWidth}vw - ${separatorWidth / 2}px)`}
-          height="100vh"
-          theme="vs-dark"
-          language={language}
-          options={editorOptions}
-          onMount={onMount(true)}
-        />
-      </div>
+          onMouseMove={(e) => {
+            if (!mouseDown) return;
+            setEditorWidth((100 * e.pageX) / window.innerWidth);
+          }}
+          onMouseUp={() => setMouseDown(false)}
+        >
+          {role === INTERVIEWER ? (
+            <Editor
+              width={`calc(${editorWidth}vw - ${separatorWidth / 2}px)`}
+              height="100vh"
+              theme="vs-dark"
+              language="markdown"
+              options={editorOptions}
+              onMount={onMount(false)}
+            />
+          ) : (
+            <div
+              style={{
+                width: `calc(${editorWidth}vw - ${separatorWidth / 2}px)`,
+                height: "100vh",
+                overflow: "auto",
+                padding: "10px",
+                boxSizing: "border-box",
+                background: "#1e1e1e",
+                color: "white",
+              }}
+            >
+              <Markdown
+                components={{
+                  code: CodeBlock,
+                }}
+              >
+                {questionContent}
+              </Markdown>
+            </div>
+          )}
+          <div
+            role="presentation"
+            className="divider"
+            style={{
+              width: separatorWidth + "px",
+              height: "100vh",
+              cursor: "ew-resize",
+              background: mouseDown ? "var(--bs-primary)" : "gray",
+              transition: "background 0.2s",
+            }}
+            onMouseDown={() => setMouseDown(true)}
+          />
+          <Editor
+            width={`calc(${100 - editorWidth}vw - ${separatorWidth / 2}px)`}
+            height="100vh"
+            theme="vs-dark"
+            language={language}
+            options={editorOptions}
+            onMount={onMount(true)}
+          />
+        </div>
+      )}
       {role === INTERVIEWEE && !active && <LoadingScreen msg="Please wait for your interviewer." />}
     </>
   );
