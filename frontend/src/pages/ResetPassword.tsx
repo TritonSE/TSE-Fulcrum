@@ -13,6 +13,9 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = "TSE Fulcrum - Password Reset";
+  }, []);
+  useEffect(() => {
     const passwordResetToken = new URLSearchParams(location.search).get("token");
     if (passwordResetToken === null) {
       // Users shouldn't navigate to this page without a token, but in case they
@@ -51,21 +54,40 @@ export default function ResetPassword() {
   };
 
   return (
-    <Form onSubmit={onSubmit}>
-      <Form.Group controlId="email">
-        <Form.Label>Email address</Form.Label>
-        <Form.Control type="email" onChange={(e) => setField("email", e.target.value)} />
-      </Form.Group>
-      <Form.Group controlId="password">
-        <Form.Label>Password</Form.Label>
-        <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
-      </Form.Group>
-      <Form.Group controlId="confirm-password">
-        <Form.Label>Confirm password</Form.Label>
-        <Form.Control type="password" onChange={(e) => setConfirmPassword(e.target.value)} />
-      </Form.Group>
-      <Button type="submit">Reset password</Button>
-      {alerts}
-    </Form>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        background: "#0c2a34",
+        color: "white",
+      }}
+    >
+      <div>
+        <h1 style={{ textAlign: "center" }}>
+          <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
+          <br />
+          Reset Password
+        </h1>
+        <Form onSubmit={onSubmit}>
+          <Form.Group controlId="email">
+            <Form.Label>Email address</Form.Label>
+            <Form.Control type="email" onChange={(e) => setField("email", e.target.value)} />
+          </Form.Group>
+          <Form.Group controlId="password">
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
+          </Form.Group>
+          <Form.Group controlId="confirm-password">
+            <Form.Label>Confirm password</Form.Label>
+            <Form.Control type="password" onChange={(e) => setConfirmPassword(e.target.value)} />
+          </Form.Group>
+          <br />
+          <Button type="submit">Reset password</Button>
+          {alerts}
+        </Form>
+      </div>
+    </div>
   );
 }
