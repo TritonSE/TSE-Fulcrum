@@ -29,6 +29,11 @@ Welcome to TSE's technical interview for the Developer role!
 * You **can't run your code**, but you'll still have syntax highlighting and autocomplete.
 * You **can't use any documentation or other resources**, but you shouldn't need to.
   * It's okay if you don't remember the exact name of a function (for example), as long as you communicate this with your interviewers, and everyone understands what you mean.
+* You **can't use any external code other than your language's standard library**, but you shouldn't need to.
+  * This includes \`numpy\` in Python, \`boost\` in C++, or similar external libraries.
+  * This does *not* include anything under the \`java.*\` namespace in Java, anything under the \`std\` namespace in C++, or similar standard library functionality.
+* The function signatures we provide should be treated as pseudocode; you are free to modify them to better suit the language you are using.
+  * For example: If you are using Java, you are welcome to use \`List<String>\` instead of \`String[]\`.
 * You can ask clarifying questions at any time.
 * If you get stuck, your interviewers can give you hints.
 * The questions are designed to be long, with multiple parts, so you aren't expected to finish everything.
