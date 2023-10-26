@@ -122,11 +122,11 @@ export default function Interview() {
 
   const role = location.pathname.includes("/review/") ? INTERVIEWER : INTERVIEWEE;
   const editorOptions = {
-    /* quickSuggestions: false,
+    quickSuggestions: false,
     suggest: {
       showFields: false,
       showFunctions: false,
-    }, */
+    },
     minimap: { enabled: false },
   };
   const separatorWidth = 5;
@@ -134,7 +134,7 @@ export default function Interview() {
   const sendMessage = (key: string, value: string | boolean) => {
     if (!socket || !socket.connected) return;
 
-    socket.volatile.emit("message", {
+    socket.emit("message", {
       userId,
       key,
       value,
@@ -271,7 +271,7 @@ export default function Interview() {
   useEffect(() => {
     if (!socket) return;
 
-    socket.volatile.emit("select", {
+    socket.emit("select", {
       role,
       from: selectFrom,
       to: selectTo,
