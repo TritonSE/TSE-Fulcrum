@@ -154,6 +154,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
               <td>Row</td>
               <td>Average Score</td>
               <td>Name</td>
+              <td>Pronouns</td>
               <td>Degree Timeline</td>
               <td>Review Status</td>
               <td>
@@ -214,6 +215,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                   <td>
                     <a href={`/application/${app._id}`}>{app.name}</a>
                   </td>
+                  <td>{app.pronouns}</td>
                   <td>{`${formatQuarter(app.startQuarter)} to ${formatQuarter(
                     app.gradQuarter
                   )}`}</td>
