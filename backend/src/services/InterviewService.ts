@@ -9,7 +9,7 @@ import { ReviewModel } from "../models/ReviewModel";
 interface Payload {
   userId: string;
   key: string;
-  value: string | boolean;
+  value: string | boolean | number;
 }
 
 interface SelectionPayload {
@@ -109,7 +109,7 @@ class InterviewService {
           question: questionPlaceholder,
           code: "# Write your code here",
           language: "python",
-          active: false,
+          active: 0,
           lastUpdate: new Date(),
         };
       if (!this.interviews.has(room)) await this.upsert(obj);

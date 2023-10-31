@@ -51,12 +51,12 @@ export default function Login() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
+        minHeight: "100vh",
         background: "#0c2a34",
         color: "white",
       }}
     >
-      <div>
+      <div style={{ minWidth: "320px" }}>
         <h1 style={{ textAlign: "center" }}>
           <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
           <br />
@@ -73,11 +73,19 @@ export default function Login() {
             <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
           </Form.Group>
           <br />
-          <Button type="submit">Log in</Button>
-          <span>&nbsp;</span>
-          <Button variant="secondary" onClick={onForgotPassword}>
-            Forgot password
-          </Button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-around",
+              gap: "4px",
+            }}
+          >
+            <Button type="submit">Log in</Button>
+            <Button variant="secondary" onClick={onForgotPassword}>
+              Forgot password
+            </Button>
+          </div>
+          <br />
           {alerts}
         </Form>
       </div>

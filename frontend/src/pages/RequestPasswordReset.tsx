@@ -32,12 +32,12 @@ export default function RequestPasswordReset() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
+        minHeight: "100vh",
         background: "#0c2a34",
         color: "white",
       }}
     >
-      <div>
+      <div style={{ minWidth: "320px" }}>
         <h1 style={{ textAlign: "center", width: "200px", margin: "0 auto 0.5rem" }}>
           <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
           <br />
@@ -57,6 +57,7 @@ export default function RequestPasswordReset() {
           >
             <Button type="submit">Request password reset</Button>
           </div>
+          <br />
           {alerts}
         </Form>
       </div>
