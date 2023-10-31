@@ -109,7 +109,8 @@ class InterviewService {
           question: questionPlaceholder,
           code: "# Write your code here",
           language: "python",
-          active: 0,
+          active: false,
+          timerStart: 0,
           lastUpdate: new Date(),
         };
       if (!this.interviews.has(room)) await this.upsert(obj);

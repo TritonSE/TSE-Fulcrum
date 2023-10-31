@@ -5,7 +5,8 @@ interface InterviewState {
   question: string;
   code: string;
   language: string;
-  active: number;
+  active: boolean;
+  timerStart: number;
   lastUpdate: Date;
 }
 
@@ -33,6 +34,11 @@ const InterviewSchema = new Schema<InterviewState>({
   },
 
   active: {
+    type: Boolean,
+    required: true,
+  },
+
+  timerStart: {
     type: Number,
     required: true,
   },
