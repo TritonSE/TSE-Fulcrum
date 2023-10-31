@@ -20,6 +20,9 @@ const css = `
   .divider:hover {
     background: var(--bs-primary) !important;
   }
+  .timer:hover {
+    opacity: 1 !important;
+  }
 `;
 
 interface InterviewState {
@@ -27,7 +30,8 @@ interface InterviewState {
   question: string;
   code: string;
   language: string;
-  active: number;
+  active: boolean;
+  timerStart: number;
   lastUpdate: Date;
 }
 
@@ -62,7 +66,9 @@ interface LoadingProps {
 }
 
 interface TimerProps {
+  role: number;
   since: number;
+  start: () => void;
 }
 
 interface RemoteSelection {
@@ -108,21 +114,39 @@ function LoadingScreen({ msg }: LoadingProps) {
   );
 }
 
-function Timer({ since }: TimerProps) {
+function Timer({ role, since, start }: TimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(INTERVIEW_DURATION + FUDGE);
   const [visible, setVisible] = useState<boolean>(true);
 
   useEffect(() => {
-    setTimeLeft(since + INTERVIEW_DURATION - Date.now() + FUDGE);
+    if (since === 0) setTimeLeft(INTERVIEW_DURATION + FUDGE);
+    else setTimeLeft(since + INTERVIEW_DURATION - Date.now() + FUDGE);
   }, [since]);
   useEffect(() => {
+    // See consistent-return eslint rule
+    if (since === 0) return () => {};
+
     const timeout = setTimeout(() => setTimeLeft(Math.max(0, timeLeft - SECOND)), SECOND);
 
     return () => clearTimeout(timeout);
   }, [timeLeft]);
 
+  const format = () =>
+    `${Math.floor(timeLeft / (60 * SECOND))
+      .toString()
+      .padStart(2, "0")}:${(Math.floor(timeLeft / SECOND) % 60).toString().padStart(2, "0")}`;
+
+  const view = visible ? (
+    <span>{format()}&nbsp;(click to hide)</span>
+  ) : (
+    <span role="img" aria-label="Timer">
+      ⌛
+    </span>
+  );
+
   return (
     <button
+      className="timer"
       type="button"
       style={{
         position: "fixed",
@@ -131,23 +155,18 @@ function Timer({ since }: TimerProps) {
         background: "white",
         padding: "0.5rem",
         cursor: "pointer",
+        border: "none",
+        opacity: 0.5,
+        transition: "opacity 0.2s",
         fontVariantNumeric: "tabular-nums",
       }}
-      onClick={() => setVisible(!visible)}
+      onClick={() => {
+        if (since > 0 || role === INTERVIEWEE) setVisible(!visible);
+        else if (role === INTERVIEWER) start();
+      }}
     >
-      {visible ? (
-        <>
-          {Math.floor(timeLeft / (60 * SECOND))
-            .toString()
-            .padStart(2, "0")}
-          :{(Math.floor(timeLeft / SECOND) % 60).toString().padStart(2, "0")}
-          &nbsp; (click to hide)
-        </>
-      ) : (
-        <span role="img" aria-label="Timer">
-          ⌛
-        </span>
-      )}
+      {since === 0 && role === INTERVIEWER && <span>Click to start timer</span>}
+      {role === INTERVIEWEE || (since > 0 && role === INTERVIEWER) ? view : null}
     </button>
   );
 }
@@ -157,7 +176,8 @@ export default function Interview() {
 
   const [socket, setSocket] = useState<Socket>();
 
-  const [active, setActive] = useState<number>(0);
+  const [active, setActive] = useState<boolean>(false);
+  const [timerStart, setTimerStart] = useState<number>(0);
   const [language, setLanguage] = useState<string>("python");
   const [userId] = useState<string>(Math.random().toString());
   const [questionContent, setQuestionContent] = useState<string>();
@@ -251,9 +271,11 @@ export default function Interview() {
     codeEditor.current.monaco.editor.setModelLanguage(mod, lang);
   };
   const toggleInterview = () => {
-    const next = active ? 0 : Date.now();
-    setActive(next);
-    sendMessage("active", next);
+    setActive(!active);
+    sendMessage("active", !active);
+
+    setTimerStart(0);
+    sendMessage("timerStart", 0);
   };
   const callbacks: Callbacks = {
     question: (payload: Payload) => {
@@ -281,7 +303,10 @@ export default function Interview() {
       updateEditorLanguage(payload.value as string);
     },
     active: (payload: Payload) => {
-      setActive(payload.value as number);
+      setActive(payload.value as boolean);
+    },
+    timerStart: (payload: Payload) => {
+      setTimerStart(payload.value as number);
     },
   };
 
@@ -380,7 +405,7 @@ export default function Interview() {
           </Dropdown>
         </div>
       )}
-      {(role === INTERVIEWER || (role === INTERVIEWEE && active > 0)) && (
+      {(role === INTERVIEWER || (role === INTERVIEWEE && active)) && (
         <div
           role="presentation"
           style={{
@@ -446,7 +471,16 @@ export default function Interview() {
         </div>
       )}
       {role === INTERVIEWEE && !active && <LoadingScreen msg="Please wait for your interviewer." />}
-      {active > 0 ? <Timer since={active} /> : null}
+      {active && (
+        <Timer
+          role={role}
+          since={timerStart}
+          start={() => {
+            setTimerStart(Date.now());
+            sendMessage("timerStart", Date.now());
+          }}
+        />
+      )}
     </>
   );
 }
