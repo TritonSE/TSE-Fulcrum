@@ -59,12 +59,12 @@ export default function ResetPassword() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
+        minHeight: "100vh",
         background: "#0c2a34",
         color: "white",
       }}
     >
-      <div>
+      <div style={{ minWidth: "320px" }}>
         <h1 style={{ textAlign: "center" }}>
           <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
           <br />
@@ -84,7 +84,15 @@ export default function ResetPassword() {
             <Form.Control type="password" onChange={(e) => setConfirmPassword(e.target.value)} />
           </Form.Group>
           <br />
-          <Button type="submit">Reset password</Button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Button type="submit">Reset password</Button>
+          </div>
+          <br />
           {alerts}
         </Form>
       </div>

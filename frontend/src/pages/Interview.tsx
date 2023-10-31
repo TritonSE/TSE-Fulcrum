@@ -10,6 +10,9 @@ import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { io, type Socket } from "socket.io-client";
 
 const LANGS = ["python", "javascript", "java", "cpp", "text"];
+const SECOND = 1000;
+const FUDGE = SECOND / 2; // Half second bump to ensure timer starts at 50:00
+const INTERVIEW_DURATION = 50 * 60 * SECOND; // 50 minutes
 const INTERVIEWEE = 0;
 const INTERVIEWER = 1;
 
@@ -24,14 +27,14 @@ interface InterviewState {
   question: string;
   code: string;
   language: string;
-  active: boolean;
+  active: number;
   lastUpdate: Date;
 }
 
 interface Payload {
   userId: string;
   key: string;
-  value: string | boolean;
+  value: string | boolean | number;
 }
 
 interface SelectionPayload {
@@ -56,6 +59,10 @@ interface CodeProps {
 
 interface LoadingProps {
   msg: string;
+}
+
+interface TimerProps {
+  since: number;
 }
 
 interface RemoteSelection {
@@ -101,12 +108,56 @@ function LoadingScreen({ msg }: LoadingProps) {
   );
 }
 
+function Timer({ since }: TimerProps) {
+  const [timeLeft, setTimeLeft] = useState<number>(INTERVIEW_DURATION + FUDGE);
+  const [visible, setVisible] = useState<boolean>(true);
+
+  useEffect(() => {
+    setTimeLeft(since + INTERVIEW_DURATION - Date.now() + FUDGE);
+  }, [since]);
+  useEffect(() => {
+    const timeout = setTimeout(() => setTimeLeft(Math.max(0, timeLeft - SECOND)), SECOND);
+
+    return () => clearTimeout(timeout);
+  }, [timeLeft]);
+
+  return (
+    <button
+      type="button"
+      style={{
+        position: "fixed",
+        left: 0,
+        bottom: 0,
+        background: "white",
+        padding: "0.5rem",
+        cursor: "pointer",
+        fontVariantNumeric: "tabular-nums",
+      }}
+      onClick={() => setVisible(!visible)}
+    >
+      {visible ? (
+        <>
+          {Math.floor(timeLeft / (60 * SECOND))
+            .toString()
+            .padStart(2, "0")}
+          :{(Math.floor(timeLeft / SECOND) % 60).toString().padStart(2, "0")}
+          &nbsp; (click to hide)
+        </>
+      ) : (
+        <span role="img" aria-label="Timer">
+          ⌛
+        </span>
+      )}
+    </button>
+  );
+}
+
 export default function Interview() {
   const location = useLocation();
 
   const [socket, setSocket] = useState<Socket>();
 
-  const [active, setActive] = useState<boolean>(false);
+  const [active, setActive] = useState<number>(0);
   const [language, setLanguage] = useState<string>("python");
   const [userId] = useState<string>(Math.random().toString());
   const [questionContent, setQuestionContent] = useState<string>();
@@ -131,7 +182,7 @@ export default function Interview() {
   };
   const separatorWidth = 5;
 
-  const sendMessage = (key: string, value: string | boolean) => {
+  const sendMessage = (key: string, value: string | boolean | number) => {
     if (!socket || !socket.connected) return;
 
     socket.emit("message", {
@@ -200,8 +251,9 @@ export default function Interview() {
     codeEditor.current.monaco.editor.setModelLanguage(mod, lang);
   };
   const toggleInterview = () => {
-    setActive(!active);
-    sendMessage("active", !active);
+    const next = active ? 0 : Date.now();
+    setActive(next);
+    sendMessage("active", next);
   };
   const callbacks: Callbacks = {
     question: (payload: Payload) => {
@@ -229,7 +281,7 @@ export default function Interview() {
       updateEditorLanguage(payload.value as string);
     },
     active: (payload: Payload) => {
-      setActive(payload.value as boolean);
+      setActive(payload.value as number);
     },
   };
 
@@ -250,7 +302,7 @@ export default function Interview() {
     });
     sock.on("state", (state: InterviewState) => {
       Object.entries(callbacks).forEach(([event, callback]) => {
-        const value = state[event as keyof InterviewState] as string | boolean;
+        const value = state[event as keyof InterviewState] as string | boolean | number;
         callback({
           userId,
           key: event as string,
@@ -328,7 +380,7 @@ export default function Interview() {
           </Dropdown>
         </div>
       )}
-      {(role === INTERVIEWER || (role === INTERVIEWEE && active)) && (
+      {(role === INTERVIEWER || (role === INTERVIEWEE && active > 0)) && (
         <div
           role="presentation"
           style={{
@@ -394,6 +446,7 @@ export default function Interview() {
         </div>
       )}
       {role === INTERVIEWEE && !active && <LoadingScreen msg="Please wait for your interviewer." />}
+      {active > 0 ? <Timer since={active} /> : null}
     </>
   );
 }
