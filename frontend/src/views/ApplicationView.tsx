@@ -20,7 +20,13 @@ export default function ApplicationView({ id }: { id: string }) {
   const { alerts, addAlert } = useAlerts();
 
   useEffect(() => {
-    api.getApplicationById(id).then(setApplication).catch(addAlert);
+    api
+      .getApplicationById(id)
+      .then((app) => {
+        setApplication(app);
+        document.title = app.name;
+      })
+      .catch(addAlert);
   }, []);
 
   const prompts = {
