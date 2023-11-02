@@ -334,6 +334,17 @@ export default function Interview() {
       const key = payload.key as keyof typeof callbacks;
       callbacks[key](payload);
     });
+    sock.on("select", (select: SelectionPayload) => {
+      if (
+        select.role === role ||
+        remoteSelection.current === null ||
+        codeEditor.current === null ||
+        codeEditor.current.editor.getModel() === null
+      )
+        return;
+
+      remoteSelection.current.setOffsets(select.from, select.to);
+    });
     sock.on("state", (state: InterviewState) => {
       Object.entries(callbacks).forEach(([event, callback]) => {
         const value = state[event as keyof InterviewState] as string | boolean | number;
@@ -342,12 +353,6 @@ export default function Interview() {
           key: event as string,
           value,
         });
-      });
-      sock.on("select", (select: SelectionPayload) => {
-        if (select.role === role || remoteSelection.current === null) return;
-        if (codeEditor.current === null || codeEditor.current.editor.getModel() === null) return;
-
-        remoteSelection.current.setOffsets(select.from, select.to);
       });
     });
 
