@@ -345,6 +345,7 @@ export default function Interview() {
       });
       sock.on("select", (select: SelectionPayload) => {
         if (select.role === role || remoteSelection.current === null) return;
+        if (codeEditor.current === null || codeEditor.current.editor.getModel() === null) return;
 
         remoteSelection.current.setOffsets(select.from, select.to);
       });

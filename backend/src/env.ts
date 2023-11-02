@@ -75,7 +75,18 @@ const env = {
 
   SESSION_EXPIRATION_MINS: getEnv("SESSION_EXPIRATION_MINS", 12 * 60, parseInt),
 
+  /**
+   * Debounce duration before saving a user's live code state into MongoDB.
+   */
   DB_UPDATE_INTERVAL: getEnv("DB_UPDATE_INTERVAL", 10 * 1000, parseInt),
+
+  /**
+   * URL of the interview instructions to be displayed to interviewees.
+   */
+  README_URL: getEnv(
+    "README_URL",
+    "https://raw.githubusercontent.com/TritonSE/TSE-Technical-Interview-Template/main/README.md"
+  ),
 
   // Loaded from environment variables.
   NODE_ENV,

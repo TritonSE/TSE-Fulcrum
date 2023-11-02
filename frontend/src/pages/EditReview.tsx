@@ -28,7 +28,6 @@ export function ReviewView({
   };
 
   useEffect(() => {
-    document.title = "TSE Fulcrum - Application Review";
     api
       .getReviewById(id)
       .then((newReview) => {

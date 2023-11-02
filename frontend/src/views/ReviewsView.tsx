@@ -79,9 +79,11 @@ export default function ReviewsView({
   const [reviews, setReviews] = useState<PopulatedReview[]>([]);
   const { alerts, addAlert } = useAlerts();
 
-  useEffect(() => {
-    document.title = "TSE Fulcrum - Home";
-  }, []);
+  if (homepage) {
+    useEffect(() => {
+      document.title = "TSE Fulcrum - Home";
+    }, []);
+  }
   // TODO: audit all other useEffects to check dependency lists
   useEffect(() => {
     api
