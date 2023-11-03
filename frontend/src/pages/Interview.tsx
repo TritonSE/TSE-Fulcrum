@@ -5,9 +5,12 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Button, Dropdown } from "react-bootstrap";
 import Markdown from "react-markdown";
 import { useLocation } from "react-router-dom";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import cpp from "react-syntax-highlighter/dist/esm/languages/prism/cpp";
 import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { io, type Socket } from "socket.io-client";
+
+SyntaxHighlighter.registerLanguage("cpp", cpp);
 
 const LANGS = ["python", "javascript", "java", "cpp", "text"];
 const SECOND = 1000;
