@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { Stage, StageDocument, StageModel, UserModel } from "../models";
+import { RawStage, StageDocument, StageModel, UserModel } from "../models";
 
 class StageService {
   async create(pipeline: Types.ObjectId, pipelineIndex: number): Promise<StageDocument> {
@@ -21,7 +21,7 @@ class StageService {
     return StageModel.findById(id);
   }
 
-  async update(stage: Stage): Promise<StageDocument | string> {
+  async update(stage: RawStage): Promise<StageDocument | string> {
     const existing = await StageModel.findById(stage._id);
     if (existing === null) {
       // TODO: find a way to indicate 404 here
@@ -38,7 +38,7 @@ class StageService {
       (email) => !reviewers.some((reviewer) => reviewer.email === email),
     );
     if (missingEmails.length > 0) {
-      return `Email addresses not valid: ${missingEmails}`;
+      return `Email addresses not valid: ${JSON.stringify(missingEmails)}`;
     }
 
     const updatedStage = await StageModel.findOneAndReplace({ _id: stage._id }, stage, {

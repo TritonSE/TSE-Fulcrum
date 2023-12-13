@@ -119,7 +119,7 @@ class ProgressService {
 
     const pipelineDocument = await PipelineService.getById(pipeline);
     if (pipelineDocument === null) {
-      return `Pipeline not found: ${pipeline.toHexString}`;
+      return `Pipeline not found: ${pipeline.toHexString()}`;
     }
 
     const emailSuccessful = await EmailService.send({

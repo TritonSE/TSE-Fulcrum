@@ -30,9 +30,9 @@ class InterviewService {
     this.interviews = new Map();
     this.questionPlaceholder = "";
 
-    (async () => {
-      this.questionPlaceholder = (await this.fetchReadme()) ?? "";
-    })();
+    this.fetchReadme().then((readme) => {
+      this.questionPlaceholder = readme ?? "";
+    }, console.error);
   }
 
   fetchReadme(): Promise<string | null> {
@@ -87,7 +87,7 @@ class InterviewService {
     }
   }
 
-  async create(server: HTTPServer) {
+  create(server: HTTPServer): void {
     const io = new Server(server);
     io.on("connection", async (socket) => {
       const url = socket.handshake.headers.referer ?? "";
@@ -110,11 +110,11 @@ class InterviewService {
       if (!this.interviews.has(room)) await this.upsert(obj);
 
       // Join room based on review ID
-      socket.join(room);
+      await socket.join(room);
       socket.on("message", async (payload: Payload) => {
         if (!obj.active && payload.key !== "active") return;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         (obj as any)[payload.key] = payload.value;
         io.to(room).emit("message", payload);
         await this.upsert(obj);

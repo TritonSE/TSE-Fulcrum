@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { Application } from "../models";
 import { ApplicationService } from "../services";
 
 import { authWrapper, wrapper } from "./wrappers";
@@ -40,7 +41,7 @@ router.delete(
 router.post(
   "/",
   wrapper(async (req) => {
-    const result = await ApplicationService.create(req.body);
+    const result = await ApplicationService.create(req.body as Application);
     if (typeof result === "string") {
       return {
         status: 400,

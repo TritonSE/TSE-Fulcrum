@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { LogInRequest, ResetPasswordRequest } from "../cakes";
+import { LogInRequest, RequestPasswordResetRequest, ResetPasswordRequest } from "../cakes";
 import env from "../env";
 import { UserService } from "../services";
 
@@ -19,7 +19,7 @@ router.post(
       };
     }
 
-    const result = await UserService.logIn(req.body);
+    const result = await UserService.logIn(bodyResult.value);
 
     if (result === null) {
       return { status: 401 };
@@ -50,16 +50,25 @@ router.post(
 
 router.get(
   "/me",
-  authWrapper(async (user) => ({
-    status: 200,
-    json: UserService.serialize(user),
-  })),
+  authWrapper((user) =>
+    Promise.resolve({
+      status: 200,
+      json: UserService.serialize(user),
+    }),
+  ),
 );
 
 router.post(
   "/request-password-reset",
   wrapper(async (req) => {
-    await UserService.requestPasswordReset(req.body.email);
+    const bodyResult = RequestPasswordResetRequest.check(req.body);
+    if (!bodyResult.ok) {
+      return {
+        status: 400,
+        text: bodyResult.error.toString(),
+      };
+    }
+    await UserService.requestPasswordReset(bodyResult.value.email);
     // We don't want to return an error if the email doesn't exist, because
     // that would enable unauthenticated clients to check whether an account
     // exists with a given email.

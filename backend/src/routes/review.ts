@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { RawReview } from "../models";
 import { ReviewService } from "../services";
 
 import { authWrapper } from "./wrappers";
@@ -10,11 +11,11 @@ router.get(
   "/",
   authWrapper(async (_user, req) => {
     const result = await ReviewService.getFiltered(
-      Object.fromEntries(Object.entries(req.query).map(([k, v]) => [k, "" + v])),
+      Object.fromEntries(Object.entries(req.query).map(([k, v]) => [k, String(v)])),
     );
     return {
       status: 200,
-      json: result.map(ReviewService.serialize),
+      json: result.map((r) => ReviewService.serialize(r)),
     };
   }),
 );
@@ -36,7 +37,7 @@ router.get(
 router.put(
   "/:reviewId",
   authWrapper(async (_user, req) => {
-    const result = await ReviewService.update(req.body);
+    const result = await ReviewService.update(req.body as RawReview);
     if (typeof result === "string") {
       return { status: 400, text: result };
     }

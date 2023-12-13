@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import env from "../env";
 import {
   ApplicationModel,
-  Review,
+  RawReview,
   ReviewDocument,
   ReviewModel,
   StageDocument,
@@ -71,7 +71,7 @@ class ReviewService {
     return review;
   }
 
-  async update(review: Review): Promise<ReviewDocument | string> {
+  async update(review: RawReview): Promise<ReviewDocument | string> {
     const existing = await ReviewModel.findById(review._id);
     if (existing === null) {
       return `No review with id: ${review._id}`;

@@ -13,7 +13,7 @@ router.get(
     const users = await UserService.getAll();
     return {
       status: 200,
-      json: users.map(UserService.serialize),
+      json: users.map((u) => UserService.serialize(u)),
     };
   }),
 );

@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { RawStage } from "../models";
 import { StageService } from "../services";
 
 import { authWrapper } from "./wrappers";
@@ -13,7 +14,7 @@ router.get(
 
     if (typeof pipeline === "string") {
       const result = await StageService.getByPipeline(pipeline);
-      const mapped = result.map(StageService.serialize);
+      const mapped = result.map((s) => StageService.serialize(s));
       return {
         status: 200,
         json: mapped,
@@ -23,7 +24,7 @@ router.get(
     if (pipeline === undefined) {
       return {
         status: 200,
-        json: (await StageService.getAll()).map(StageService.serialize),
+        json: (await StageService.getAll()).map((s) => StageService.serialize(s)),
       };
     }
 
@@ -51,7 +52,7 @@ router.get(
 router.put(
   "/:id",
   authWrapper(async (_user, req) => {
-    const result = await StageService.update(req.body);
+    const result = await StageService.update(req.body as RawStage);
     if (typeof result === "string") {
       return {
         status: 400,

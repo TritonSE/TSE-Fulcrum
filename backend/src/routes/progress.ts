@@ -10,11 +10,11 @@ router.get(
   "/",
   authWrapper(async (_user, req) => {
     const result = await ProgressService.getFiltered(
-      Object.fromEntries(Object.entries(req.query).map(([k, v]) => [k, "" + v])),
+      Object.fromEntries(Object.entries(req.query).map(([k, v]) => [k, String(v)])),
     );
     return {
       status: 200,
-      json: result.map(ProgressService.serialize),
+      json: result.map((p) => ProgressService.serialize(p)),
     };
   }),
 );

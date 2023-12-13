@@ -1,14 +1,14 @@
 import { Types } from "mongoose";
 
-import { Pipeline, PipelineDocument, PipelineModel } from "../models";
+import { PipelineDocument, PipelineModel, RawPipeline } from "../models";
 
 class PipelineService {
-  async create(pipeline: Omit<Pipeline, "_id">): Promise<PipelineDocument | null> {
+  async create(pipeline: Omit<RawPipeline, "_id">): Promise<PipelineDocument | null> {
     // TODO: check for duplicate identifiers
     return PipelineModel.create(pipeline);
   }
 
-  async update(pipeline: Pipeline): Promise<PipelineDocument | null> {
+  async update(pipeline: RawPipeline): Promise<PipelineDocument | null> {
     return PipelineModel.findOneAndReplace({ _id: pipeline._id }, pipeline, {
       returnDocument: "after",
     });
