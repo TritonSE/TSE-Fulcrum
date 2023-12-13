@@ -35,7 +35,7 @@ class StageService {
     // TODO: filter on active users once we add the ability to deactivate users
     const reviewers = await UserModel.find().where("email").in(stage.reviewerEmails).exec();
     const missingEmails = stage.reviewerEmails.filter(
-      (email) => !reviewers.some((reviewer) => reviewer.email === email)
+      (email) => !reviewers.some((reviewer) => reviewer.email === email),
     );
     if (missingEmails.length > 0) {
       return `Email addresses not valid: ${missingEmails}`;
@@ -56,7 +56,7 @@ class StageService {
 
   async getByPipelineAndIndex(
     pipeline: Types.ObjectId,
-    pipelineIndex: number
+    pipelineIndex: number,
   ): Promise<StageDocument | null> {
     const stages = await StageModel.find({ pipeline, pipelineIndex });
     if (stages.length === 0) {
@@ -68,7 +68,7 @@ class StageService {
     throw new Error(
       `Internal invariant violated: pipeline ${pipeline.toHexString()} has ${
         stages.length
-      } stages with index ${pipelineIndex}, expected 1`
+      } stages with index ${pipelineIndex}, expected 1`,
     );
   }
 

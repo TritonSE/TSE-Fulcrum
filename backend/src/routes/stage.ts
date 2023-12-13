@@ -31,7 +31,7 @@ router.get(
       status: 400,
       text: "Invalid format for pipeline",
     };
-  })
+  }),
 );
 
 router.get(
@@ -45,7 +45,7 @@ router.get(
       status: 200,
       json: StageService.serialize(result),
     };
-  })
+  }),
 );
 
 router.put(
@@ -62,7 +62,7 @@ router.put(
       status: 200,
       json: StageService.serialize(result),
     };
-  })
+  }),
 );
 
 export default router;

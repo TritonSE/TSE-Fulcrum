@@ -14,7 +14,7 @@ router.get(
       status: 200,
       json: pipelines.map(PipelineService.serialize),
     };
-  })
+  }),
 );
 
 router.post(
@@ -42,7 +42,7 @@ router.post(
       status: 201,
       json: PipelineService.serialize(pipeline),
     };
-  })
+  }),
 );
 
 router.put(
@@ -56,7 +56,7 @@ router.put(
       status: 200,
       json: PipelineService.serialize(pipeline),
     };
-  })
+  }),
 );
 
 export default router;

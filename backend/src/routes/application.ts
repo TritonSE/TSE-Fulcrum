@@ -17,7 +17,7 @@ router.get(
       status: 200,
       json: ApplicationService.serialize(result),
     };
-  })
+  }),
 );
 
 router.delete(
@@ -34,7 +34,7 @@ router.delete(
       status: 200,
       json: ApplicationService.serialize(result),
     };
-  })
+  }),
 );
 
 router.post(
@@ -52,7 +52,7 @@ router.post(
       status: 201,
       json: result,
     };
-  })
+  }),
 );
 
 export default router;

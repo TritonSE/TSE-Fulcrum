@@ -78,7 +78,7 @@ class InterviewService {
       // Add Interview to Review only if newly created
       await ReviewModel.update(
         { _id: interview.room },
-        { interview: res.lastErrorObject.upserted }
+        { interview: res.lastErrorObject.upserted },
       );
     }
   }

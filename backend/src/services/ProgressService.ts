@@ -23,14 +23,14 @@ class ProgressService {
 
   async getByPipelineAndApplication(
     pipeline: Types.ObjectId,
-    application: Types.ObjectId
+    application: Types.ObjectId,
   ): Promise<ProgressDocument | null> {
     return ProgressModel.findOne({ pipeline, application });
   }
 
   async advanceApplication(
     application: Types.ObjectId,
-    pipeline: Types.ObjectId
+    pipeline: Types.ObjectId,
   ): Promise<ProgressDocument | string> {
     const progress = await this.getByPipelineAndApplication(pipeline, application);
     if (progress === null) {
@@ -53,7 +53,7 @@ class ProgressService {
     const nextStage = await StageService.getByPipelineAndIndex(pipeline, nextIndex);
     if (nextStage === null) {
       console.info(
-        `No more stages; changing progress indicator state to accepted: ${progress._id.toHexString()}`
+        `No more stages; changing progress indicator state to accepted: ${progress._id.toHexString()}`,
       );
       progress.state = "accepted";
       await progress.save();
@@ -100,7 +100,7 @@ class ProgressService {
 
   async rejectApplication(
     application: Types.ObjectId,
-    pipeline: Types.ObjectId
+    pipeline: Types.ObjectId,
   ): Promise<ProgressDocument | string> {
     const progress = await this.getByPipelineAndApplication(pipeline, application);
     if (progress === null) {

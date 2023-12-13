@@ -31,7 +31,7 @@ class ReviewService {
     if (typeof result === "string") {
       // Failed to auto-assign, but application still created successfully.
       console.error(
-        `Failed to auto-assign reviewer when creating review ${review._id.toHexString()}: ${result}`
+        `Failed to auto-assign reviewer when creating review ${review._id.toHexString()}: ${result}`,
       );
       return review;
     }
@@ -117,12 +117,12 @@ class ReviewService {
 
   private async getAutoAssignedReviewer(
     stage: StageDocument,
-    application: Types.ObjectId
+    application: Types.ObjectId,
   ): Promise<string | null> {
     let reviewerEmails = stage.reviewerEmails;
     if (reviewerEmails.length === 0) {
       console.error(
-        `Cannot auto-assign reviewer because stage has no reviewers: ${stage._id.toHexString()}`
+        `Cannot auto-assign reviewer because stage has no reviewers: ${stage._id.toHexString()}`,
       );
       return null;
     }
@@ -143,9 +143,9 @@ class ReviewService {
     const countsAndEmails = await Promise.all(
       reviewerEmails.map((reviewerEmail) =>
         ReviewModel.count({ reviewerEmail, stage: stage._id }).then(
-          (count) => [count, reviewerEmail] as const
-        )
-      )
+          (count) => [count, reviewerEmail] as const,
+        ),
+      ),
     );
 
     // Sort in ascending order by count.
@@ -162,7 +162,7 @@ class ReviewService {
 
   async getByStageAndApplication(
     stage: Types.ObjectId,
-    application: Types.ObjectId
+    application: Types.ObjectId,
   ): Promise<ReviewDocument[]> {
     return ReviewModel.find({ stage, application });
   }

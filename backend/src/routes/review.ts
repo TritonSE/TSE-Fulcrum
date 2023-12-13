@@ -10,13 +10,13 @@ router.get(
   "/",
   authWrapper(async (_user, req) => {
     const result = await ReviewService.getFiltered(
-      Object.fromEntries(Object.entries(req.query).map(([k, v]) => [k, "" + v]))
+      Object.fromEntries(Object.entries(req.query).map(([k, v]) => [k, "" + v])),
     );
     return {
       status: 200,
       json: result.map(ReviewService.serialize),
     };
-  })
+  }),
 );
 
 router.get(
@@ -30,7 +30,7 @@ router.get(
       status: 200,
       json: ReviewService.serialize(result),
     };
-  })
+  }),
 );
 
 router.put(
@@ -41,7 +41,7 @@ router.put(
       return { status: 400, text: result };
     }
     return { status: 200, json: ReviewService.serialize(result) };
-  })
+  }),
 );
 
 // TODO: consolidate auto-assign and assign into one endpoint
@@ -54,7 +54,7 @@ router.post(
       return { status: 400, text: result };
     }
     return { status: 200, json: ReviewService.serialize(result) };
-  })
+  }),
 );
 
 router.post(
@@ -65,7 +65,7 @@ router.post(
       return { status: 400, text: result };
     }
     return { status: 200, json: ReviewService.serialize(result) };
-  })
+  }),
 );
 
 export default router;

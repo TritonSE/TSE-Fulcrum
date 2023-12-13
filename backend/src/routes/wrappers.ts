@@ -44,7 +44,7 @@ async function getUser(req: Request): Promise<UserDocument | null> {
 type AsyncAuthHandler = (
   user: UserDocument,
   req: Request,
-  res: Response
+  res: Response,
 ) => Promise<AsyncHandlerResult>;
 
 function authWrapper(handler: AsyncAuthHandler): RequestHandler {

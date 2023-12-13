@@ -37,7 +37,7 @@ router.post(
       status: 200,
       json: UserService.serialize(result.user),
     };
-  })
+  }),
 );
 
 router.post(
@@ -45,7 +45,7 @@ router.post(
   authWrapper(async (user) => {
     await UserService.logOut(user);
     return { status: 200 };
-  })
+  }),
 );
 
 router.get(
@@ -53,7 +53,7 @@ router.get(
   authWrapper(async (user) => ({
     status: 200,
     json: UserService.serialize(user),
-  }))
+  })),
 );
 
 router.post(
@@ -64,7 +64,7 @@ router.post(
     // that would enable unauthenticated clients to check whether an account
     // exists with a given email.
     return { status: 200 };
-  })
+  }),
 );
 
 router.post(
@@ -82,7 +82,7 @@ router.post(
       return { status: 200 };
     }
     return { status: 400 };
-  })
+  }),
 );
 
 export default router;
