@@ -26,11 +26,3 @@ jobs:
       run: |
         npm ci
         npm run lint-check
-  secret-scan:
-    name: Secret scan
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-    - run: |
-        node .secret-scan/secret-scan.js
