@@ -1,6 +1,5 @@
 const child_process = require("node:child_process");
 const fs = require("node:fs");
-const os = require("node:os");
 const path = require("node:path");
 const process = require("node:process");
 
@@ -8,6 +7,8 @@ const CACHE_PATH = path.join(__dirname, "secret-scan-cache.json");
 const CONFIG_PATH = path.join(__dirname, "secret-scan-config.json");
 const REPORT_PATH = path.join(__dirname, "secret-scan-report.json");
 const JSON_ENCODING = "utf8";
+
+const EOL = /\r?\n/;
 
 const secretRemovalAdvice = `
 1. If you are absolutely confident that the reported
@@ -208,7 +209,7 @@ function runCommand(command) {
  * @returns {string[]}
  */
 function nonEmptyLines(text) {
-  return text.split(os.EOL).filter((line) => line.length > 0);
+  return text.split(EOL).filter((line) => line.length > 0);
 }
 
 /** @returns {void} */
@@ -229,7 +230,7 @@ function checkGitVersion() {
 
 /** @returns {string} */
 function getRepoRoot() {
-  const repoRoot = runCommand(["git", "rev-parse", "--show-toplevel"]).replace(os.EOL, "");
+  const repoRoot = runCommand(["git", "rev-parse", "--show-toplevel"]).replace(EOL, "");
 
   // Make sure we don't get "file not found" later and assume the file was
   // deleted from the working tree, when the actual cause is having an incorrect
