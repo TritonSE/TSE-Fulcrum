@@ -44,7 +44,7 @@ async function main() {
   });
 
   const server = http.createServer(app);
-  await InterviewService.create(server);
+  InterviewService.create(server);
   server.listen(env.PORT, () => {
     console.log(`Listening on port ${env.PORT}`);
   });
