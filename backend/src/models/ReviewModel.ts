@@ -1,6 +1,6 @@
-import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
-interface Review {
+type Review = {
   _id: Types.ObjectId;
   stage: Types.ObjectId;
   application: Types.ObjectId;
@@ -8,7 +8,7 @@ interface Review {
   reviewerEmail?: string;
   completed: boolean;
   fields: Record<string, string | number | boolean>;
-}
+};
 
 const ReviewSchema = new Schema<Review>({
   stage: {

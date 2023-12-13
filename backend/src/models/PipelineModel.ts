@@ -1,12 +1,12 @@
-import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
-interface Pipeline {
+type Pipeline = {
   // Each submitted application uses pipeline identifiers to indicate
   // which roles the applicant is applying to.
   _id: Types.ObjectId;
   identifier: string;
   name: string;
-}
+};
 
 const PipelineSchema = new Schema<Pipeline>({
   identifier: {

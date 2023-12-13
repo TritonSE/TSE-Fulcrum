@@ -1,6 +1,6 @@
-import { HydratedDocument, model, Schema } from "mongoose";
+import { HydratedDocument, Schema, model } from "mongoose";
 
-interface User {
+type User = {
   email: string;
   name: string;
 
@@ -14,7 +14,7 @@ interface User {
   sessionExpiration: Date;
 
   // TODO: add boolean for whether a user is active, and ensure that admin account is always active
-}
+};
 
 const UserSchema = new Schema<User>({
   email: {

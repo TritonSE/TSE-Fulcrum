@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-redeclare */
-
-import { bake, Infer, string } from "caketype";
+import { Infer, bake, string } from "caketype";
 
 const LogInRequest = bake({
   email: string,

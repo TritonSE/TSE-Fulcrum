@@ -2,11 +2,11 @@ import nodemailer from "nodemailer";
 
 import env from "../env";
 
-interface EmailMessage {
+type EmailMessage = {
   recipient: string;
   subject: string;
   body: string;
-}
+};
 
 class EmailService {
   private readonly transporter: nodemailer.Transporter;

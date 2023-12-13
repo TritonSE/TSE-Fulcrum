@@ -4,7 +4,7 @@ import { LogInRequest, ResetPasswordRequest } from "../cakes";
 import env from "../env";
 import { UserService } from "../services";
 
-import { wrapper, authWrapper } from "./wrappers";
+import { authWrapper, wrapper } from "./wrappers";
 
 const router = Router();
 

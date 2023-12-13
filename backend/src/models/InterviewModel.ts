@@ -1,6 +1,6 @@
-import { HydratedDocument, model, Schema } from "mongoose";
+import { HydratedDocument, Schema, model } from "mongoose";
 
-interface InterviewState {
+type InterviewState = {
   room: string;
   question: string;
   code: string;
@@ -8,7 +8,7 @@ interface InterviewState {
   active: boolean;
   timerStart: number;
   lastUpdate: Date;
-}
+};
 
 Schema.Types.String.checkRequired((v) => typeof v === "string");
 

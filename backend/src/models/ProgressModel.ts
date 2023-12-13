@@ -1,11 +1,11 @@
-import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
-interface Progress {
+type Progress = {
   pipeline: Types.ObjectId;
   application: Types.ObjectId;
   stageIndex: number;
   state: "pending" | "rejected" | "accepted";
-}
+};
 
 const ProgressSchema = new Schema<Progress>({
   pipeline: {

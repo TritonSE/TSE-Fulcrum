@@ -1,13 +1,13 @@
-import { Request, Response, RequestHandler } from "express";
+import { Request, RequestHandler, Response } from "express";
 
 import { UserDocument } from "../models/UserModel";
 import { UserService } from "../services";
 
-interface AsyncHandlerResult {
+type AsyncHandlerResult = {
   status: number;
   json?: unknown;
   text?: string;
-}
+};
 
 type AsyncHandler = (req: Request, res: Response) => Promise<AsyncHandlerResult>;
 

@@ -1,23 +1,25 @@
-import { type Server as HTTPServer } from "http";
 import https from "node:https";
 
 import { Server } from "socket.io";
 
 import env from "../env";
-import { InterviewModel, type InterviewState } from "../models/InterviewModel";
+import { InterviewModel } from "../models/InterviewModel";
 import { ReviewModel } from "../models/ReviewModel";
 
-interface Payload {
+import type { InterviewState } from "../models/InterviewModel";
+import type { Server as HTTPServer } from "http";
+
+type Payload = {
   userId: string;
   key: string;
   value: string | boolean | number;
-}
+};
 
-interface SelectionPayload {
+type SelectionPayload = {
   role: number;
   from: number;
   to: number;
-}
+};
 
 class InterviewService {
   interviews: Map<string, InterviewState>;
@@ -43,7 +45,9 @@ class InterviewService {
           res.on("data", (data) => {
             out += data;
           });
-          res.on("end", () => resolve(out));
+          res.on("end", () => {
+            resolve(out);
+          });
         })
         .on("error", (err) => {
           console.error("Interview README request failed with error:");

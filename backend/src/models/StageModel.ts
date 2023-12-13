@@ -1,14 +1,14 @@
-import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
-interface FormField {
+type FormField = {
   type: "string" | "number" | "boolean";
   choices: unknown[];
   allowOther: boolean;
   label: string;
   description: string;
-}
+};
 
-interface Stage {
+type Stage = {
   _id: Types.ObjectId;
   pipeline: Types.ObjectId;
   pipelineIndex: number;
@@ -20,7 +20,7 @@ interface Stage {
   autoAssignReviewers: boolean;
   notifyReviewersWhenAssigned: boolean;
   hasTechnicalInterview?: boolean;
-}
+};
 
 const StageSchema = new Schema<Stage>({
   pipeline: {
