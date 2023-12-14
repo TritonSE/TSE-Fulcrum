@@ -2,6 +2,8 @@ const child_process = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const process = require("node:process");
+const util = require("node:util");
+const tty = require("node:tty");
 
 const CACHE_PATH = path.join(__dirname, "secret-scan-cache.json");
 const CONFIG_PATH = path.join(__dirname, "secret-scan-config.json");
@@ -18,8 +20,9 @@ const secretRemovalAdvice = `
    manager or VP Technology if you have any uncertainty
    whatsoever.
 
-2. If the secrets are in a file in the working tree, add
-   the file to a .gitignore and try again.
+2. If the secrets are in a file in the working tree, and
+   this file should not be committed to Git, update your
+   .gitignore and try again.
 
 3. If the secrets are in the index, unstage them with
    git restore --staged <file> and try again.
@@ -35,10 +38,29 @@ const secretRemovalAdvice = `
    If the commit was pushed, assume that the secret is now
    publicly known, and revoke it as soon as possible.
 
-   Remember, there is no shame in making mistakes, as long
-   as you let us know. We all have to work together to
-   ensure that we build secure software for our clients.
+   Proper secret management is an important part of building
+   secure software for our clients. You'll never be punished
+   for reporting a problem; please err on the side of
+   letting us know if you're unsure. If something goes wrong
+   and is reported promptly, our policy is that the
+   responsibility belongs to the processes and tooling, not
+   the individual.
 `.trim();
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function redText(text) {
+  if (process.stdout.isTTY && process.stdout.hasColors()) {
+    // https://github.com/nodejs/node/issues/42770#issuecomment-1101093517
+    const red = util.inspect.colors.red;
+    if (red !== undefined) {
+      return `\u001b[${red[0]}m` + text + `\u001b[${red[1]}m`;
+    }
+  }
+  return text;
+}
 
 /**
  * @param {string} filePath
@@ -148,7 +170,7 @@ function loadCache() {
         safeCommitHashes: asStringArray(parsed.safeCommitHashes),
       };
     } else {
-      console.error("Cache format is invalid, so it will not be used.");
+      console.log("Cache format is invalid, so it will not be used.");
       return null;
     }
   });
@@ -182,11 +204,13 @@ function deleteReport() {
  * @param {SecretScanReport} report
  */
 function saveReport(report) {
-  fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n", { encoding: JSON_ENCODING });
+  fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n", {
+    encoding: JSON_ENCODING,
+  });
 }
 
 /**
- * @param {[string, ...string[]]} command
+ * @param {readonly [string, ...string[]]} command
  * @returns {string}
  */
 function runCommand(command) {
@@ -200,7 +224,7 @@ function runCommand(command) {
     return process.stdout;
   }
 
-  console.error(process);
+  console.log(process);
   throw new Error(`Command did not execute successfully: ${JSON.stringify(command)}`);
 }
 
@@ -215,9 +239,18 @@ function nonEmptyLines(text) {
 /** @returns {void} */
 function checkGitVersion() {
   const command = ["git", "--version"];
-  const output = runCommand(["git", "--version"]);
-  const expectedPrefix = "git version ";
 
+  let output;
+  try {
+    output = runCommand(["git", "--version"]);
+  } catch (e) {
+    console.log(e);
+    const msg =
+      "Could not run git from the command line. Make sure it is installed and on your PATH, and try again.";
+    throw new Error(msg);
+  }
+
+  const expectedPrefix = "git version ";
   if (!output.startsWith(expectedPrefix)) {
     const msg = `Output of command ${JSON.stringify(
       command
@@ -245,7 +278,37 @@ function getRepoRoot() {
 }
 
 /** @returns {number} */
-function main() {
+function checkGitHooks() {
+  checkGitVersion();
+
+  const expectedHooksPath = ".husky";
+  const command = /** @type {const} */ (["git", "config", "--get", "core.hooksPath"]);
+  const helpMsg = `Husky has not installed the required Git hooks. Run "npm run prepare" and try again.`;
+
+  let hooksPath;
+  try {
+    hooksPath = runCommand(command).replace(EOL, "");
+  } catch (e) {
+    console.log(e);
+    throw new Error(helpMsg);
+  }
+
+  if (hooksPath !== expectedHooksPath) {
+    const msg = [
+      `Command ${JSON.stringify(command)} returned ${JSON.stringify(
+        hooksPath
+      )}, expected ${JSON.stringify(expectedHooksPath)}.`,
+      helpMsg,
+    ].join("\n\n");
+    throw new Error(msg);
+  }
+
+  console.log(`Git hooks are correctly installed in ${JSON.stringify(expectedHooksPath)}.`)
+  return 0;
+}
+
+/** @returns {number} */
+function runSecretScan() {
   const shouldSaveReport = process.env["SECRET_SCAN_WRITE_REPORT"] === "1";
 
   deleteReport();
@@ -410,11 +473,29 @@ function main() {
   saveCache(cache);
 
   if (report.length > 0) {
-    console.log(`Secret scan completed with errors.\n\n${secretRemovalAdvice}\n`);
+    console.log(redText(`Secret scan completed with errors.\n\n${secretRemovalAdvice}\n`));
     return 1;
   } else {
     console.log("Secret scan completed successfully.");
     return 0;
+  }
+}
+
+/** @returns {number} */
+function main() {
+  let args = process.argv.slice(2);
+  if (args[0] === "--") {
+    args = args.slice(1);
+  }
+
+  switch (JSON.stringify(args)) {
+    case JSON.stringify([]):
+      return runSecretScan();
+    case JSON.stringify(["--check-git-hooks"]):
+      return checkGitHooks();
+    default:
+      const msg = `Invalid command-line arguments: ${JSON.stringify(args)}`;
+      throw new Error(msg);
   }
 }
 
