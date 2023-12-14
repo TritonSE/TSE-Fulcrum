@@ -9,9 +9,11 @@ import { ReviewModel } from "../models/ReviewModel";
 import type { InterviewState } from "../models/InterviewModel";
 import type { Server as HTTPServer } from "http";
 
+type ValidKeys = "question" | "code" | "language" | "active" | "timerStart";
+
 type Payload = {
   userId: string;
-  key: string;
+  key: ValidKeys;
   value: string | boolean | number;
 };
 
@@ -114,8 +116,7 @@ class InterviewService {
       socket.on("message", async (payload: Payload) => {
         if (!obj.active && payload.key !== "active") return;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        (obj as any)[payload.key] = payload.value;
+        obj[payload.key] = payload.value;
         io.to(room).emit("message", payload);
         await this.upsert(obj);
       });
