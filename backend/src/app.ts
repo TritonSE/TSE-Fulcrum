@@ -10,7 +10,7 @@ import morgan from "morgan";
 
 import env from "./env";
 import routes from "./routes";
-import { UserService, InterviewService } from "./services";
+import { InterviewService, UserService } from "./services";
 
 async function onStartup() {
   // Create the admin account if necessary.
@@ -44,7 +44,7 @@ async function main() {
   });
 
   const server = http.createServer(app);
-  await InterviewService.create(server);
+  InterviewService.create(server);
   server.listen(env.PORT, () => {
     console.log(`Listening on port ${env.PORT}`);
   });

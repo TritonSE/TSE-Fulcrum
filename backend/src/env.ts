@@ -61,14 +61,14 @@ const env = {
   EMAIL_ENABLED: getEnv(
     "EMAIL_ENABLED",
     NODE_ENV !== "development",
-    (enabled: string) => !!enabled
+    (enabled: string) => !!enabled,
   ),
 
   DEPLOYMENT_NAME: getEnv("DEPLOYMENT_NAME", "TSE Fulcrum"),
 
   EMAIL_FOOTER: getEnv(
     "EMAIL_FOOTER",
-    `This is an automated email, and replies will not be read. Please contact ${ADMIN_EMAIL} if you have any questions or concerns.`
+    `This is an automated email, and replies will not be read. Please contact ${ADMIN_EMAIL} if you have any questions or concerns.`,
   ),
 
   PASSWORD_RESET_EXPIRATION_MINS: getEnv("PASSWORD_RESET_EXPIRATION_MINS", 15, parseInt),
@@ -85,7 +85,7 @@ const env = {
    */
   README_URL: getEnv(
     "README_URL",
-    "https://raw.githubusercontent.com/TritonSE/TSE-Technical-Interview-Template/main/README.md"
+    "https://raw.githubusercontent.com/TritonSE/TSE-Technical-Interview-Template/main/README.md",
   ),
 
   // Loaded from environment variables.

@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { Stage, StageDocument, StageModel, UserModel } from "../models";
+import { RawStage, StageDocument, StageModel, UserModel } from "../models";
 
 class StageService {
   async create(pipeline: Types.ObjectId, pipelineIndex: number): Promise<StageDocument> {
@@ -21,7 +21,7 @@ class StageService {
     return StageModel.findById(id);
   }
 
-  async update(stage: Stage): Promise<StageDocument | string> {
+  async update(stage: RawStage): Promise<StageDocument | string> {
     const existing = await StageModel.findById(stage._id);
     if (existing === null) {
       // TODO: find a way to indicate 404 here
@@ -35,10 +35,10 @@ class StageService {
     // TODO: filter on active users once we add the ability to deactivate users
     const reviewers = await UserModel.find().where("email").in(stage.reviewerEmails).exec();
     const missingEmails = stage.reviewerEmails.filter(
-      (email) => !reviewers.some((reviewer) => reviewer.email === email)
+      (email) => !reviewers.some((reviewer) => reviewer.email === email),
     );
     if (missingEmails.length > 0) {
-      return `Email addresses not valid: ${missingEmails}`;
+      return `Email addresses not valid: ${JSON.stringify(missingEmails)}`;
     }
 
     const updatedStage = await StageModel.findOneAndReplace({ _id: stage._id }, stage, {
@@ -56,7 +56,7 @@ class StageService {
 
   async getByPipelineAndIndex(
     pipeline: Types.ObjectId,
-    pipelineIndex: number
+    pipelineIndex: number,
   ): Promise<StageDocument | null> {
     const stages = await StageModel.find({ pipeline, pipelineIndex });
     if (stages.length === 0) {
@@ -68,7 +68,7 @@ class StageService {
     throw new Error(
       `Internal invariant violated: pipeline ${pipeline.toHexString()} has ${
         stages.length
-      } stages with index ${pipelineIndex}, expected 1`
+      } stages with index ${pipelineIndex}, expected 1`,
     );
   }
 

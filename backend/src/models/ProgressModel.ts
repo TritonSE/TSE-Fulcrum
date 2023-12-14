@@ -1,11 +1,15 @@
-import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
-interface Progress {
+import { ObjectIdsToStrings } from "./helpers";
+
+type Progress = {
   pipeline: Types.ObjectId;
   application: Types.ObjectId;
   stageIndex: number;
   state: "pending" | "rejected" | "accepted";
-}
+};
+
+type RawProgress = ObjectIdsToStrings<Progress>;
 
 const ProgressSchema = new Schema<Progress>({
   pipeline: {
@@ -32,4 +36,4 @@ const ProgressSchema = new Schema<Progress>({
 const ProgressModel = model("Progress", ProgressSchema);
 type ProgressDocument = HydratedDocument<Progress>;
 
-export { Progress, ProgressModel, ProgressDocument };
+export { Progress, ProgressModel, ProgressDocument, RawProgress };

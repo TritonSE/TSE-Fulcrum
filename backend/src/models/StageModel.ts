@@ -1,14 +1,16 @@
-import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
-interface FormField {
+import { ObjectIdsToStrings } from "./helpers";
+
+type FormField = {
   type: "string" | "number" | "boolean";
   choices: unknown[];
   allowOther: boolean;
   label: string;
   description: string;
-}
+};
 
-interface Stage {
+type Stage = {
   _id: Types.ObjectId;
   pipeline: Types.ObjectId;
   pipelineIndex: number;
@@ -20,7 +22,9 @@ interface Stage {
   autoAssignReviewers: boolean;
   notifyReviewersWhenAssigned: boolean;
   hasTechnicalInterview?: boolean;
-}
+};
+
+type RawStage = ObjectIdsToStrings<Stage>;
 
 const StageSchema = new Schema<Stage>({
   pipeline: {
@@ -96,4 +100,4 @@ StageSchema.index({ pipeline: 1, pipelineIndex: 1 });
 const StageModel = model("Stage", StageSchema);
 type StageDocument = HydratedDocument<Stage>;
 
-export { Stage, StageModel, StageDocument };
+export { Stage, StageModel, StageDocument, RawStage };

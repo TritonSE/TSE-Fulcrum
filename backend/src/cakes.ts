@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-redeclare */
-
-import { bake, Infer, string } from "caketype";
+import { Infer, bake, number, string } from "caketype";
 
 const LogInRequest = bake({
   email: string,
@@ -24,4 +22,20 @@ const ResetPasswordRequest = bake({
 
 type ResetPasswordRequest = Infer<typeof ResetPasswordRequest>;
 
-export { LogInRequest, CreateUserRequest, ResetPasswordRequest };
+const RequestPasswordResetRequest = bake({
+  email: string,
+});
+
+const CreatePipelineRequest = bake({
+  identifier: string,
+  name: string,
+  stages: number,
+});
+
+export {
+  LogInRequest,
+  CreateUserRequest,
+  ResetPasswordRequest,
+  RequestPasswordResetRequest,
+  CreatePipelineRequest,
+};

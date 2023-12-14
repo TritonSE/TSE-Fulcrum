@@ -38,9 +38,11 @@ interface InterviewState {
   lastUpdate: Date;
 }
 
+type ValidKeys = "question" | "code" | "language" | "active" | "timerStart";
+
 interface Payload {
   userId: string;
-  key: string;
+  key: ValidKeys;
   value: string | boolean | number;
 }
 

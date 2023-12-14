@@ -7,15 +7,15 @@ import { UserDocument, UserModel } from "../models";
 import CryptoService from "./CryptoService";
 import EmailService from "./EmailService";
 
-interface PublicUser {
+type PublicUser = {
   email: string;
   name: string;
-}
+};
 
-interface LogInResponse {
+type LogInResponse = {
   user: UserDocument;
   sessionToken: string;
-}
+};
 
 class UserService {
   async create({ email, name }: CreateUserRequest): Promise<UserDocument | null> {

@@ -1,13 +1,13 @@
-import { Request, Response, RequestHandler } from "express";
+import { Request, RequestHandler, Response } from "express";
 
 import { UserDocument } from "../models/UserModel";
 import { UserService } from "../services";
 
-interface AsyncHandlerResult {
+type AsyncHandlerResult = {
   status: number;
   json?: unknown;
   text?: string;
-}
+};
 
 type AsyncHandler = (req: Request, res: Response) => Promise<AsyncHandlerResult>;
 
@@ -33,18 +33,24 @@ function wrapper(handler: AsyncHandler): RequestHandler {
 }
 
 async function getUser(req: Request): Promise<UserDocument | null> {
-  const sessionToken = req.cookies.session;
-  if (sessionToken === undefined) {
-    console.log("No session token provided");
-    return null;
+  const cookies: unknown = req.cookies;
+  if (
+    typeof cookies === "object" &&
+    cookies !== null &&
+    "session" in cookies &&
+    typeof cookies.session === "string"
+  ) {
+    return UserService.getBySessionToken(cookies.session);
   }
-  return UserService.getBySessionToken(sessionToken);
+
+  console.log("No session token provided");
+  return null;
 }
 
 type AsyncAuthHandler = (
   user: UserDocument,
   req: Request,
-  res: Response
+  res: Response,
 ) => Promise<AsyncHandlerResult>;
 
 function authWrapper(handler: AsyncAuthHandler): RequestHandler {

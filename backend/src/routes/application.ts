@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { Application } from "../models";
 import { ApplicationService } from "../services";
 
 import { authWrapper, wrapper } from "./wrappers";
@@ -17,7 +18,7 @@ router.get(
       status: 200,
       json: ApplicationService.serialize(result),
     };
-  })
+  }),
 );
 
 router.delete(
@@ -34,13 +35,13 @@ router.delete(
       status: 200,
       json: ApplicationService.serialize(result),
     };
-  })
+  }),
 );
 
 router.post(
   "/",
   wrapper(async (req) => {
-    const result = await ApplicationService.create(req.body);
+    const result = await ApplicationService.create(req.body as Application);
     if (typeof result === "string") {
       return {
         status: 400,
@@ -52,7 +53,7 @@ router.post(
       status: 201,
       json: result,
     };
-  })
+  }),
 );
 
 export default router;

@@ -1,6 +1,6 @@
-import { HydratedDocument, model, Schema } from "mongoose";
+import { HydratedDocument, Schema, model } from "mongoose";
 
-interface Application {
+type Application = {
   name: string;
   pronouns: string;
   email: string;
@@ -25,7 +25,7 @@ interface Application {
 
   // Map role identifiers to the corresponding prompts.
   rolePrompts: Record<string, string>;
-}
+};
 
 const ApplicationSchema = new Schema<Application>({
   name: {

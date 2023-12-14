@@ -1,23 +1,27 @@
-import { type Server as HTTPServer } from "http";
 import https from "node:https";
 
 import { Server } from "socket.io";
 
 import env from "../env";
-import { InterviewModel, type InterviewState } from "../models/InterviewModel";
+import { InterviewModel } from "../models/InterviewModel";
 import { ReviewModel } from "../models/ReviewModel";
 
-interface Payload {
-  userId: string;
-  key: string;
-  value: string | boolean | number;
-}
+import type { InterviewState } from "../models/InterviewModel";
+import type { Server as HTTPServer } from "http";
 
-interface SelectionPayload {
+type ValidKeys = "question" | "code" | "language" | "active" | "timerStart";
+
+type Payload = {
+  userId: string;
+  key: ValidKeys;
+  value: string | boolean | number;
+};
+
+type SelectionPayload = {
   role: number;
   from: number;
   to: number;
-}
+};
 
 class InterviewService {
   interviews: Map<string, InterviewState>;
@@ -28,9 +32,9 @@ class InterviewService {
     this.interviews = new Map();
     this.questionPlaceholder = "";
 
-    (async () => {
-      this.questionPlaceholder = (await this.fetchReadme()) ?? "";
-    })();
+    this.fetchReadme().then((readme) => {
+      this.questionPlaceholder = readme ?? "";
+    }, console.error);
   }
 
   fetchReadme(): Promise<string | null> {
@@ -43,7 +47,9 @@ class InterviewService {
           res.on("data", (data) => {
             out += data;
           });
-          res.on("end", () => resolve(out));
+          res.on("end", () => {
+            resolve(out);
+          });
         })
         .on("error", (err) => {
           console.error("Interview README request failed with error:");
@@ -78,12 +84,12 @@ class InterviewService {
       // Add Interview to Review only if newly created
       await ReviewModel.update(
         { _id: interview.room },
-        { interview: res.lastErrorObject.upserted }
+        { interview: res.lastErrorObject.upserted },
       );
     }
   }
 
-  async create(server: HTTPServer) {
+  create(server: HTTPServer): void {
     const io = new Server(server);
     io.on("connection", async (socket) => {
       const url = socket.handshake.headers.referer ?? "";
@@ -106,12 +112,11 @@ class InterviewService {
       if (!this.interviews.has(room)) await this.upsert(obj);
 
       // Join room based on review ID
-      socket.join(room);
+      await socket.join(room);
       socket.on("message", async (payload: Payload) => {
         if (!obj.active && payload.key !== "active") return;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (obj as any)[payload.key] = payload.value;
+        obj[payload.key] = payload.value;
         io.to(room).emit("message", payload);
         await this.upsert(obj);
       });

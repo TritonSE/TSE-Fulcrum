@@ -44,7 +44,7 @@ class ApplicationService {
 
     // Create application progress indicators for each role.
     await Promise.all(
-      pipelines.map((pipeline) => ProgressService.create(pipeline._id, result._id))
+      pipelines.map((pipeline) => ProgressService.create(pipeline._id, result._id)),
     );
 
     await EmailService.send({

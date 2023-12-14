@@ -13,9 +13,9 @@ router.get(
     const users = await UserService.getAll();
     return {
       status: 200,
-      json: users.map(UserService.serialize),
+      json: users.map((u) => UserService.serialize(u)),
     };
-  })
+  }),
 );
 
 router.post(
@@ -40,7 +40,7 @@ router.post(
       status: 201,
       json: UserService.serialize(user),
     };
-  })
+  }),
 );
 
 router.get(
@@ -57,7 +57,7 @@ router.get(
       status: 200,
       json: UserService.serialize(user),
     };
-  })
+  }),
 );
 
 export default router;

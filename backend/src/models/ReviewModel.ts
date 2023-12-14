@@ -1,6 +1,8 @@
-import { HydratedDocument, model, Schema, Types } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
-interface Review {
+import { ObjectIdsToStrings } from "./helpers";
+
+type Review = {
   _id: Types.ObjectId;
   stage: Types.ObjectId;
   application: Types.ObjectId;
@@ -8,7 +10,9 @@ interface Review {
   reviewerEmail?: string;
   completed: boolean;
   fields: Record<string, string | number | boolean>;
-}
+};
+
+type RawReview = ObjectIdsToStrings<Review>;
 
 const ReviewSchema = new Schema<Review>({
   stage: {
@@ -50,4 +54,4 @@ ReviewSchema.index({ reviewerEmail: 1, application: 1 });
 const ReviewModel = model("Review", ReviewSchema);
 type ReviewDocument = HydratedDocument<Review>;
 
-export { ReviewModel, ReviewDocument, Review };
+export { ReviewModel, ReviewDocument, Review, RawReview };
