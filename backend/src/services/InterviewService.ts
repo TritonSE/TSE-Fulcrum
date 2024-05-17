@@ -116,7 +116,9 @@ class InterviewService {
       socket.on("message", async (payload: Payload) => {
         if (!obj.active && payload.key !== "active") return;
 
-        obj[payload.key] = payload.value;
+        // TypeScript is being weird about this dynamic property access
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        (obj as any)[payload.key] = payload.value;
         io.to(room).emit("message", payload);
         await this.upsert(obj);
       });
