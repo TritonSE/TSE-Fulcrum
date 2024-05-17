@@ -355,7 +355,7 @@ export default function Interview() {
         const value = state[event as keyof InterviewState] as string | boolean | number;
         callback({
           userId,
-          key: event as string,
+          key: event as ValidKeys,
           value,
         });
       });
