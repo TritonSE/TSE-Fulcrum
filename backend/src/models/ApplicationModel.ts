@@ -16,6 +16,7 @@ type Application = {
 
   major: string;
   majorDept: string;
+  hearAboutTSE: string[];
   prevTest: string;
 
   resumeUrl: string;
@@ -62,6 +63,10 @@ const ApplicationSchema = new Schema<Application>({
   },
   majorDept: {
     type: String,
+    required: true,
+  },
+  hearAboutTSE: {
+    type: [String],
     required: true,
   },
   prevTest: {
