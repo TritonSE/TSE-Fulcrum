@@ -51,6 +51,8 @@ const env = {
    */
   EMAIL_HOST: getEnv("EMAIL_HOST", "smtp.gmail.com"),
 
+  FIREBASE_SERVICE_ACCOUNT_KEY: getEnv("FIREBASE_SERVICE_ACCOUNT_KEY", undefined),
+
   // Only necessary if you need to override the default values.
 
   /**
@@ -92,6 +94,10 @@ const env = {
   NODE_ENV,
   PORT: getEnv("PORT", 8000, parseInt),
 };
+
+if (!env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+  console.error("Missing Firebase service account key");
+}
 
 if (env.EMAIL_ENABLED && !(env.EMAIL_USERNAME && env.EMAIL_PASSWORD && env.EMAIL_HOST)) {
   console.error("Email configuration incomplete. Disabling email.");
