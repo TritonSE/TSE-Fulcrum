@@ -13,12 +13,17 @@ type ResumeUploadResult = {
   resumeUrl: string;
 };
 
-firebase.initializeApp({
-  credential: firebase.cert(
-    JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_KEY) as firebase.ServiceAccount,
-  ),
-  storageBucket: "tse-fulcrum.appspot.com",
-});
+if (env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+  firebase.initializeApp({
+    credential: firebase.cert(
+      JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_KEY) as firebase.ServiceAccount,
+    ),
+    storageBucket: "tse-fulcrum.appspot.com",
+  });
+} else {
+  console.error("Missing Firebase service account key");
+}
+
 const firebaseStorage = getStorage();
 const firebaseBucket = firebaseStorage.bucket();
 
