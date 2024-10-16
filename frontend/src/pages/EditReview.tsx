@@ -1,24 +1,23 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useParams, useLocation } from "react-router-dom";
 
 import api, { Review, Stage } from "../api";
+import { GlobalContext } from "../context/GlobalContext";
 import { useAlerts, useStateHelper } from "../hooks";
 import ApplicationView from "../views/ApplicationView";
 
-export function ReviewView({
-  id,
-  editable,
-  showApplication,
-}: {
-  id: string;
-  editable: boolean;
-  showApplication: boolean;
-}) {
+export function ReviewView({ id, showApplication }: { id: string; showApplication: boolean }) {
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
   const [stage, setStage] = useStateHelper<Stage>();
   const { alerts, addAlert } = useAlerts();
   const location = useLocation();
+  const { user } = useContext(GlobalContext);
+
+  const editable = useMemo(
+    () => !!(user && review && user.email === review.reviewerEmail && !review.completed),
+    [user, review]
+  );
 
   const getReviewField = (fieldName: string) => review?.fields[fieldName];
   const setReviewField = (fieldName: string, value: boolean | number | string) => {
@@ -164,5 +163,5 @@ export function ReviewView({
 
 export default function EditReview() {
   const { reviewId } = useParams();
-  return <ReviewView id={reviewId || ""} editable showApplication />;
+  return <ReviewView id={reviewId || ""} showApplication />;
 }

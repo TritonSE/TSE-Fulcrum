@@ -29,7 +29,7 @@ export default function ViewApplication() {
           makeComparator((r) => [r.stage.pipeline, r.stage.pipelineIndex, r.reviewerEmail || ""])
         )
         .map((r) => (
-          <ReviewView key={r._id} id={r._id} editable={false} showApplication={false} />
+          <ReviewView key={r._id} id={r._id} showApplication={false} />
         ))}
       {alerts}
     </>
