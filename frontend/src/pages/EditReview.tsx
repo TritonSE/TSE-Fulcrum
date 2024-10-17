@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useParams, useLocation } from "react-router-dom";
 
@@ -9,6 +9,7 @@ import ApplicationView from "../views/ApplicationView";
 
 export function ReviewView({ id, showApplication }: { id: string; showApplication: boolean }) {
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
+  const [reviewFinished, setReviewFinished] = useState(true);
   const [stage, setStage] = useStateHelper<Stage>();
   const { alerts, addAlert } = useAlerts();
   const location = useLocation();
@@ -30,8 +31,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
     api
       .getReviewById(id)
       .then((newReview) => {
-        // This is a silly hack to make the checkbox default to checked, even when it's false in the database
-        setReview({ ...newReview, completed: true });
+        setReview(newReview);
         api.getStageById(newReview.stage).then(setStage).catch(addAlert);
       })
       .catch(addAlert);
@@ -46,7 +46,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
     }
 
     api
-      .updateReview(review)
+      .updateReview({ ...review, completed: reviewFinished })
       .then(setReview)
       .then(() => addAlert("Review saved.", "success"))
       .catch(addAlert);
@@ -145,8 +145,8 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           <>
             <Form.Check
               label="I am finished with this review"
-              checked={!!getField("completed")}
-              onChange={(e) => setField("completed", e.target.checked)}
+              checked={reviewFinished}
+              onChange={(e) => setReviewFinished(e.target.checked)}
             />
             <Form.Text>Leave this unchecked if you want to save a draft</Form.Text>
             <br />
