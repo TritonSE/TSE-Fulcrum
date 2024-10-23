@@ -39,6 +39,7 @@ interface FormField {
   allowOther: boolean;
   label: string;
   description: string;
+  weight?: number;
 }
 
 export interface Review {

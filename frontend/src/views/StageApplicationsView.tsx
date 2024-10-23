@@ -127,7 +127,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                 );
                 return 0;
               }
-              return score;
+              return score * (stage?.fields[scoreKey]?.weight ?? 1);
             })
             .reduce((a, b) => a + b, 0)
         )

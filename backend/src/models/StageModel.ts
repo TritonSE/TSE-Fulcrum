@@ -8,6 +8,7 @@ type FormField = {
   allowOther: boolean;
   label: string;
   description: string;
+  weight?: number
 };
 
 type Stage = {
@@ -69,6 +70,10 @@ const StageSchema = new Schema<Stage>({
       description: {
         type: String,
         required: true,
+      },
+      weight: {
+        type: Number,
+        required: false,
       },
     },
   },
