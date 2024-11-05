@@ -97,6 +97,15 @@ function CodeBlock({ children, className, ...rest }: CodeProps) {
 }
 CodeBlock.defaultProps = { children: [], className: "" };
 
+function MarkdownImage({
+  src,
+  alt,
+  height,
+  width,
+}: React.ClassAttributes<HTMLImageElement> & React.ImgHTMLAttributes<HTMLImageElement>) {
+  return <img src={src?.replace("&amp;", "&")} alt={alt} height={height} width={width} />;
+}
+
 function LoadingScreen({ msg }: LoadingProps) {
   return (
     <div
@@ -462,6 +471,11 @@ export default function Interview() {
               <Markdown
                 components={{
                   code: CodeBlock,
+                  /**
+                   * 2024 recruitment: adding below to fix URL parameters in image src getting
+                   * HTML-escaped, which was leading to images not rendering correctly for candidates.
+                   */
+                  img: MarkdownImage,
                 }}
               >
                 {questionContent}
