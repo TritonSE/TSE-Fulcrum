@@ -8,7 +8,6 @@ type Review = {
   application: Types.ObjectId;
   interview?: Types.ObjectId;
   reviewerEmail?: string;
-  completed: boolean;
   fields: Record<string, string | number | boolean>;
 };
 
@@ -34,10 +33,6 @@ const ReviewSchema = new Schema<Review>({
     index: true,
     // Not required, because reviews are created without an owner when they
     // are going to be manually assigned.
-  },
-  completed: {
-    type: Boolean,
-    required: true,
   },
   fields: {
     type: Map,

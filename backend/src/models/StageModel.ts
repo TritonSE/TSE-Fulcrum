@@ -8,7 +8,7 @@ type FormField = {
   allowOther: boolean;
   label: string;
   description: string;
-  weight?: number
+  weight?: number;
 };
 
 type Stage = {

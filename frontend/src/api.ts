@@ -47,7 +47,6 @@ export interface Review {
   stage: string;
   application: string;
   reviewerEmail?: string;
-  completed: boolean;
   fields: Record<string, string | number | boolean>;
 }
 
