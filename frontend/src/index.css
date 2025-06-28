@@ -1,0 +1,7 @@
+.ApplicationForm > .row > :not(.form-text) {
+  margin-top: 1rem;
+}
+
+.ApplicationForm .alert {
+  margin-bottom: 0;
+}

@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { GlobalContextProvider } from "./context/GlobalContext";
 import LoggedInLayout from "./layouts/LoggedInLayout";
+import Apply from "./pages/Apply";
 import CreatePipeline from "./pages/CreatePipeline";
 import CreateUser from "./pages/CreateUser";
 import EditPipeline from "./pages/EditPipeline";
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/request-password-reset" element={<RequestPasswordReset />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/interview/:reviewId" element={<Interview />} />
+          <Route path="/apply" element={<Apply />} />
         </Routes>
       </BrowserRouter>
     </GlobalContextProvider>
