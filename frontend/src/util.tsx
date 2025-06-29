@@ -21,4 +21,8 @@ function formatQuarter(quarter: number): string {
   return `${quarterNames[quarter % 4]} ${Math.floor(quarter / 4)}`;
 }
 
-export { makeComparator, formatQuarter };
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).length;
+}
+
+export { makeComparator, formatQuarter, countWords };

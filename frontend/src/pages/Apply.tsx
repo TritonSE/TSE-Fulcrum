@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEventHandler, useState, WheelEventHandler } from "react";
 import { Alert, Button, Col, Form, Row, Spinner } from "react-bootstrap";
+import { countWords } from "../util";
 
 // Update these values each year before recruitment.
 const RESUME_UPLOAD_URL = "/api/resume";
@@ -19,6 +20,8 @@ const HEAR_ABOUT_TSE_OPTIONS = [
   "UCSD website",
   "Other",
 ];
+
+const SHORT_ANSWER_MAX_WORDS = 150; // Maximum number of words for short answer questions
 
 const deadlineStr = DEADLINE.toLocaleString("en-US");
 
@@ -87,6 +90,13 @@ function Apply() {
   };
 
   const updatePrompt = (e: ChangeEvent<HTMLInputElement>) => {
+    // Check if the prompt exceeds the maximum word count
+    const wordCount = countWords(e.target.value);
+
+    if (wordCount > SHORT_ANSWER_MAX_WORDS) {
+      return;
+    }
+
     setPrompts({
       ...prompts,
       [e.target.id.replace("prompt_", "")]: e.target.value,
@@ -521,6 +531,7 @@ function Apply() {
             <Form.Label>Tell us about yourself.</Form.Label>
             <Form.Control
               id="prompt_about"
+              value={prompts.about}
               onChange={updatePrompt}
               required
               as="textarea"
@@ -533,6 +544,7 @@ function Apply() {
             <Form.Label>Why are you interested in being part of TSE?</Form.Label>
             <Form.Control
               id="prompt_interest"
+              value={prompts.interest}
               onChange={updatePrompt}
               required
               as="textarea"
@@ -550,6 +562,7 @@ function Apply() {
               </Form.Label>
               <Form.Control
                 id="prompt_designer"
+                value={prompts.designer}
                 onChange={updatePrompt}
                 required
                 as="textarea"
@@ -564,6 +577,7 @@ function Apply() {
               <Form.Label>Why are you interested in the Developer role specifically?</Form.Label>
               <Form.Control
                 id="prompt_developer"
+                value={prompts.developer}
                 onChange={updatePrompt}
                 required
                 as="textarea"
@@ -582,6 +596,7 @@ function Apply() {
               </Form.Label>
               <Form.Control
                 id="prompt_test_designer"
+                value={prompts.test_designer}
                 onChange={updatePrompt}
                 required
                 as="textarea"
@@ -600,6 +615,7 @@ function Apply() {
               </Form.Label>
               <Form.Control
                 id="prompt_test_developer"
+                value={prompts.test_developer}
                 onChange={updatePrompt}
                 required
                 as="textarea"
