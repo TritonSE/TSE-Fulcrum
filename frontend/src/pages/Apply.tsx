@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, FormEventHandler, useState, WheelEventHandler } from "react";
 import { Alert, Button, Col, Form, Row, Spinner } from "react-bootstrap";
 
 // Update these values each year before recruitment.
@@ -24,7 +24,20 @@ const deadlineStr = DEADLINE.toLocaleString("en-US");
 
 function Apply() {
   // initialize state below this line
-  const [personalInfo, setPersonalInfo] = useState({});
+  const [personalInfo, setPersonalInfo] = useState({
+    startQuarter: "",
+    startYear: "",
+    gradQuarter: "",
+    gradYear: "",
+    name: "",
+    pronouns: "",
+    email: "",
+    phone: "",
+    major: "",
+    majorDept: "",
+    prevTest: "none", // default to not having been in TEST
+    otherHearAboutTSE: "",
+  });
 
   // keeps track of which role checkboxes are clicked
   const [roles, setRoles] = useState({
@@ -36,17 +49,24 @@ function Apply() {
 
   // Track which "How did you hear about TSE"? option(s) the user has selected.
   // Initialize an object with each option intially mapping to false.
-  const [hearAboutTse, setHearAboutTse] = useState(
+  const [hearAboutTse, setHearAboutTse] = useState<Record<string, boolean>>(
     HEAR_ABOUT_TSE_OPTIONS.reduce(
       (prevObj, curKey) => ({
         ...prevObj,
         [curKey]: false,
       }),
-      {}
+      {} as Record<string, boolean>
     )
   );
 
-  const [prompts, setPrompts] = useState({});
+  const [prompts, setPrompts] = useState<{ [key: string]: string }>({
+    about: "",
+    interest: "",
+    designer: "",
+    developer: "",
+    test_designer: "",
+    test_developer: "",
+  });
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -58,29 +78,29 @@ function Apply() {
     setPersonalInfo({ ...personalInfo, [fieldName]: value });
   };
 
-  const updateRoleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const updateRoleCheckbox = (e: ChangeEvent<HTMLInputElement>) => {
     setRoles({ ...roles, [e.target.id]: e.target.checked });
   };
 
-  const updateHearAboutTSECheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const updateHearAboutTSECheckbox = (e: ChangeEvent<HTMLInputElement>) => {
     setHearAboutTse({ ...hearAboutTse, [e.target.id]: e.target.checked });
   };
 
-  const updatePrompt = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const updatePrompt = (e: ChangeEvent<HTMLInputElement>) => {
     setPrompts({
       ...prompts,
       [e.target.id.replace("prompt_", "")]: e.target.value,
     });
   };
 
-  const [resumeFile, setResumeFile] = useState(undefined);
+  const [resumeFile, setResumeFile] = useState<File | undefined>(undefined);
 
   // Uploads resume to backend and returns a URL to view it with
-  const uploadResume = async () => {
+  const uploadResume = async (): Promise<string | null> => {
     const formData = new FormData();
 
     if (!resumeFile) {
-      return;
+      return null;
     }
 
     formData.append("resumeFile", resumeFile);
@@ -97,15 +117,15 @@ function Apply() {
     throw new Error(`HTTP ${response.status} (${response.statusText}`);
   };
 
-  const onSubmit = (e) => {
+  const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError("");
     setSuccess("");
 
     const selectedRoles = Object.entries(roles)
-      .filter(([role, selected]) => selected)
-      .map(([role, selected]) => role);
+      .filter(([_role, selected]) => selected)
+      .map(([role, _selected]) => role);
     if (selectedRoles.length === 0) {
       setError("You must select at least one role to apply to.");
       setSubmitting(false);
@@ -117,12 +137,14 @@ function Apply() {
       setSubmitting(false);
       return;
     }
-    const startQuarter = parseInt(personalInfo.startQuarter) + 4 * parseInt(personalInfo.startYear);
-    const gradQuarter = parseInt(personalInfo.gradQuarter) + 4 * parseInt(personalInfo.gradYear);
+    const startQuarter =
+      parseInt(personalInfo.startQuarter, 10) + 4 * parseInt(personalInfo.startYear, 10);
+    const gradQuarter =
+      parseInt(personalInfo.gradQuarter, 10) + 4 * parseInt(personalInfo.gradYear, 10);
 
     const selectedHearAboutTSE = Object.entries(hearAboutTse)
-      .filter(([role, selected]) => selected)
-      .map(([role, selected]) => (role === "Other" ? personalInfo.otherHearAboutTSE : role));
+      .filter(([_role, selected]) => selected)
+      .map(([role, _selected]) => (role === "Other" ? personalInfo.otherHearAboutTSE : role));
 
     if (!resumeFile) {
       setError("Please upload your resume.");
@@ -151,8 +173,6 @@ function Apply() {
           rolePrompts: Object.fromEntries(selectedRoles.map((role) => [role, prompts[role]])),
         };
 
-        console.log(application);
-
         const errorPrefix =
           "Could not submit your application. Please contact tse@ucsd.edu for support.";
 
@@ -173,23 +193,20 @@ function Apply() {
             } else {
               const message = `${errorPrefix} HTTP ${response.status} (${response.statusText})`;
               setError(message);
-              response
-                .text()
-                .then((text) => setError(message + ": " + text))
-                .catch(console.error);
+              response.text().then((text) => setError(message + ": " + text));
             }
           })
-          .catch((e) => {
+          .catch((err) => {
             setSuccess("");
-            setError(`${errorPrefix} Details: ${e}`);
+            setError(`${errorPrefix} Details: ${err}`);
           })
           .finally(() => {
             setSubmitting(false);
           });
       })
-      .catch((error) => {
+      .catch((err) => {
         setError(
-          `Could not upload your resume. Please contact tse@ucsd.edu for support. Error: ${error}`
+          `Could not upload your resume. Please contact tse@ucsd.edu for support. Error: ${err}`
         );
         setSubmitting(false);
       });
@@ -203,7 +220,7 @@ function Apply() {
   // value. This results in people accidentally changing the values when they
   // scroll the page, so we disable it.
   // https://stackoverflow.com/a/67157325
-  const numberInputOnWheel = (e) => e.currentTarget.blur();
+  const numberInputOnWheel: WheelEventHandler<HTMLInputElement> = (e) => e.currentTarget.blur();
 
   // all html related material below here
   return (
@@ -383,7 +400,7 @@ function Apply() {
               {HEAR_ABOUT_TSE_OPTIONS.map((option) => (
                 <Form.Check
                   key={option}
-                  onClick={updateHearAboutTSECheckbox}
+                  onChange={updateHearAboutTSECheckbox}
                   name="HearAboutTSE"
                   label={option}
                   id={option}
@@ -394,7 +411,7 @@ function Apply() {
               <Form.Control
                 required
                 type="text"
-                placeholder="Please sepcify"
+                placeholder="Please specify"
                 onChange={(e) => {
                   updatePersonalInfo("otherHearAboutTSE", e.target.value);
                 }}
@@ -415,7 +432,7 @@ function Apply() {
                   required
                   type="file"
                   onChange={(e) => {
-                    setResumeFile(e.target.files[0]);
+                    setResumeFile((e.target as HTMLInputElement).files?.[0]);
                   }}
                 />
               </Form.Label>
@@ -448,7 +465,7 @@ function Apply() {
             <Form.Group>
               <Form.Label>Role(s) you are applying for:</Form.Label>
               <Form.Check
-                onClick={updateRoleCheckbox}
+                onChange={updateRoleCheckbox}
                 name="Roles"
                 label="Designer"
                 id="designer"
@@ -456,14 +473,14 @@ function Apply() {
                 disabled={roles.test_developer || roles.test_designer}
               />
               <Form.Check
-                onClick={updateRoleCheckbox}
+                onChange={updateRoleCheckbox}
                 name="Roles"
                 label="Developer"
                 id="developer"
                 disabled={roles.test_developer || roles.test_designer}
               />
               <Form.Check
-                onClick={updateRoleCheckbox}
+                onChange={updateRoleCheckbox}
                 name="Roles"
                 label="TEST Designer"
                 id="test_designer"
@@ -471,7 +488,7 @@ function Apply() {
                 disabled={roles.designer || roles.developer}
               />
               <Form.Check
-                onClick={updateRoleCheckbox}
+                onChange={updateRoleCheckbox}
                 name="Roles"
                 label="TEST Developer"
                 id="test_developer"
