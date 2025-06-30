@@ -33,6 +33,11 @@ interface CreatePipelineRequest {
   stages: number;
 }
 
+export type BulkAdvanceOrRejectResponse = Record<
+  string,
+  { success: true; value: Progress } | { success: false; value: string }
+>;
+
 interface FormField {
   type: "string" | "number" | "boolean";
   choices: (string | number | boolean)[];
@@ -47,7 +52,6 @@ export interface Review {
   stage: string;
   application: string;
   reviewerEmail?: string;
-  completed: boolean;
   fields: Record<string, string | number | boolean>;
 }
 
@@ -204,12 +208,18 @@ class Api {
     return (await this.put(`/api/stage/${request._id}`, request)).json();
   }
 
-  async advanceApplication(progressId: string): Promise<Progress> {
-    return (await this.post(`/api/progress/${progressId}/advance`, undefined)).json();
+  async bulkAdvanceApplications(
+    pipelineId: string,
+    applicationIds: string[]
+  ): Promise<BulkAdvanceOrRejectResponse> {
+    return (await this.post("/api/progress/bulk_advance", { pipelineId, applicationIds })).json();
   }
 
-  async rejectApplication(progressId: string): Promise<Progress> {
-    return (await this.post(`/api/progress/${progressId}/reject`, undefined)).json();
+  async bulkRejectApplications(
+    pipelineId: string,
+    applicationIds: string[]
+  ): Promise<BulkAdvanceOrRejectResponse> {
+    return (await this.post("/api/progress/bulk_reject", { pipelineId, applicationIds })).json();
   }
 
   private async get(url: string, headers: Record<string, string> = {}): Promise<Response> {

@@ -1,5 +1,7 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 
+import { BulkAdvanceOrRejectRequest } from "../cakes";
 import { ProgressService } from "../services";
 
 import { authWrapper } from "./wrappers";
@@ -20,52 +22,75 @@ router.get(
 );
 
 router.post(
-  "/:progressId/advance",
+  "/bulk_advance",
   authWrapper(async (_user, req) => {
-    const progress = await ProgressService.getById(req.params.progressId);
-    if (progress === null) {
+    const bodyResult = BulkAdvanceOrRejectRequest.check(req.body);
+    if (!bodyResult.ok) {
       return {
-        status: 404,
+        status: 400,
+        text: bodyResult.error.toString(),
       };
     }
 
-    const result = await ProgressService.advanceApplication(
-      progress.application,
-      progress.pipeline,
+    // Concurrently advance each application asynchronously and save the results
+    const pipelineId = new mongoose.Types.ObjectId(bodyResult.value.pipelineId);
+    const results = await Promise.all(
+      bodyResult.value.applicationIds.map(async (applicationId) => {
+        const result = await ProgressService.advanceApplication(
+          new mongoose.Types.ObjectId(applicationId),
+          pipelineId,
+        );
+        return { applicationId, result };
+      }),
     );
-    if (typeof result === "string") {
-      return {
-        status: 400,
-        text: result,
-      };
-    }
+
     return {
       status: 200,
-      json: result,
+      // Map each application ID to its result (string error or new Progress object if successful)
+      json: results.reduce(
+        (prevObj, { applicationId, result }) => ({
+          ...prevObj,
+          [applicationId]: { success: typeof result !== "string", value: result },
+        }),
+        {},
+      ),
     };
   }),
 );
 
 router.post(
-  "/:progressId/reject",
+  "/bulk_reject",
   authWrapper(async (_user, req) => {
-    const progress = await ProgressService.getById(req.params.progressId);
-    if (progress === null) {
+    const bodyResult = BulkAdvanceOrRejectRequest.check(req.body);
+    if (!bodyResult.ok) {
       return {
-        status: 404,
+        status: 400,
+        text: bodyResult.error.toString(),
       };
     }
 
-    const result = await ProgressService.rejectApplication(progress.application, progress.pipeline);
-    if (typeof result === "string") {
-      return {
-        status: 400,
-        text: result,
-      };
-    }
+    // Concurrently reject each application asynchronously and save the results
+    const pipelineId = new mongoose.Types.ObjectId(bodyResult.value.pipelineId);
+    const results = await Promise.all(
+      bodyResult.value.applicationIds.map(async (applicationId) => {
+        const result = await ProgressService.rejectApplication(
+          new mongoose.Types.ObjectId(applicationId),
+          pipelineId,
+        );
+        return { applicationId, result };
+      }),
+    );
+
     return {
       status: 200,
-      json: result,
+      // Map each application ID to its result (string error or new Progress object if successful)
+      json: results.reduce(
+        (prevObj, { applicationId, result }) => ({
+          ...prevObj,
+          [applicationId]: { success: typeof result !== "string", value: result },
+        }),
+        {},
+      ),
     };
   }),
 );

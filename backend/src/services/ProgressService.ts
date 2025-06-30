@@ -41,14 +41,6 @@ class ProgressService {
       return `Cannot advance; application is already ${progress.state}`;
     }
 
-    const currentStage = await StageService.getByPipelineAndIndex(pipeline, progress.stageIndex);
-    if (currentStage !== null) {
-      const reviews = await ReviewService.getByStageAndApplication(currentStage._id, application);
-      if (reviews.some((review) => !review.completed)) {
-        return `At least one review for the preceding stage (${progress.stageIndex}) is incomplete`;
-      }
-    }
-
     const nextIndex = progress.stageIndex + 1;
     const nextStage = await StageService.getByPipelineAndIndex(pipeline, nextIndex);
     if (nextStage === null) {

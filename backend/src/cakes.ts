@@ -1,4 +1,4 @@
-import { Infer, bake, number, string } from "caketype";
+import { Infer, array, bake, number, string } from "caketype";
 
 const LogInRequest = bake({
   email: string,
@@ -32,10 +32,16 @@ const CreatePipelineRequest = bake({
   stages: number,
 });
 
+const BulkAdvanceOrRejectRequest = bake({
+  pipelineId: string,
+  applicationIds: array(string),
+});
+
 export {
   LogInRequest,
   CreateUserRequest,
   ResetPasswordRequest,
   RequestPasswordResetRequest,
   CreatePipelineRequest,
+  BulkAdvanceOrRejectRequest,
 };

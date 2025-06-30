@@ -90,27 +90,28 @@ export default function ReviewsView({
       .getFilteredReviews(filter)
       .then((newReviews) =>
         setReviews(
-          newReviews.slice().sort(
-            makeComparator((r) =>
-              homepage
-                ? [
-                    // eslint-disable-next-line no-nested-ternary
-                    r.completed ? 2 : Object.entries(r.fields).length > 0 ? 1 : 0,
-                    r.stage.name,
-                    r.application.gradQuarter,
-                    r.application.name,
-                    r.reviewerEmail || "",
-                    r._id,
-                  ]
-                : [
-                    r.stage.name,
-                    r.application.gradQuarter,
-                    r.application.name,
-                    r.reviewerEmail || "",
-                    r._id,
-                  ]
+          newReviews
+            .slice()
+            .sort(
+              makeComparator((r) =>
+                homepage
+                  ? [
+                      Object.entries(r.fields).length > 0 ? 1 : 0,
+                      r.stage.name,
+                      r.application.gradQuarter,
+                      r.application.name,
+                      r.reviewerEmail || "",
+                      r._id,
+                    ]
+                  : [
+                      r.stage.name,
+                      r.application.gradQuarter,
+                      r.application.name,
+                      r.reviewerEmail || "",
+                      r._id,
+                    ]
+              )
             )
-          )
         )
       )
       .catch(addAlert);
@@ -137,12 +138,7 @@ export default function ReviewsView({
           </thead>
           <tbody>
             {reviews.map((review) => {
-              let status: string;
-              if (review.completed) {
-                status = "complete";
-              } else {
-                status = Object.keys(review.fields).length > 0 ? "draft" : "blank";
-              }
+              const status = Object.keys(review.fields).length > 0 ? "complete" : "blank";
               const pastReviewers = Object.entries(
                 reviews
                   .filter((r) => review.application._id === r.application._id)
@@ -182,7 +178,7 @@ export default function ReviewsView({
                   <td>{status}</td>
                   {showReassign && (
                     <td>
-                      {!review.completed && <ManualAssign id={review._id} addAlert={addAlert} />}
+                      <ManualAssign id={review._id} addAlert={addAlert} />
                     </td>
                   )}
                 </tr>
