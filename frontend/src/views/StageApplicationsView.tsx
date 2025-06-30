@@ -1,7 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Form, Table } from "react-bootstrap";
 
-import api, { Application, PopulatedReview, Progress, Stage } from "../api";
+import api, {
+  Application,
+  BulkAdvanceOrRejectResponse,
+  PopulatedReview,
+  Progress,
+  Stage,
+} from "../api";
 import { useAlerts } from "../hooks";
 import { makeComparator, formatQuarter } from "../util";
 
@@ -9,52 +15,42 @@ const SCORE_REGEX = /^(.*_)?score$/;
 const RATING_REGEX = /^(.*_)?rating$/;
 
 function AdvanceButton({
-  progressId,
+  pipelineId,
+  applicationIds,
   addAlert,
   onAdvanced,
 }: {
-  progressId: string;
+  pipelineId: string;
+  applicationIds: string[];
   addAlert: (message: unknown) => void;
-  onAdvanced: () => void;
+  onAdvanced: (response: BulkAdvanceOrRejectResponse) => void;
 }) {
-  const [enabled, setEnabled] = useState(true);
   const onClick = () => {
-    api
-      .advanceApplication(progressId)
-      .then(() => {
-        setEnabled(false);
-        onAdvanced();
-      })
-      .catch(addAlert);
+    api.bulkAdvanceApplications(pipelineId, applicationIds).then(onAdvanced).catch(addAlert);
   };
   return (
-    <Button variant="success" onClick={onClick} disabled={!enabled}>
+    <Button variant="success" onClick={onClick}>
       Advance
     </Button>
   );
 }
 
 function RejectButton({
-  progressId,
+  pipelineId,
+  applicationIds,
   addAlert,
   onRejected,
 }: {
-  progressId: string;
+  pipelineId: string;
+  applicationIds: string[];
   addAlert: (message: unknown) => void;
-  onRejected: () => void;
+  onRejected: (response: BulkAdvanceOrRejectResponse) => void;
 }) {
-  const [enabled, setEnabled] = useState(true);
   const onClick = () => {
-    api
-      .rejectApplication(progressId)
-      .then(() => {
-        setEnabled(false);
-        onRejected();
-      })
-      .catch(addAlert);
+    api.bulkRejectApplications(pipelineId, applicationIds).then(onRejected).catch(addAlert);
   };
   return (
-    <Button variant="danger" onClick={onClick} disabled={!enabled}>
+    <Button variant="danger" onClick={onClick}>
       Reject
     </Button>
   );
@@ -66,6 +62,16 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
   const [selectedAction, setSelectedAction] = useState("none");
   const [stage, setStage] = useState<Stage | null>(null);
   const { alerts, addAlert } = useAlerts();
+  // Map of applicationIds to whether the checkbox for that application is selected
+  const [checkboxesSelectedMap, setCheckboxesSelectedMap] = useState<Record<string, boolean>>({});
+  // List of selected applicationIds
+  const selectedApplications = useMemo(
+    () =>
+      Object.keys(checkboxesSelectedMap).filter(
+        (applicationId) => checkboxesSelectedMap[applicationId]
+      ),
+    [checkboxesSelectedMap]
+  );
 
   useEffect(() => {
     api.getFilteredReviews({ stage: stageId }).then(setReviews).catch(addAlert);
@@ -167,6 +173,50 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                   <option value="advance">Advance</option>
                   <option value="reject">Reject</option>
                 </Form.Select>
+                {selectedAction === "advance" && !!stage && (
+                  <AdvanceButton
+                    pipelineId={stage.pipeline}
+                    applicationIds={selectedApplications}
+                    addAlert={addAlert}
+                    onAdvanced={(response) => {
+                      setCheckboxesSelectedMap({});
+                      let successCount = 0;
+                      Object.keys(response).forEach((applicationId) => {
+                        if (response[applicationId].success) {
+                          successCount++;
+                        } else {
+                          addAlert(
+                            `Failed to advance applicant ${grouped[applicationId][0].name}: ${response[applicationId].value}`
+                          );
+                        }
+                      });
+
+                      addAlert(`Successfully advanced ${successCount} applicants!`, "success");
+                    }}
+                  />
+                )}
+                {selectedAction === "reject" && !!stage && (
+                  <RejectButton
+                    pipelineId={stage.pipeline}
+                    applicationIds={selectedApplications}
+                    addAlert={addAlert}
+                    onRejected={(response) => {
+                      setCheckboxesSelectedMap({});
+                      let successCount = 0;
+
+                      Object.keys(response).forEach((applicationId) => {
+                        if (response[applicationId].success) {
+                          successCount++;
+                        } else {
+                          addAlert(
+                            `Failed to reject applicant ${grouped[applicationId][0].name}: ${response[applicationId].value}`
+                          );
+                        }
+                      });
+                      addAlert(`Successfully rejected ${successCount} applicants!`, "success");
+                    }}
+                  />
+                )}
               </td>
               <td>Application Status</td>
               <td>Raw Data</td>
@@ -204,10 +254,6 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                 progressMessage = `${progress.state} ${stageDescription}`;
               }
 
-              const onAdvanced = () =>
-                addAlert(`Advanced ${app.name}'s application to the next stage.`, "success");
-              const onRejected = () => addAlert(`Rejected ${app.name}'s application`, "info");
-
               return (
                 <tr key={app._id}>
                   <td>{i + 1}</td>
@@ -223,20 +269,19 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                   <td>
                     {pendingAtThisStage && allComplete ? (
                       <>
-                        {selectedAction === "advance" && (
-                          <AdvanceButton
-                            progressId={progress._id}
-                            addAlert={addAlert}
-                            onAdvanced={onAdvanced}
+                        {selectedAction === "advance" || selectedAction === "reject" ? (
+                          <Form.Check
+                            type="checkbox"
+                            checked={checkboxesSelectedMap[app._id] ?? false}
+                            onChange={(e) =>
+                              setCheckboxesSelectedMap({
+                                ...checkboxesSelectedMap,
+                                [app._id]: e.target.checked,
+                              })
+                            }
+                            style={{ display: "flex" }}
                           />
-                        )}
-                        {selectedAction === "reject" && (
-                          <RejectButton
-                            progressId={progress._id}
-                            addAlert={addAlert}
-                            onRejected={onRejected}
-                          />
-                        )}
+                        ) : null}
                         {selectedAction === "none" && "(no action selected)"}
                       </>
                     ) : (
