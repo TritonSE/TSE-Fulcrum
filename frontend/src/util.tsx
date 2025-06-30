@@ -22,7 +22,11 @@ function formatQuarter(quarter: number): string {
 }
 
 function countWords(text: string): number {
-  return text.trim().split(/\s+/).length;
+  const trimmed = text.trim();
+
+  if (trimmed === "") return 0;
+
+  return trimmed.split(/\s+/).length;
 }
 
 export { makeComparator, formatQuarter, countWords };

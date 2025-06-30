@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEventHandler, useState, WheelEventHandler } from "react";
 import { Alert, Button, Col, Form, Row, Spinner } from "react-bootstrap";
+
 import { countWords } from "../util";
 
 // Update these values each year before recruitment.
@@ -522,7 +523,7 @@ function Apply() {
               TEST program if you believe it would be a good fit for you. Once you apply to the TEST
               program, we will not be able to consider you for general admission, and vice versa. If
               you are unsure about which program is right for you, please contact TSE&apos;s current
-              president at {PRESIDENT_EMAIL}.
+              president at <a href={`mailto:${PRESIDENT_EMAIL}`}>{PRESIDENT_EMAIL}</a>.
             </p>
           </Form.Text>
         </Row>
@@ -537,6 +538,7 @@ function Apply() {
               as="textarea"
               rows={7}
             />
+            <Form.Text>{`${countWords(prompts.about)}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
           </Form.Group>
         </Row>
         <Row>
@@ -550,6 +552,7 @@ function Apply() {
               as="textarea"
               rows={7}
             />
+            <Form.Text>{`${countWords(prompts.interest)}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
           </Form.Group>
         </Row>
         {roles.designer && (
@@ -568,6 +571,7 @@ function Apply() {
                 as="textarea"
                 rows={7}
               />
+              <Form.Text>{`${countWords(prompts.designer)}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
             </Form.Group>
           </Row>
         )}
@@ -583,6 +587,7 @@ function Apply() {
                 as="textarea"
                 rows={7}
               />
+              <Form.Text>{`${countWords(prompts.developer)}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
             </Form.Group>
           </Row>
         )}
@@ -602,6 +607,9 @@ function Apply() {
                 as="textarea"
                 rows={7}
               />
+              <Form.Text>{`${countWords(
+                prompts.test_designer
+              )}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
             </Form.Group>
           </Row>
         )}
@@ -621,6 +629,9 @@ function Apply() {
                 as="textarea"
                 rows={7}
               />
+              <Form.Text>{`${countWords(
+                prompts.test_developer
+              )}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
             </Form.Group>
           </Row>
         )}
