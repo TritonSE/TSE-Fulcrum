@@ -441,8 +441,8 @@ function Apply() {
               <Form.Label>
                 Resume:
                 <Alert variant="danger">
-                  Your resume must be 1 page in PDF format. If your resume does not meet this
-                  requirement, your application will not be considered.
+                  Your resume must be a 1 page PDF. If your resume does not meet this requirement,
+                  your application will not be considered.
                 </Alert>
                 <Form.Control
                   required
@@ -511,6 +511,15 @@ function Apply() {
                 disabled={roles.designer || roles.developer}
               />
             </Form.Group>
+            {(roles.test_developer || roles.test_designer) && (
+              <Form.Label>
+                <Alert variant="warning">
+                  You are applying to a TEST role. Please read the information below carefully
+                  before continuing. Your application will not be considered if you do not meet the
+                  qualifications for the TEST program.
+                </Alert>
+              </Form.Label>
+            )}
           </Col>
           <Form.Text>
             <p>Each role you select will have a corresponding free-response question.</p>
