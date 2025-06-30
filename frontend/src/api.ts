@@ -101,6 +101,7 @@ export interface Application {
 
   aboutPrompt: string;
   interestPrompt: string;
+  testBarriersPrompt: string;
 
   // Map role identifiers to the corresponding prompts.
   rolePrompts: Record<string, string>;

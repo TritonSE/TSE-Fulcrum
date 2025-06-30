@@ -68,6 +68,7 @@ function Apply() {
     interest: "",
     designer: "",
     developer: "",
+    test_barriers: "",
     test_designer: "",
     test_developer: "",
   });
@@ -181,6 +182,10 @@ function Apply() {
           resumeUrl,
           aboutPrompt: prompts.about,
           interestPrompt: prompts.interest,
+          testBarriersPrompt:
+            selectedRoles.includes("test_designer") || selectedRoles.includes("test_developer")
+              ? prompts.test_barriers
+              : "N/A",
           rolePrompts: Object.fromEntries(selectedRoles.map((role) => [role, prompts[role]])),
         };
 
@@ -591,13 +596,35 @@ function Apply() {
             </Form.Group>
           </Row>
         )}
-        {roles.test_designer && (
+        {(roles.test_designer || roles.test_developer) && (
           <Row>
             <Form.Group>
               <Form.Label>
                 Why do you believe you are a good fit for the TEST program, and what do you hope to
-                gain from the program? Additionally, why are you interested in the TEST Designer
-                role specifically?
+                gain from the program? Additionally, please describe how your participation in this
+                program would be helpful to you in overcoming historical barriers such as financial
+                commitments, lack of role models/community/knowledge of graduate study,
+                first-generation, etc.
+              </Form.Label>
+              <Form.Control
+                id="prompt_test_barriers"
+                value={prompts.test_barriers}
+                onChange={updatePrompt}
+                required
+                as="textarea"
+                rows={7}
+              />
+              <Form.Text>{`${countWords(
+                prompts.test_barriers
+              )}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
+            </Form.Group>
+          </Row>
+        )}
+        {roles.test_designer && (
+          <Row>
+            <Form.Group>
+              <Form.Label>
+                Why are you interested in the TEST Designer role specifically?
               </Form.Label>
               <Form.Control
                 id="prompt_test_designer"
@@ -617,9 +644,7 @@ function Apply() {
           <Row>
             <Form.Group>
               <Form.Label>
-                Why do you believe you are a good fit for the TEST program, and what do you hope to
-                gain from the program? Additionally, why are you interested in the TEST Developer
-                role specifically?
+                Why are you interested in the TEST Developer role specifically?
               </Form.Label>
               <Form.Control
                 id="prompt_test_developer"

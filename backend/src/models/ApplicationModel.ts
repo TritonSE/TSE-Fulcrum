@@ -24,6 +24,9 @@ type Application = {
   aboutPrompt: string;
   interestPrompt: string;
 
+  // Automatically filled in as N/A for non-TEST applicants
+  testBarriersPrompt: string;
+
   // Map role identifiers to the corresponding prompts.
   rolePrompts: Record<string, string>;
 };
@@ -82,6 +85,10 @@ const ApplicationSchema = new Schema<Application>({
     required: true,
   },
   interestPrompt: {
+    type: String,
+    required: true,
+  },
+  testBarriersPrompt: {
     type: String,
     required: true,
   },
