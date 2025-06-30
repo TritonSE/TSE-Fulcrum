@@ -100,29 +100,29 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
     grouped[appId][1].push(review);
   });
 
+  const isComplete = (review: PopulatedReview) => Object.keys(review.fields).length !== 0;
+
   let scoreKeys: string[] = [];
-  reviews
-    .filter((r) => r.completed)
-    .forEach((review) => {
-      const currentScoreKeys = Object.keys(review.fields)
-        .filter((k) => SCORE_REGEX.test(k))
-        .sort();
-      if (scoreKeys.length === 0) {
-        scoreKeys = currentScoreKeys;
-      } else if (JSON.stringify(scoreKeys) !== JSON.stringify(currentScoreKeys)) {
-        // ^^^ crummy way of checking array equality
-        addScoreAlert(
-          `Mismatched score fields - score calculation is probably incorrect! ${JSON.stringify(
-            scoreKeys
-          )}, ${JSON.stringify(currentScoreKeys)}`
-        );
-      }
-    });
+  reviews.filter(isComplete).forEach((review) => {
+    const currentScoreKeys = Object.keys(review.fields)
+      .filter((k) => SCORE_REGEX.test(k))
+      .sort();
+    if (scoreKeys.length === 0) {
+      scoreKeys = currentScoreKeys;
+    } else if (JSON.stringify(scoreKeys) !== JSON.stringify(currentScoreKeys)) {
+      // ^^^ crummy way of checking array equality
+      addScoreAlert(
+        `Mismatched score fields - score calculation is probably incorrect! ${JSON.stringify(
+          scoreKeys
+        )}, ${JSON.stringify(currentScoreKeys)}`
+      );
+    }
+  });
 
   const withScores = Object.values(grouped).map(([app, appReviews]) => {
     const avgScore =
       appReviews
-        .filter((r) => r.completed)
+        .filter(isComplete)
         .map((review) =>
           scoreKeys
             .map((scoreKey) => {
@@ -226,7 +226,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
           </thead>
           <tbody>
             {withScores.map(([app, appReviews, score], i) => {
-              const incompleteCount = appReviews.filter((r) => !r.completed).length;
+              const incompleteCount = appReviews.filter((r) => !isComplete(r)).length;
               const allComplete = incompleteCount === 0;
 
               const progress: Progress | undefined = progressesByApplication[app._id];
@@ -267,7 +267,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                   )}`}</td>
                   <td>{allComplete ? "all completed" : `${incompleteCount} incomplete`}</td>
                   <td>
-                    {pendingAtThisStage && allComplete ? (
+                    {pendingAtThisStage ? (
                       <>
                         {selectedAction === "advance" || selectedAction === "reject" ? (
                           <Form.Check
@@ -293,7 +293,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                     {appReviews.map((r) => (
                       <p key={r._id}>
                         {`${r.reviewerEmail || "(no reviewer assigned)"}${
-                          r.completed ? "" : " (incomplete)"
+                          isComplete(r) ? "" : " (incomplete)"
                         }: ${JSON.stringify(
                           Object.fromEntries(
                             Object.entries(r.fields)
@@ -308,7 +308,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                     {appReviews.map((r) => (
                       <p key={r._id}>
                         {`${r.reviewerEmail || "(no reviewer assigned)"}${
-                          r.completed ? "" : " (incomplete)"
+                          isComplete(r) ? "" : " (incomplete)"
                         }: ${JSON.stringify(
                           Object.fromEntries(
                             Object.entries(r.fields)

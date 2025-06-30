@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { Button, Form } from "react-bootstrap";
 import { useParams, useLocation } from "react-router-dom";
 
@@ -9,14 +9,13 @@ import ApplicationView from "../views/ApplicationView";
 
 export function ReviewView({ id, showApplication }: { id: string; showApplication: boolean }) {
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
-  const [reviewFinished, setReviewFinished] = useState(true);
   const [stage, setStage] = useStateHelper<Stage>();
   const { alerts, addAlert } = useAlerts();
   const location = useLocation();
   const { user } = useContext(GlobalContext);
 
   const editable = useMemo(
-    () => !!(user && review && user.email === review.reviewerEmail && !review.completed),
+    () => !!(user && review && user.email === review.reviewerEmail),
     [user, review]
   );
 
@@ -46,7 +45,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
     }
 
     api
-      .updateReview({ ...review, completed: reviewFinished })
+      .updateReview(review)
       .then(setReview)
       .then(() => addAlert("Review saved.", "success"))
       .catch(addAlert);
@@ -142,18 +141,9 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
             );
           })}
         {editable && (
-          <>
-            <Form.Check
-              label="I am finished with this review"
-              checked={reviewFinished}
-              onChange={(e) => setReviewFinished(e.target.checked)}
-            />
-            <Form.Text>Leave this unchecked if you want to save a draft</Form.Text>
-            <br />
-            <Button type="submit" variant="success">
-              Save
-            </Button>
-          </>
+          <Button type="submit" variant="success">
+            Save
+          </Button>
         )}
         {alerts}
       </Form>

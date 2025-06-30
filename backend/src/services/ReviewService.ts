@@ -19,7 +19,6 @@ class ReviewService {
     const review = await new ReviewModel({
       stage,
       application,
-      completed: false,
       fields: {},
     }).save();
 
@@ -75,10 +74,6 @@ class ReviewService {
     const existing = await ReviewModel.findById(review._id);
     if (existing === null) {
       return `No review with id: ${review._id}`;
-    }
-
-    if (existing.completed) {
-      return `Cannot update completed review: ${review._id}`;
     }
 
     // TODO: enforce that only the assigned reviewer can change fields
@@ -181,7 +176,6 @@ class ReviewService {
       stage: review.stage.toJSON(),
       application: review.application.toJSON(),
       reviewerEmail: review.reviewerEmail,
-      completed: review.completed,
       fields: review.fields,
     };
   }
