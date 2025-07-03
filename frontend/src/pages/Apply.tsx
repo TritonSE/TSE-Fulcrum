@@ -77,6 +77,14 @@ function Apply() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const getWordCountText = (promptKey: string): string =>
+    `Max ${SHORT_ANSWER_MAX_WORDS} words: ${countWords(
+      prompts[promptKey] || ""
+    )}/${SHORT_ANSWER_MAX_WORDS}`;
+
+  const isPromptOverLimit = (promptKey: string): boolean =>
+    countWords(prompts[promptKey] || "") > SHORT_ANSWER_MAX_WORDS;
+
   // create any event handler functions below this line
 
   const updatePersonalInfo = (fieldName: string, value: string) => {
@@ -92,13 +100,6 @@ function Apply() {
   };
 
   const updatePrompt = (e: ChangeEvent<HTMLInputElement>) => {
-    // Check if the prompt exceeds the maximum word count
-    const wordCount = countWords(e.target.value);
-
-    if (wordCount > SHORT_ANSWER_MAX_WORDS) {
-      return;
-    }
-
     setPrompts({
       ...prompts,
       [e.target.id.replace("prompt_", "")]: e.target.value,
@@ -162,6 +163,16 @@ function Apply() {
       setError("Please upload your resume.");
       setSubmitting(false);
       return;
+    }
+
+    // There will only ever be a few prompts, so using for...of should be fine here.
+    /* eslint-disable no-restricted-syntax */
+    for (const prompt of Object.keys(prompts)) {
+      if (isPromptOverLimit(prompt)) {
+        setError(`One or more of your responses is over the word limit.`);
+        setSubmitting(false);
+        return;
+      }
     }
 
     setSuccess("Submitting your application...");
@@ -548,11 +559,18 @@ function Apply() {
               id="prompt_about"
               value={prompts.about}
               onChange={updatePrompt}
+              isInvalid={isPromptOverLimit("about")}
               required
               as="textarea"
               rows={7}
             />
-            <Form.Text>{`${countWords(prompts.about)}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
+            <Form.Text
+              style={{
+                color: isPromptOverLimit("about") ? "red" : "",
+              }}
+            >
+              {getWordCountText("about")}
+            </Form.Text>
           </Form.Group>
         </Row>
         <Row>
@@ -562,11 +580,18 @@ function Apply() {
               id="prompt_interest"
               value={prompts.interest}
               onChange={updatePrompt}
+              isInvalid={isPromptOverLimit("interest")}
               required
               as="textarea"
               rows={7}
             />
-            <Form.Text>{`${countWords(prompts.interest)}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
+            <Form.Text
+              style={{
+                color: isPromptOverLimit("interest") ? "red" : "",
+              }}
+            >
+              {getWordCountText("interest")}
+            </Form.Text>
           </Form.Group>
         </Row>
         {roles.designer && (
@@ -581,11 +606,18 @@ function Apply() {
                 id="prompt_designer"
                 value={prompts.designer}
                 onChange={updatePrompt}
+                isInvalid={isPromptOverLimit("designer")}
                 required
                 as="textarea"
                 rows={7}
               />
-              <Form.Text>{`${countWords(prompts.designer)}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
+              <Form.Text
+                style={{
+                  color: isPromptOverLimit("designer") ? "red" : "",
+                }}
+              >
+                {getWordCountText("designer")}
+              </Form.Text>
             </Form.Group>
           </Row>
         )}
@@ -597,11 +629,18 @@ function Apply() {
                 id="prompt_developer"
                 value={prompts.developer}
                 onChange={updatePrompt}
+                isInvalid={isPromptOverLimit("developer")}
                 required
                 as="textarea"
                 rows={7}
               />
-              <Form.Text>{`${countWords(prompts.developer)}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
+              <Form.Text
+                style={{
+                  color: isPromptOverLimit("developer") ? "red" : "",
+                }}
+              >
+                {getWordCountText("developer")}
+              </Form.Text>
             </Form.Group>
           </Row>
         )}
@@ -619,13 +658,18 @@ function Apply() {
                 id="prompt_test_barriers"
                 value={prompts.test_barriers}
                 onChange={updatePrompt}
+                isInvalid={isPromptOverLimit("test_barriers")}
                 required
                 as="textarea"
                 rows={7}
               />
-              <Form.Text>{`${countWords(
-                prompts.test_barriers
-              )}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
+              <Form.Text
+                style={{
+                  color: isPromptOverLimit("test_barriers") ? "red" : "",
+                }}
+              >
+                {getWordCountText("test_barriers")}
+              </Form.Text>
             </Form.Group>
           </Row>
         )}
@@ -639,13 +683,18 @@ function Apply() {
                 id="prompt_test_designer"
                 value={prompts.test_designer}
                 onChange={updatePrompt}
+                isInvalid={isPromptOverLimit("test_designer")}
                 required
                 as="textarea"
                 rows={7}
               />
-              <Form.Text>{`${countWords(
-                prompts.test_designer
-              )}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
+              <Form.Text
+                style={{
+                  color: isPromptOverLimit("test_designer") ? "red" : "",
+                }}
+              >
+                {getWordCountText("test_designer")}
+              </Form.Text>
             </Form.Group>
           </Row>
         )}
@@ -659,13 +708,18 @@ function Apply() {
                 id="prompt_test_developer"
                 value={prompts.test_developer}
                 onChange={updatePrompt}
+                isInvalid={isPromptOverLimit("test_developer")}
                 required
                 as="textarea"
                 rows={7}
               />
-              <Form.Text>{`${countWords(
-                prompts.test_developer
-              )}/${SHORT_ANSWER_MAX_WORDS}`}</Form.Text>
+              <Form.Text
+                style={{
+                  color: isPromptOverLimit("test_developer") ? "red" : "",
+                }}
+              >
+                {getWordCountText("test_developer")}
+              </Form.Text>
             </Form.Group>
           </Row>
         )}
