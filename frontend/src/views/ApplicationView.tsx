@@ -32,6 +32,7 @@ export default function ApplicationView({ id }: { id: string }) {
   const prompts = {
     about_me: application?.aboutPrompt,
     why_tse: application?.interestPrompt,
+    test_barriers: application?.testBarriersPrompt,
     ...application?.rolePrompts,
   };
 
@@ -56,14 +57,25 @@ export default function ApplicationView({ id }: { id: string }) {
       </a>
       <br />
       <strong>Prompts</strong>
-      {Object.entries(prompts).map(([key, response]) => (
-        <details open key={key}>
-          <summary>
-            <strong>{key}</strong>
-          </summary>
-          <div style={{ whiteSpace: "pre-line" }}>{response}</div>
-        </details>
-      ))}
+      {Object.entries(prompts).map(([key, response]) => {
+        // Don't display test barriers prompt if the applicant is not applying for a TEST role
+        if (
+          key === "test_barriers" &&
+          !application?.rolePrompts.test_designer &&
+          !application?.rolePrompts.test_developer
+        ) {
+          return null;
+        }
+
+        return (
+          <details open key={key}>
+            <summary>
+              <strong>{key}</strong>
+            </summary>
+            <div style={{ whiteSpace: "pre-line" }}>{response}</div>
+          </details>
+        );
+      })}
       {alerts}
     </div>
   );

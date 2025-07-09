@@ -1,3 +1,11 @@
+.ApplicationForm > .row > :not(.form-text) {
+  margin-top: 1rem;
+}
+
+.ApplicationForm .alert {
+  margin-bottom: 0;
+}
+
 /* For the bulk accept/reject checkboxes in the applicants table */
 .form-check-input {
   width: 1.5em;
