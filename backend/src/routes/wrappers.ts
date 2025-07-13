@@ -51,7 +51,7 @@ type AsyncAuthHandler = (
   user: UserDocument,
   req: Request,
   res: Response,
-) => Promise<AsyncHandlerResult>;
+) => Promise<AsyncHandlerResult> | AsyncHandlerResult;
 
 function authWrapper(handler: AsyncAuthHandler): RequestHandler {
   return wrapper(async (req, res) => {

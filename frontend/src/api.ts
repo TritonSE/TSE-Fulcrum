@@ -22,15 +22,8 @@ interface CreateUserRequest {
 }
 
 export interface Pipeline {
-  _id: string;
   identifier: string;
   name: string;
-}
-
-interface CreatePipelineRequest {
-  identifier: string;
-  name: string;
-  stages: number;
 }
 
 export type BulkAdvanceOrRejectResponse = Record<
@@ -44,12 +37,13 @@ interface FormField {
   allowOther: boolean;
   label: string;
   description: string;
+  rubricLink?: string;
   weight?: number;
 }
 
 export interface Review {
   _id: string;
-  stage: string;
+  stageId: number;
   application: string;
   reviewerEmail?: string;
   fields: Record<string, string | number | boolean>;
@@ -62,21 +56,20 @@ export type PopulatedReview = Omit<Review, "stage" | "application"> & {
 
 export interface Progress {
   _id: string;
-  pipeline: string;
+  pipelineIdentifier: string;
   application: string;
   stageIndex: number;
   state: "pending" | "rejected" | "accepted";
 }
 
 export interface Stage {
-  _id: string;
-  pipeline: string;
+  id: number;
+  pipelineIdentifier: string;
   pipelineIndex: number;
   numReviews: number;
   name: string;
   fields: Record<string, FormField>;
   fieldOrder: string[];
-  reviewerEmails: string[];
   autoAssignReviewers: boolean;
   notifyReviewersWhenAssigned: boolean;
   hasTechnicalInterview?: boolean;
@@ -154,14 +147,6 @@ class Api {
     return (await this.get("/api/pipeline")).json();
   }
 
-  async createPipeline(request: CreatePipelineRequest): Promise<Pipeline> {
-    return (await this.post("/api/pipeline", request)).json();
-  }
-
-  async updatePipeline(request: Pipeline): Promise<Pipeline> {
-    return (await this.put(`/api/pipeline/${request._id}`, request)).json();
-  }
-
   async getApplicationById(applicationId: string): Promise<Application> {
     return (await this.get(`/api/application/${applicationId}`)).json();
   }
@@ -192,34 +177,34 @@ class Api {
     return (await this.get(`/api/progress?${new URLSearchParams(Object.entries(filter))}`)).json();
   }
 
-  async getStageById(stageId: string): Promise<Stage> {
+  async getStageById(stageId: number): Promise<Stage> {
     return (await this.get(`/api/stage/${stageId}`)).json();
   }
 
-  async getStagesByPipeline(pipelineId: string): Promise<Stage[]> {
-    return (await this.get(`/api/stage?pipeline=${pipelineId}`)).json();
+  async getStagesByPipeline(pipelineIdentifier: string): Promise<Stage[]> {
+    return (await this.get(`/api/stage?pipeline=${pipelineIdentifier}`)).json();
   }
 
   async getAllStages(): Promise<Stage[]> {
     return (await this.get("/api/stage")).json();
   }
 
-  async updateStage(request: Stage): Promise<Stage> {
-    return (await this.put(`/api/stage/${request._id}`, request)).json();
-  }
-
   async bulkAdvanceApplications(
-    pipelineId: string,
+    pipelineIdentifier: string,
     applicationIds: string[]
   ): Promise<BulkAdvanceOrRejectResponse> {
-    return (await this.post("/api/progress/bulk_advance", { pipelineId, applicationIds })).json();
+    return (
+      await this.post("/api/progress/bulk_advance", { pipelineIdentifier, applicationIds })
+    ).json();
   }
 
   async bulkRejectApplications(
-    pipelineId: string,
+    pipelineIdentifier: string,
     applicationIds: string[]
   ): Promise<BulkAdvanceOrRejectResponse> {
-    return (await this.post("/api/progress/bulk_reject", { pipelineId, applicationIds })).json();
+    return (
+      await this.post("/api/progress/bulk_reject", { pipelineIdentifier, applicationIds })
+    ).json();
   }
 
   private async get(url: string, headers: Record<string, string> = {}): Promise<Response> {
