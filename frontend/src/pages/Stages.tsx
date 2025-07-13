@@ -18,16 +18,14 @@ export default function Stages() {
         <thead>
           <tr>
             <th>Name</th>
-            <th>Reviewers</th>
           </tr>
         </thead>
         <tbody>
           {stages.map((stage) => (
-            <tr key={stage._id}>
+            <tr key={stage.id}>
               <td>
-                <a href={`/stage/${stage._id}/applications`}>{stage.name}</a>
+                <a href={`/stage/${stage.id}/applications`}>{stage.name}</a>
               </td>
-              <td>{stage.reviewerEmails.join(" ")}</td>
             </tr>
           ))}
         </tbody>

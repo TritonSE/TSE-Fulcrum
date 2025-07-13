@@ -1,23 +1,17 @@
 import { Types } from "mongoose";
 
+import { Stage } from "../config";
 import env from "../env";
-import {
-  ApplicationModel,
-  RawReview,
-  ReviewDocument,
-  ReviewModel,
-  StageDocument,
-  StageModel,
-} from "../models";
+import { ApplicationModel, RawReview, ReviewDocument, ReviewModel } from "../models";
 
 import EmailService from "./EmailService";
 import StageService from "./StageService";
 import UserService from "./UserService";
 
 class ReviewService {
-  async create(stage: StageDocument, application: Types.ObjectId): Promise<ReviewDocument> {
+  async create(stage: Stage, application: Types.ObjectId): Promise<ReviewDocument> {
     const review = await new ReviewModel({
-      stage,
+      stageId: stage.id,
       application,
       fields: {},
     }).save();
@@ -44,7 +38,7 @@ class ReviewService {
       return "Review not found";
     }
 
-    const stage = await StageModel.findById(review.stage);
+    const stage = StageService.getById(review.stageId);
     if (stage === null) {
       return "Stage missing - this shouldn't happen";
     }
@@ -101,7 +95,7 @@ class ReviewService {
 
     // TODO: more dependency cycle
     const application = await ApplicationModel.findById(review.application);
-    const stage = await StageService.getById(review.stage);
+    const stage = StageService.getById(review.stageId);
 
     await EmailService.send({
       recipient: review.reviewerEmail,
@@ -111,14 +105,13 @@ class ReviewService {
   }
 
   private async getAutoAssignedReviewer(
-    stage: StageDocument,
+    stage: Stage,
     application: Types.ObjectId,
   ): Promise<string | null> {
-    let reviewerEmails = stage.reviewerEmails;
+    // TODO: find all users assigned to review this stage
+    let reviewerEmails: string[] = [];
     if (reviewerEmails.length === 0) {
-      console.error(
-        `Cannot auto-assign reviewer because stage has no reviewers: ${stage._id.toHexString()}`,
-      );
+      console.error(`Cannot auto-assign reviewer because stage has no reviewers: ${stage.id}`);
       return null;
     }
 
@@ -137,7 +130,7 @@ class ReviewService {
     // TODO: don't count applications in preceding years
     const countsAndEmails = await Promise.all(
       reviewerEmails.map((reviewerEmail) =>
-        ReviewModel.count({ reviewerEmail, stage: stage._id }).then(
+        ReviewModel.count({ reviewerEmail, stageId: stage.id }).then(
           (count) => [count, reviewerEmail] as const,
         ),
       ),
@@ -156,10 +149,10 @@ class ReviewService {
   }
 
   async getByStageAndApplication(
-    stage: Types.ObjectId,
+    stageId: number,
     application: Types.ObjectId,
   ): Promise<ReviewDocument[]> {
-    return ReviewModel.find({ stage, application });
+    return ReviewModel.find({ stageId, application });
   }
 
   async getById(id: string | Types.ObjectId): Promise<ReviewDocument | null> {
@@ -167,13 +160,15 @@ class ReviewService {
   }
 
   async getFiltered(filter: Record<string, string>): Promise<ReviewDocument[]> {
-    return ReviewModel.find(filter).populate("stage").populate("application");
+    const results = await ReviewModel.find(filter).populate("application");
+    return results;
   }
 
   serialize(review: ReviewDocument) {
     return {
       _id: review._id.toHexString(),
-      stage: review.stage.toJSON(),
+      stageId: review.stageId,
+      stage: StageService.getById(review.stageId),
       application: review.application.toJSON(),
       reviewerEmail: review.reviewerEmail,
       fields: review.fields,

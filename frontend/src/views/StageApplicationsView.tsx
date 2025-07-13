@@ -15,18 +15,21 @@ const SCORE_REGEX = /^(.*_)?score$/;
 const RATING_REGEX = /^(.*_)?rating$/;
 
 function AdvanceButton({
-  pipelineId,
+  pipelineIdentifier,
   applicationIds,
   addAlert,
   onAdvanced,
 }: {
-  pipelineId: string;
+  pipelineIdentifier: string;
   applicationIds: string[];
   addAlert: (message: unknown) => void;
   onAdvanced: (response: BulkAdvanceOrRejectResponse) => void;
 }) {
   const onClick = () => {
-    api.bulkAdvanceApplications(pipelineId, applicationIds).then(onAdvanced).catch(addAlert);
+    api
+      .bulkAdvanceApplications(pipelineIdentifier, applicationIds)
+      .then(onAdvanced)
+      .catch(addAlert);
   };
   return (
     <Button variant="success" onClick={onClick}>
@@ -36,18 +39,18 @@ function AdvanceButton({
 }
 
 function RejectButton({
-  pipelineId,
+  pipelineIdentifier,
   applicationIds,
   addAlert,
   onRejected,
 }: {
-  pipelineId: string;
+  pipelineIdentifier: string;
   applicationIds: string[];
   addAlert: (message: unknown) => void;
   onRejected: (response: BulkAdvanceOrRejectResponse) => void;
 }) {
   const onClick = () => {
-    api.bulkRejectApplications(pipelineId, applicationIds).then(onRejected).catch(addAlert);
+    api.bulkRejectApplications(pipelineIdentifier, applicationIds).then(onRejected).catch(addAlert);
   };
   return (
     <Button variant="danger" onClick={onClick}>
@@ -56,7 +59,7 @@ function RejectButton({
   );
 }
 
-export default function StageApplicationsView({ stageId }: { stageId: string }) {
+export default function StageApplicationsView({ stageId }: { stageId: number }) {
   const [progresses, setProgresses] = useState<Progress[]>([]);
   const [reviews, setReviews] = useState<PopulatedReview[]>([]);
   const [selectedAction, setSelectedAction] = useState("none");
@@ -74,7 +77,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
   );
 
   useEffect(() => {
-    api.getFilteredReviews({ stage: stageId }).then(setReviews).catch(addAlert);
+    api.getFilteredReviews({ stageId: stageId.toString() }).then(setReviews).catch(addAlert);
   }, [stageId]);
 
   useEffect(() => {
@@ -83,7 +86,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
       .then((newStage) => {
         setStage(newStage);
         api
-          .getFilteredProgresses({ pipeline: newStage.pipeline })
+          .getFilteredProgresses({ pipelineIdentifier: newStage.pipelineIdentifier })
           .then(setProgresses)
           .catch(addAlert);
       })
@@ -175,7 +178,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                 </Form.Select>
                 {selectedAction === "advance" && !!stage && (
                   <AdvanceButton
-                    pipelineId={stage.pipeline}
+                    pipelineIdentifier={stage.pipelineIdentifier}
                     applicationIds={selectedApplications}
                     addAlert={addAlert}
                     onAdvanced={(response) => {
@@ -197,7 +200,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
                 )}
                 {selectedAction === "reject" && !!stage && (
                   <RejectButton
-                    pipelineId={stage.pipeline}
+                    pipelineIdentifier={stage.pipelineIdentifier}
                     applicationIds={selectedApplications}
                     addAlert={addAlert}
                     onRejected={(response) => {
@@ -233,7 +236,7 @@ export default function StageApplicationsView({ stageId }: { stageId: string }) 
               let progressMessage: string;
               let pendingAtThisStage = false;
               if (progress === undefined) {
-                progressMessage = `error: no progress for application ${app._id} and pipeline ${stage?.pipeline}`;
+                progressMessage = `error: no progress for application ${app._id} and pipeline ${stage?.pipelineIdentifier}`;
               } else if (!stage) {
                 progressMessage = "waiting for stage to load...";
               } else {

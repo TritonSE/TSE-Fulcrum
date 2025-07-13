@@ -4,5 +4,5 @@ import StageApplicationsView from "../views/StageApplicationsView";
 
 export default function StageApplications() {
   const { stageId } = useParams();
-  return <StageApplicationsView stageId={stageId || ""} />;
+  return <StageApplicationsView stageId={parseInt(stageId as string, 10)} />;
 }

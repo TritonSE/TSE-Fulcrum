@@ -1,10 +1,10 @@
 import { Types } from "mongoose";
 
+import { Pipeline } from "../config";
 import {
   Application,
   ApplicationDocument,
   ApplicationModel,
-  PipelineDocument,
   ProgressModel,
   ReviewModel,
 } from "../models";
@@ -28,12 +28,9 @@ class ApplicationService {
       return `You have already submitted an application in ${yearApplied}.`;
     }
 
-    const pipelines: PipelineDocument[] = [];
+    const pipelines: Pipeline[] = [];
     for (const identifier of Object.keys(application.rolePrompts)) {
-      // TODO: refactor later, but not a huge performance concern since the
-      // number of pipelines is small
-      // eslint-disable-next-line no-await-in-loop
-      const pipeline = await PipelineService.getByIdentifier(identifier);
+      const pipeline = PipelineService.getByIdentifier(identifier);
       if (pipeline === null) {
         return `Role not found: ${identifier}`;
       }
@@ -44,7 +41,7 @@ class ApplicationService {
 
     // Create application progress indicators for each role.
     await Promise.all(
-      pipelines.map((pipeline) => ProgressService.create(pipeline._id, result._id)),
+      pipelines.map((pipeline) => ProgressService.create(pipeline.identifier, result._id)),
     );
 
     await EmailService.send({

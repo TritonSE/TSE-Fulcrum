@@ -23,10 +23,8 @@ export default function Pipelines() {
         </thead>
         <tbody>
           {pipelines.map((pipeline) => (
-            <tr key={pipeline._id}>
-              <td>
-                <a href={`/pipeline/${pipeline._id}/edit`}>{pipeline.name}</a>
-              </td>
+            <tr key={pipeline.identifier}>
+              <td>{pipeline.name}</td>
               <td>{pipeline.identifier}</td>
             </tr>
           ))}

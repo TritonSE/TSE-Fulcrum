@@ -8,33 +8,33 @@ import ReviewService from "./ReviewService";
 import StageService from "./StageService";
 
 class ProgressService {
-  async create(pipeline: Types.ObjectId, application: Types.ObjectId): Promise<ProgressDocument> {
+  async create(pipelineIdentifier: string, application: Types.ObjectId): Promise<ProgressDocument> {
     const progress = await new ProgressModel({
-      pipeline,
+      pipelineIdentifier,
       application,
       stageIndex: -1, // Temporary value - will be incremented by advanceApplication
       state: "pending",
     }).save();
 
-    await this.advanceApplication(application, pipeline);
+    await this.advanceApplication(application, pipelineIdentifier);
 
     return progress;
   }
 
   async getByPipelineAndApplication(
-    pipeline: Types.ObjectId,
+    pipelineIdentifier: string,
     application: Types.ObjectId,
   ): Promise<ProgressDocument | null> {
-    return ProgressModel.findOne({ pipeline, application });
+    return ProgressModel.findOne({ pipelineIdentifier, application });
   }
 
   async advanceApplication(
     application: Types.ObjectId,
-    pipeline: Types.ObjectId,
+    pipelineIdentifier: string,
   ): Promise<ProgressDocument | string> {
-    const progress = await this.getByPipelineAndApplication(pipeline, application);
+    const progress = await this.getByPipelineAndApplication(pipelineIdentifier, application);
     if (progress === null) {
-      return `No progress indicator exists for pipeline ${pipeline.toHexString()} and application ${application.toHexString()}`;
+      return `No progress indicator exists for pipeline ${pipelineIdentifier} and application ${application.toHexString()}`;
     }
 
     if (progress.state !== "pending") {
@@ -42,7 +42,7 @@ class ProgressService {
     }
 
     const nextIndex = progress.stageIndex + 1;
-    const nextStage = await StageService.getByPipelineAndIndex(pipeline, nextIndex);
+    const nextStage = StageService.getByPipelineAndIndex(pipelineIdentifier, nextIndex);
     if (nextStage === null) {
       console.info(
         `No more stages; changing progress indicator state to accepted: ${progress._id.toHexString()}`,
@@ -92,11 +92,11 @@ class ProgressService {
 
   async rejectApplication(
     application: Types.ObjectId,
-    pipeline: Types.ObjectId,
+    pipelineIdentifier: string,
   ): Promise<ProgressDocument | string> {
-    const progress = await this.getByPipelineAndApplication(pipeline, application);
+    const progress = await this.getByPipelineAndApplication(pipelineIdentifier, application);
     if (progress === null) {
-      return `No progress indicator exists for pipeline ${pipeline.toHexString()} and application ${application.toHexString()}`;
+      return `No progress indicator exists for pipeline ${pipelineIdentifier} and application ${application.toHexString()}`;
     }
 
     if (progress.state !== "pending") {
@@ -109,9 +109,9 @@ class ProgressService {
       return `Application not found: ${application.toHexString()}`;
     }
 
-    const pipelineDocument = await PipelineService.getById(pipeline);
+    const pipelineDocument = PipelineService.getByIdentifier(pipelineIdentifier);
     if (pipelineDocument === null) {
-      return `Pipeline not found: ${pipeline.toHexString()}`;
+      return `Pipeline not found: ${pipelineIdentifier}`;
     }
 
     const emailSuccessful = await EmailService.send({
@@ -147,7 +147,7 @@ class ProgressService {
   serialize(progress: ProgressDocument) {
     return {
       _id: progress._id.toHexString(),
-      pipeline: progress.pipeline.toHexString(),
+      pipelineIdentifier: progress.pipelineIdentifier,
       application: progress.application.toHexString(),
       stageIndex: progress.stageIndex,
       state: progress.state,
