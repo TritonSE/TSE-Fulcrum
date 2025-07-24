@@ -26,7 +26,11 @@ export default function ViewApplication() {
       {reviews
         .slice()
         .sort(
-          makeComparator((r) => [r.stage.pipeline, r.stage.pipelineIndex, r.reviewerEmail || ""])
+          makeComparator((r) => [
+            r.stage.pipelineIdentifier,
+            r.stage.pipelineIndex,
+            r.reviewerEmail || "",
+          ])
         )
         .map((r) => (
           <ReviewView key={r._id} id={r._id} showApplication={false} />

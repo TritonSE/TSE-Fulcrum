@@ -4,7 +4,7 @@ import { ObjectIdsToStrings } from "./helpers";
 
 type Review = {
   _id: Types.ObjectId;
-  stage: Types.ObjectId;
+  stageId: number;
   application: Types.ObjectId;
   interview?: Types.ObjectId;
   reviewerEmail?: string;
@@ -14,9 +14,8 @@ type Review = {
 type RawReview = ObjectIdsToStrings<Review>;
 
 const ReviewSchema = new Schema<Review>({
-  stage: {
-    type: Schema.Types.ObjectId,
-    ref: "Stage",
+  stageId: {
+    type: Number,
     required: true,
   },
   application: {

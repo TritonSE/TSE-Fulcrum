@@ -33,12 +33,11 @@ router.post(
     }
 
     // Concurrently advance each application asynchronously and save the results
-    const pipelineId = new mongoose.Types.ObjectId(bodyResult.value.pipelineId);
     const results = await Promise.all(
       bodyResult.value.applicationIds.map(async (applicationId) => {
         const result = await ProgressService.advanceApplication(
           new mongoose.Types.ObjectId(applicationId),
-          pipelineId,
+          bodyResult.value.pipelineIdentifier,
         );
         return { applicationId, result };
       }),
@@ -70,12 +69,11 @@ router.post(
     }
 
     // Concurrently reject each application asynchronously and save the results
-    const pipelineId = new mongoose.Types.ObjectId(bodyResult.value.pipelineId);
     const results = await Promise.all(
       bodyResult.value.applicationIds.map(async (applicationId) => {
         const result = await ProgressService.rejectApplication(
           new mongoose.Types.ObjectId(applicationId),
-          pipelineId,
+          bodyResult.value.pipelineIdentifier,
         );
         return { applicationId, result };
       }),

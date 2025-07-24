@@ -1,9 +1,11 @@
 import { HydratedDocument, Schema, Types, model } from "mongoose";
 
+import { PipelineIdentifier } from "../config";
+
 import { ObjectIdsToStrings } from "./helpers";
 
 type Progress = {
-  pipeline: Types.ObjectId;
+  pipelineIdentifier: PipelineIdentifier;
   application: Types.ObjectId;
   stageIndex: number;
   state: "pending" | "rejected" | "accepted";
@@ -12,9 +14,8 @@ type Progress = {
 type RawProgress = ObjectIdsToStrings<Progress>;
 
 const ProgressSchema = new Schema<Progress>({
-  pipeline: {
-    type: Schema.Types.ObjectId,
-    ref: "Pipeline",
+  pipelineIdentifier: {
+    type: String,
     required: true,
   },
   application: {

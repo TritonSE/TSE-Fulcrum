@@ -31,7 +31,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       .getReviewById(id)
       .then((newReview) => {
         setReview(newReview);
-        api.getStageById(newReview.stage).then(setStage).catch(addAlert);
+        api.getStageById(newReview.stageId).then(setStage).catch(addAlert);
       })
       .catch(addAlert);
   }, []);
@@ -132,7 +132,14 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
                 {field.description && (
                   <>
                     <br />
-                    <Form.Text>{field.description}</Form.Text>
+                    <Form.Text>
+                      {field.description}{" "}
+                      {field.rubricLink && (
+                        <a href={field.rubricLink} target="_blank" rel="noreferrer noopener">
+                          See rubric
+                        </a>
+                      )}
+                    </Form.Text>
                   </>
                 )}
                 {control}
