@@ -1,4 +1,6 @@
-import { Infer, array, bake, string } from "caketype";
+import { Infer, array, bake, string, union } from "caketype";
+
+import { pipelineIdentifiers } from "./config";
 
 const LogInRequest = bake({
   email: string,
@@ -26,8 +28,10 @@ const RequestPasswordResetRequest = bake({
   email: string,
 });
 
+const PipelineIdentifier = union(...pipelineIdentifiers);
+
 const BulkAdvanceOrRejectRequest = bake({
-  pipelineIdentifier: string,
+  pipelineIdentifier: PipelineIdentifier,
   applicationIds: array(string),
 });
 

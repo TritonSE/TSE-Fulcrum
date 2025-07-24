@@ -1,17 +1,20 @@
-import { Stage, stages } from "../config";
+import { PipelineIdentifier, Stage, stages } from "../config";
 
 class StageService {
   getById(id: number): Stage | null {
     return stages.find((stage) => stage.id === id) ?? null;
   }
 
-  getByPipeline(pipelineIdentifier: string): Stage[] {
+  getByPipeline(pipelineIdentifier: PipelineIdentifier): Stage[] {
     return stages
       .filter((stage) => stage.pipelineIdentifier === pipelineIdentifier)
       .sort((a, b) => a.pipelineIndex - b.pipelineIndex);
   }
 
-  getByPipelineAndIndex(pipelineIdentifier: string, pipelineIndex: number): Stage | null {
+  getByPipelineAndIndex(
+    pipelineIdentifier: PipelineIdentifier,
+    pipelineIndex: number,
+  ): Stage | null {
     return (
       stages.find(
         (stage) =>

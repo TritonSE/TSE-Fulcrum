@@ -1,4 +1,6 @@
-type PipelineIdentifier = "designer" | "test_designer" | "developer" | "test_developer";
+const pipelineIdentifiers = ["designer", "test_designer", "developer", "test_developer"] as const;
+
+type PipelineIdentifier = (typeof pipelineIdentifiers)[number];
 
 type Pipeline = {
   // Each submitted application uses pipeline identifiers to indicate
@@ -26,4 +28,4 @@ const pipelines: Pipeline[] = [
   },
 ];
 
-export { Pipeline, PipelineIdentifier, pipelines };
+export { pipelineIdentifiers, Pipeline, PipelineIdentifier, pipelines };

@@ -4,6 +4,7 @@ import { Alert, Button, Form, Table } from "react-bootstrap";
 import api, {
   Application,
   BulkAdvanceOrRejectResponse,
+  PipelineIdentifier,
   PopulatedReview,
   Progress,
   Stage,
@@ -20,7 +21,7 @@ function AdvanceButton({
   addAlert,
   onAdvanced,
 }: {
-  pipelineIdentifier: string;
+  pipelineIdentifier: PipelineIdentifier;
   applicationIds: string[];
   addAlert: (message: unknown) => void;
   onAdvanced: (response: BulkAdvanceOrRejectResponse) => void;
@@ -44,7 +45,7 @@ function RejectButton({
   addAlert,
   onRejected,
 }: {
-  pipelineIdentifier: string;
+  pipelineIdentifier: PipelineIdentifier;
   applicationIds: string[];
   addAlert: (message: unknown) => void;
   onRejected: (response: BulkAdvanceOrRejectResponse) => void;

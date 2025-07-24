@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 
+import { PipelineIdentifier } from "../config";
 import { ApplicationModel, ProgressDocument, ProgressModel } from "../models";
 
 import EmailService from "./EmailService";
@@ -8,7 +9,10 @@ import ReviewService from "./ReviewService";
 import StageService from "./StageService";
 
 class ProgressService {
-  async create(pipelineIdentifier: string, application: Types.ObjectId): Promise<ProgressDocument> {
+  async create(
+    pipelineIdentifier: PipelineIdentifier,
+    application: Types.ObjectId,
+  ): Promise<ProgressDocument> {
     const progress = await new ProgressModel({
       pipelineIdentifier,
       application,
@@ -22,7 +26,7 @@ class ProgressService {
   }
 
   async getByPipelineAndApplication(
-    pipelineIdentifier: string,
+    pipelineIdentifier: PipelineIdentifier,
     application: Types.ObjectId,
   ): Promise<ProgressDocument | null> {
     return ProgressModel.findOne({ pipelineIdentifier, application });
@@ -30,7 +34,7 @@ class ProgressService {
 
   async advanceApplication(
     application: Types.ObjectId,
-    pipelineIdentifier: string,
+    pipelineIdentifier: PipelineIdentifier,
   ): Promise<ProgressDocument | string> {
     const progress = await this.getByPipelineAndApplication(pipelineIdentifier, application);
     if (progress === null) {
@@ -92,7 +96,7 @@ class ProgressService {
 
   async rejectApplication(
     application: Types.ObjectId,
-    pipelineIdentifier: string,
+    pipelineIdentifier: PipelineIdentifier,
   ): Promise<ProgressDocument | string> {
     const progress = await this.getByPipelineAndApplication(pipelineIdentifier, application);
     if (progress === null) {

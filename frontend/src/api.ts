@@ -21,8 +21,10 @@ interface CreateUserRequest {
   name: string;
 }
 
+export type PipelineIdentifier = "designer" | "test_designer" | "developer" | "test_developer";
+
 export interface Pipeline {
-  identifier: string;
+  identifier: PipelineIdentifier;
   name: string;
 }
 
@@ -56,7 +58,7 @@ export type PopulatedReview = Omit<Review, "stage" | "application"> & {
 
 export interface Progress {
   _id: string;
-  pipelineIdentifier: string;
+  pipelineIdentifier: PipelineIdentifier;
   application: string;
   stageIndex: number;
   state: "pending" | "rejected" | "accepted";
@@ -64,7 +66,7 @@ export interface Progress {
 
 export interface Stage {
   id: number;
-  pipelineIdentifier: string;
+  pipelineIdentifier: PipelineIdentifier;
   pipelineIndex: number;
   numReviews: number;
   name: string;
@@ -181,7 +183,7 @@ class Api {
     return (await this.get(`/api/stage/${stageId}`)).json();
   }
 
-  async getStagesByPipeline(pipelineIdentifier: string): Promise<Stage[]> {
+  async getStagesByPipeline(pipelineIdentifier: PipelineIdentifier): Promise<Stage[]> {
     return (await this.get(`/api/stage?pipeline=${pipelineIdentifier}`)).json();
   }
 
@@ -190,7 +192,7 @@ class Api {
   }
 
   async bulkAdvanceApplications(
-    pipelineIdentifier: string,
+    pipelineIdentifier: PipelineIdentifier,
     applicationIds: string[]
   ): Promise<BulkAdvanceOrRejectResponse> {
     return (
@@ -199,7 +201,7 @@ class Api {
   }
 
   async bulkRejectApplications(
-    pipelineIdentifier: string,
+    pipelineIdentifier: PipelineIdentifier,
     applicationIds: string[]
   ): Promise<BulkAdvanceOrRejectResponse> {
     return (

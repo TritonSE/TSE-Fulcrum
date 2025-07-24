@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { PipelineIdentifier } from "../config";
 import { StageService } from "../services";
 
 import { authWrapper } from "./wrappers";
@@ -12,7 +13,7 @@ router.get(
     const pipeline = req.query.pipeline;
 
     if (typeof pipeline === "string") {
-      const result = StageService.getByPipeline(pipeline);
+      const result = StageService.getByPipeline(pipeline as PipelineIdentifier);
       return {
         status: 200,
         json: result,
