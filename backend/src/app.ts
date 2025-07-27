@@ -14,7 +14,15 @@ import { InterviewService, UserService } from "./services";
 
 async function onStartup() {
   // Create the admin account if necessary.
-  const admin = await UserService.create({ email: env.ADMIN_EMAIL, name: "Admin" });
+  const admin = await UserService.create({
+    email: env.ADMIN_EMAIL,
+    name: "Admin",
+    // dummy values
+    onlyFirstYearPhoneScreen: false,
+    onlyFirstYearTechnical: false,
+    isDoingInterviewAlone: false,
+    assignedStageIds: [],
+  });
   if (admin !== null) {
     console.log("Created admin user");
   }

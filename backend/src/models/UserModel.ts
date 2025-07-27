@@ -1,4 +1,4 @@
-import { HydratedDocument, Schema, Types, model } from "mongoose";
+import { HydratedDocument, Schema, model } from "mongoose";
 
 type User = {
   email: string;
@@ -18,7 +18,7 @@ type User = {
   onlyFirstYearTechnical: boolean;
   isDoingInterviewAlone: boolean;
 
-  assignedStageIds: Types.ObjectId[];
+  assignedStageIds: number[];
 
   // TODO: add boolean for whether a user is active, and ensure that admin account is always active
 };
@@ -74,7 +74,7 @@ const UserSchema = new Schema<User>({
     required: true,
   },
   assignedStageIds: {
-    type: [Types.ObjectId],
+    type: [Number],
     required: true,
     default: [],
   },

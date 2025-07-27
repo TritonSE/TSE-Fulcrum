@@ -18,7 +18,14 @@ type LogInResponse = {
 };
 
 class UserService {
-  async create({ email, name }: CreateUserRequest): Promise<UserDocument | null> {
+  async create({
+    email,
+    name,
+    onlyFirstYearPhoneScreen,
+    onlyFirstYearTechnical,
+    isDoingInterviewAlone,
+    assignedStageIds,
+  }: CreateUserRequest): Promise<UserDocument | null> {
     // TODO: To avoid race conditions, we should try to save, and catch the
     // exception if the user already exists (E11000).
     if ((await this.getByEmail(email)) !== null) {
@@ -42,6 +49,10 @@ class UserService {
     const user = new UserModel({
       email,
       name,
+      onlyFirstYearPhoneScreen,
+      onlyFirstYearTechnical,
+      isDoingInterviewAlone,
+      assignedStageIds,
       passwordHash,
       passwordResetTokenHash,
       passwordResetExpiration,
