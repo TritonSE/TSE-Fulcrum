@@ -1,4 +1,4 @@
-import { HydratedDocument, Schema, model } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
 type User = {
   email: string;
@@ -12,6 +12,13 @@ type User = {
   // TODO: move these to a separate model so a user can have multiple sessions
   sessionTokenHash: string;
   sessionExpiration: Date;
+
+  // Used for automatic review assignment
+  onlyFirstYearPhoneScreen: boolean;
+  onlyFirstYearTechnical: boolean;
+  isDoingInterviewAlone: boolean;
+
+  assignedStageIds: Types.ObjectId[];
 
   // TODO: add boolean for whether a user is active, and ensure that admin account is always active
 };
@@ -53,6 +60,23 @@ const UserSchema = new Schema<User>({
   sessionExpiration: {
     type: Date,
     required: true,
+  },
+  onlyFirstYearPhoneScreen: {
+    type: Boolean,
+    required: true,
+  },
+  onlyFirstYearTechnical: {
+    type: Boolean,
+    required: true,
+  },
+  isDoingInterviewAlone: {
+    type: Boolean,
+    required: true,
+  },
+  assignedStageIds: {
+    type: [Types.ObjectId],
+    required: true,
+    default: [],
   },
 });
 

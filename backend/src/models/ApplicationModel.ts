@@ -1,4 +1,4 @@
-import { HydratedDocument, Schema, model } from "mongoose";
+import { HydratedDocument, Schema, Types, model } from "mongoose";
 
 type Application = {
   name: string;
@@ -29,6 +29,8 @@ type Application = {
 
   // Map role identifiers to the corresponding prompts.
   rolePrompts: Record<string, string>;
+
+  blockListedReviewers: Types.ObjectId[];
 };
 
 const ApplicationSchema = new Schema<Application>({
@@ -96,6 +98,12 @@ const ApplicationSchema = new Schema<Application>({
     type: Map,
     of: String,
     required: true,
+  },
+  blockListedReviewers: {
+    type: [Types.ObjectId],
+    ref: "User",
+    required: true,
+    default: [],
   },
 });
 
