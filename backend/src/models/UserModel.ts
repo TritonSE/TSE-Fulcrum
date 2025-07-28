@@ -64,14 +64,17 @@ const UserSchema = new Schema<User>({
   onlyFirstYearPhoneScreen: {
     type: Boolean,
     required: true,
+    default: false,
   },
   onlyFirstYearTechnical: {
     type: Boolean,
     required: true,
+    default: false,
   },
   isDoingInterviewAlone: {
     type: Boolean,
     required: true,
+    default: false,
   },
   assignedStageIds: {
     type: [Number],

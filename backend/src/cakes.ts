@@ -1,4 +1,4 @@
-import { Infer, array, bake, boolean, number, string, union } from "caketype";
+import { Infer, array, bake, boolean, number, optional, string, union } from "caketype";
 
 import { pipelineIdentifiers } from "./config";
 
@@ -12,10 +12,10 @@ type LogInRequest = Infer<typeof LogInRequest>;
 const CreateUserRequest = bake({
   email: string,
   name: string,
-  onlyFirstYearPhoneScreen: boolean,
-  onlyFirstYearTechnical: boolean,
-  isDoingInterviewAlone: boolean,
-  assignedStageIds: array(number),
+  onlyFirstYearPhoneScreen: optional(boolean),
+  onlyFirstYearTechnical: optional(boolean),
+  isDoingInterviewAlone: optional(boolean),
+  assignedStageIds: optional(array(number)),
 });
 
 type CreateUserRequest = Infer<typeof CreateUserRequest>;

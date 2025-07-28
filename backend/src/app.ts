@@ -17,11 +17,6 @@ async function onStartup() {
   const admin = await UserService.create({
     email: env.ADMIN_EMAIL,
     name: "Admin",
-    // dummy values
-    onlyFirstYearPhoneScreen: false,
-    onlyFirstYearTechnical: false,
-    isDoingInterviewAlone: false,
-    assignedStageIds: [],
   });
   if (admin !== null) {
     console.log("Created admin user");

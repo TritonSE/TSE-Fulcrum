@@ -1,22 +1,16 @@
 import fs from "fs";
 import path from "path";
 
-import { Infer, array, bake, boolean, number, string } from "caketype";
+import { Infer, array } from "caketype";
 import mongoose from "mongoose";
 
+import { CreateUserRequest } from "../cakes";
 import env from "../env";
 import { UserModel } from "../models";
-import { UserService } from "../services";
 
-const ConfigUser = bake({
-  email: string,
-  name: string,
-  onlyFirstYearPhoneScreen: boolean,
-  onlyFirstYearTechnical: boolean,
-  isDoingInterviewAlone: boolean,
-  assignedStageIds: array(number),
-});
-
+// ConfigUser has the exact same shape as CreateUserRequest for now
+// But keeping this alias in case they need to be decoupled in the future.
+const ConfigUser = CreateUserRequest;
 type ConfigUser = Infer<typeof ConfigUser>;
 
 const loadConfig = (filePath: string): ConfigUser[] => {
@@ -36,35 +30,30 @@ const loadConfig = (filePath: string): ConfigUser[] => {
 };
 
 const upsertUser = async (user: ConfigUser) => {
+  // First, try to find the existing user to compare changes
   const existingUser = await UserModel.findOne({ email: user.email });
 
   if (existingUser) {
     // Check if any fields have actually changed
     const hasChanges = Object.entries(user).some(([key, value]) => {
       return (
-        // hacky way to check if the value has changed since === can't compare arrays
         JSON.stringify(existingUser[key as keyof typeof existingUser]) !== JSON.stringify(value)
       );
     });
 
     if (!hasChanges) return;
+  }
 
-    // Update existing user
-    Object.assign(existingUser, user);
-    await existingUser.save();
+  const updatedUser = await UserModel.findOneAndUpdate({ email: user.email }, user, {
+    upsert: true,
+    runValidators: true,
+  });
 
-    console.log(`Updated user: ${user.email}`);
-  } else {
-    // Create new user
-    const newUser = await UserService.create(user);
-
-    // Shouldn't happen since already checked above
-    if (!newUser) {
-      console.error(`Failed to create user: ${user.email}. Email may already exist.`);
-      return;
-    }
-
+  // updatedUser should never be null
+  if (updatedUser?.isNew) {
     console.log(`Created new user: ${user.email}`);
+  } else {
+    console.log(`Updated user: ${user.email}`);
   }
 };
 
@@ -86,6 +75,7 @@ const main = async () => {
   await Promise.all(users.map(upsertUser))
     .then(() => {
       console.log("All users upserted successfully.");
+      process.exit(0);
     })
     .catch((error) => {
       console.error("Error upserting users:", error);
