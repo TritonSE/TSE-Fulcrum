@@ -33,9 +33,6 @@ class UserService {
       return null;
     }
 
-    const passwordResetExpiration = this.expiredDate();
-    const sessionExpiration = this.expiredDate();
-
     const user = new UserModel({
       email,
       name,
@@ -43,8 +40,6 @@ class UserService {
       onlyFirstYearTechnical,
       isDoingInterviewAlone,
       assignedStageIds,
-      passwordResetExpiration,
-      sessionExpiration,
     });
     return user.save();
   }
