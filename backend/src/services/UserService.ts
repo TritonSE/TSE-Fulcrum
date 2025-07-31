@@ -33,16 +33,6 @@ class UserService {
       return null;
     }
 
-    // Generate random passwords and tokens, hash them, and throw away the
-    // original values. This prevents anyone from logging into this account
-    // until the user resets their password, which also serves as email
-    // verification.
-    // Alternatively, we could make the hash fields optional, but that would
-    // require extra checks everywhere else.
-    const passwordHash = CryptoService.hashPassword(CryptoService.generatePassword());
-    const passwordResetTokenHash = CryptoService.hashToken(CryptoService.generateToken());
-    const sessionTokenHash = CryptoService.hashToken(CryptoService.generateToken());
-
     const passwordResetExpiration = this.expiredDate();
     const sessionExpiration = this.expiredDate();
 
@@ -53,10 +43,10 @@ class UserService {
       onlyFirstYearTechnical,
       isDoingInterviewAlone,
       assignedStageIds,
-      passwordHash,
-      passwordResetTokenHash,
+      // passwordHash,
+      // passwordResetTokenHash,
       passwordResetExpiration,
-      sessionTokenHash,
+      // sessionTokenHash,
       sessionExpiration,
     });
     return user.save();

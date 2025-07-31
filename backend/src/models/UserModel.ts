@@ -1,5 +1,7 @@
 import { HydratedDocument, Schema, model } from "mongoose";
 
+import CryptoService from "../services/CryptoService";
+
 type User = {
   email: string;
   name: string;
@@ -36,18 +38,34 @@ const UserSchema = new Schema<User>({
     required: true,
   },
 
+  // Generate random passwords and tokens, hash them, and throw away the
+  // original values. This prevents anyone from logging into this account
+  // until the user resets their password, which also serves as email
+  // verification.
+  // Alternatively, we could make the hash fields optional, but that would
+  // require extra checks everywhere else.
+
   passwordHash: {
     type: String,
     required: true,
+    default: function () {
+      return CryptoService.hashPassword(CryptoService.generatePassword());
+    },
   },
 
   passwordResetTokenHash: {
     type: String,
     required: true,
+    default: function () {
+      return CryptoService.hashToken(CryptoService.generateToken());
+    },
   },
   passwordResetExpiration: {
     type: Date,
     required: true,
+    default: function () {
+      return new Date(0);
+    },
   },
 
   sessionTokenHash: {
@@ -56,10 +74,16 @@ const UserSchema = new Schema<User>({
     // Session tokens are randomly generated, and their hashes are very unlikely to collide.
     unique: true,
     required: true,
+    default: function () {
+      return CryptoService.hashToken(CryptoService.generateToken());
+    },
   },
   sessionExpiration: {
     type: Date,
     required: true,
+    default: function () {
+      return new Date(0);
+    },
   },
   onlyFirstYearPhoneScreen: {
     type: Boolean,
