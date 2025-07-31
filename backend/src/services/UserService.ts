@@ -43,10 +43,7 @@ class UserService {
       onlyFirstYearTechnical,
       isDoingInterviewAlone,
       assignedStageIds,
-      // passwordHash,
-      // passwordResetTokenHash,
       passwordResetExpiration,
-      // sessionTokenHash,
       sessionExpiration,
     });
     return user.save();
