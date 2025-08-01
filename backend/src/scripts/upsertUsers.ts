@@ -47,10 +47,12 @@ const upsertUser = async (user: ConfigUser) => {
   const updatedUser = await UserModel.findOneAndUpdate({ email: user.email }, user, {
     upsert: true,
     runValidators: true,
+    rawResult: true,
+    new: true,
   });
 
   // updatedUser should never be null
-  if (updatedUser?.isNew) {
+  if (updatedUser?.lastErrorObject?.upserted) {
     console.log(`Created new user: ${user.email}`);
   } else {
     console.log(`Updated user: ${user.email}`);
