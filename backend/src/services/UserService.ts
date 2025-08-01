@@ -18,7 +18,14 @@ type LogInResponse = {
 };
 
 class UserService {
-  async create({ email, name }: CreateUserRequest): Promise<UserDocument | null> {
+  async create({
+    email,
+    name,
+    onlyFirstYearPhoneScreen,
+    onlyFirstYearTechnical,
+    isDoingInterviewAlone,
+    assignedStageIds,
+  }: CreateUserRequest): Promise<UserDocument | null> {
     // TODO: To avoid race conditions, we should try to save, and catch the
     // exception if the user already exists (E11000).
     if ((await this.getByEmail(email)) !== null) {
@@ -26,27 +33,13 @@ class UserService {
       return null;
     }
 
-    // Generate random passwords and tokens, hash them, and throw away the
-    // original values. This prevents anyone from logging into this account
-    // until the user resets their password, which also serves as email
-    // verification.
-    // Alternatively, we could make the hash fields optional, but that would
-    // require extra checks everywhere else.
-    const passwordHash = CryptoService.hashPassword(CryptoService.generatePassword());
-    const passwordResetTokenHash = CryptoService.hashToken(CryptoService.generateToken());
-    const sessionTokenHash = CryptoService.hashToken(CryptoService.generateToken());
-
-    const passwordResetExpiration = this.expiredDate();
-    const sessionExpiration = this.expiredDate();
-
     const user = new UserModel({
       email,
       name,
-      passwordHash,
-      passwordResetTokenHash,
-      passwordResetExpiration,
-      sessionTokenHash,
-      sessionExpiration,
+      onlyFirstYearPhoneScreen,
+      onlyFirstYearTechnical,
+      isDoingInterviewAlone,
+      assignedStageIds,
     });
     return user.save();
   }

@@ -29,6 +29,8 @@ type Application = {
 
   // Map role identifiers to the corresponding prompts.
   rolePrompts: Record<string, string>;
+
+  blockListedReviewerEmails: string[];
 };
 
 const ApplicationSchema = new Schema<Application>({
@@ -96,6 +98,11 @@ const ApplicationSchema = new Schema<Application>({
     type: Map,
     of: String,
     required: true,
+  },
+  blockListedReviewerEmails: {
+    type: [String],
+    required: true,
+    default: [],
   },
 });
 
