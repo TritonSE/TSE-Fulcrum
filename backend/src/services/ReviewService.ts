@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { Stage } from "../config";
+import { Stage, StageIdentifier } from "../config";
 import env from "../env";
 import {
   ApplicationDocument,
@@ -152,18 +152,18 @@ class ReviewService {
 
     const gradeLevel = this.determineApplicantGradeLevel(applicationDoc);
 
-    // Filters for each stage
-    const stageFilters: Record<number, (reviewer: UserDocument) => boolean> = {
-      // Dev Phone Screen
-      10: (reviewer) =>
+    // Define filters for each stage
+    const stageFilters: Partial<Record<StageIdentifier, (reviewer: UserDocument) => boolean>> = {
+      developer_phone_screen: (reviewer) =>
         gradeLevel === 1 ? reviewer.onlyFirstYearPhoneScreen : !reviewer.onlyFirstYearPhoneScreen,
       // Dev Technical
-      8: (reviewer) =>
+      developer_technical: (reviewer) =>
         gradeLevel === 1 ? reviewer.onlyFirstYearTechnical : !reviewer.onlyFirstYearTechnical,
     };
 
-    if (stageFilters[stage.id]) {
-      const filteredReviewers = reviewers.filter(stageFilters[stage.id]);
+    const stageFilter = stageFilters[stage.identifier];
+    if (stageFilter) {
+      const filteredReviewers = reviewers.filter(stageFilter);
 
       // Shouldn't happen if we manually balance reviewer year levels, but in case the filter removes all reviewers, undo the filter
       reviewers = filteredReviewers.length > 0 ? filteredReviewers : reviewers;
@@ -172,12 +172,8 @@ class ReviewService {
     const countsAndEmails = await Promise.all(
       reviewers.map((reviewer) =>
         ReviewModel.count({ reviewerEmail: reviewer.email, stageId: stage.id }).then(
-          // Double count for interview buddies because they go to both people's interviews
-          (count) =>
-            [
-              stage.id === 8 && reviewer.isDoingInterviewAlone ? count : count * 2,
-              reviewer.email,
-            ] as const,
+          // Double count for solo interviewers because interview buddies go to both people's interviews
+          (count) => [reviewer.isDoingInterviewAlone ? count * 2 : count, reviewer.email] as const,
         ),
       ),
     );

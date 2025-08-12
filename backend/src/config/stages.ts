@@ -1,5 +1,22 @@
 import { PipelineIdentifier } from "./pipelines";
 
+const stageIdentifiers = [
+  "designer_resume_review",
+  "designer_phone_screen",
+  "designer_technical",
+  "developer_resume_review",
+  "developer_phone_screen",
+  "developer_technical",
+  "test_designer_resume_review",
+  "test_designer_phone_screen",
+  "test_designer_technical",
+  "test_developer_resume_review",
+  "test_developer_phone_screen",
+  "test_developer_technical",
+] as const;
+
+type StageIdentifier = (typeof stageIdentifiers)[number];
+
 type FormField = {
   type: "string" | "number" | "boolean";
   choices: unknown[];
@@ -12,6 +29,7 @@ type FormField = {
 
 type Stage = {
   id: number;
+  identifier: StageIdentifier;
   pipelineIdentifier: PipelineIdentifier;
   pipelineIndex: number;
   numReviews: number;
@@ -26,6 +44,7 @@ type Stage = {
 const stages: Stage[] = [
   {
     id: 1,
+    identifier: "test_designer_technical",
     pipelineIdentifier: "test_designer",
     pipelineIndex: 1,
     numReviews: 2,
@@ -46,6 +65,7 @@ const stages: Stage[] = [
   },
   {
     id: 2,
+    identifier: "test_developer_technical",
     pipelineIdentifier: "test_developer",
     pipelineIndex: 1,
     numReviews: 1,
@@ -73,6 +93,7 @@ const stages: Stage[] = [
   },
   {
     id: 3,
+    identifier: "test_developer_resume_review",
     pipelineIdentifier: "test_developer",
     pipelineIndex: 0,
     numReviews: 2,
@@ -93,6 +114,7 @@ const stages: Stage[] = [
   },
   {
     id: 4,
+    identifier: "test_designer_phone_screen",
     pipelineIdentifier: "designer",
     pipelineIndex: 1,
     numReviews: 1,
@@ -129,6 +151,7 @@ const stages: Stage[] = [
   },
   {
     id: 5,
+    identifier: "developer_resume_review",
     pipelineIdentifier: "developer",
     pipelineIndex: 0,
     numReviews: 2,
@@ -158,6 +181,7 @@ const stages: Stage[] = [
   },
   {
     id: 6,
+    identifier: "designer_technical",
     pipelineIdentifier: "designer",
     pipelineIndex: 2,
     numReviews: 1,
@@ -170,6 +194,7 @@ const stages: Stage[] = [
   },
   {
     id: 7,
+    identifier: "designer_resume_review",
     pipelineIdentifier: "designer",
     pipelineIndex: 0,
     numReviews: 2,
@@ -201,6 +226,7 @@ const stages: Stage[] = [
   },
   {
     id: 8,
+    identifier: "developer_technical",
     pipelineIdentifier: "developer",
     pipelineIndex: 2,
     numReviews: 1,
@@ -298,6 +324,7 @@ const stages: Stage[] = [
   },
   {
     id: 9,
+    identifier: "test_designer_resume_review",
     pipelineIdentifier: "test_designer",
     pipelineIndex: 0,
     numReviews: 2,
@@ -318,6 +345,7 @@ const stages: Stage[] = [
   },
   {
     id: 10,
+    identifier: "developer_phone_screen",
     pipelineIdentifier: "developer",
     pipelineIndex: 1,
     numReviews: 1,
@@ -407,4 +435,4 @@ const stages: Stage[] = [
   },
 ];
 
-export { FormField, Stage, stages };
+export { stageIdentifiers, StageIdentifier, FormField, Stage, stages };
