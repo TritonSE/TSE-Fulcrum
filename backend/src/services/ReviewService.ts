@@ -2,8 +2,16 @@ import { Types } from "mongoose";
 
 import { Stage } from "../config";
 import env from "../env";
-import { ApplicationModel, RawReview, ReviewDocument, ReviewModel } from "../models";
+import {
+  ApplicationDocument,
+  ApplicationModel,
+  RawReview,
+  ReviewDocument,
+  ReviewModel,
+  UserDocument,
+} from "../models";
 
+import ApplicationService from "./ApplicationService";
 import EmailService from "./EmailService";
 import StageService from "./StageService";
 import UserService from "./UserService";
@@ -108,30 +116,68 @@ class ReviewService {
     stage: Stage,
     application: Types.ObjectId,
   ): Promise<string | null> {
-    // TODO: find all users assigned to review this stage
-    let reviewerEmails: string[] = [];
-    if (reviewerEmails.length === 0) {
+    const applicationDoc = await ApplicationService.getById(application);
+
+    if (!applicationDoc) {
+      return null;
+    }
+
+    let reviewers = (await UserService.getByStage(stage.id)).map((user) => user);
+
+    if (reviewers.length === 0) {
       console.error(`Cannot auto-assign reviewer because stage has no reviewers: ${stage.id}`);
       return null;
     }
 
-    const excludingPreviousReviewers = [];
-    for (const reviewerEmail of reviewerEmails) {
-      // eslint-disable-next-line no-await-in-loop
-      if ((await ReviewModel.findOne({ reviewerEmail, application })) === null) {
-        excludingPreviousReviewers.push(reviewerEmail);
-      }
-    }
+    // Filter out block-listed reviewers
+    reviewers = reviewers.filter((reviewer) => {
+      const blockListedEmails = applicationDoc?.blockListedReviewerEmails ?? [];
+      return !blockListedEmails.includes(reviewer.email);
+    });
+
+    // Filter out reviewers who have already reviewed this application
+    const excludingPreviousReviewers = await Promise.all(
+      reviewers.map(async (reviewer) => ({
+        reviewer,
+        hasReviewed:
+          (await ReviewModel.findOne({ reviewerEmail: reviewer.email, application })) !== null,
+      })),
+    ).then((results) =>
+      results.filter((result) => !result.hasReviewed).map((result) => result.reviewer),
+    );
 
     if (excludingPreviousReviewers.length > 0) {
-      reviewerEmails = excludingPreviousReviewers;
+      reviewers = excludingPreviousReviewers;
     }
 
-    // TODO: don't count applications in preceding years
+    const gradeLevel = this.determineApplicantGradeLevel(applicationDoc);
+
+    // Filters for each stage
+    const stageFilters: Record<number, (reviewer: UserDocument) => boolean> = {
+      // Dev Phone Screen
+      10: (reviewer) =>
+        gradeLevel === 1 ? reviewer.onlyFirstYearPhoneScreen : !reviewer.onlyFirstYearPhoneScreen,
+      // Dev Technical
+      8: (reviewer) =>
+        gradeLevel === 1 ? reviewer.onlyFirstYearTechnical : !reviewer.onlyFirstYearTechnical,
+    };
+
+    if (stageFilters[stage.id]) {
+      const filteredReviewers = reviewers.filter(stageFilters[stage.id]);
+
+      // Shouldn't happen if we manually balance reviewer year levels, but in case the filter removes all reviewers, undo the filter
+      reviewers = filteredReviewers.length > 0 ? filteredReviewers : reviewers;
+    }
+
     const countsAndEmails = await Promise.all(
-      reviewerEmails.map((reviewerEmail) =>
-        ReviewModel.count({ reviewerEmail, stageId: stage.id }).then(
-          (count) => [count, reviewerEmail] as const,
+      reviewers.map((reviewer) =>
+        ReviewModel.count({ reviewerEmail: reviewer.email, stageId: stage.id }).then(
+          // Double count for interview buddies because they go to both people's interviews
+          (count) =>
+            [
+              stage.id === 8 && reviewer.isDoingInterviewAlone ? count : count * 2,
+              reviewer.email,
+            ] as const,
         ),
       ),
     );
@@ -140,7 +186,7 @@ class ReviewService {
     countsAndEmails.sort((a, b) => a[0] - b[0]);
 
     // Get all reviewers who are tied for the minimum count.
-    reviewerEmails = countsAndEmails
+    const reviewerEmails = countsAndEmails
       .filter((pair) => pair[0] === countsAndEmails[0][0])
       .map((pair) => pair[1]);
 
@@ -162,6 +208,34 @@ class ReviewService {
   async getFiltered(filter: Record<string, string>): Promise<ReviewDocument[]> {
     const results = await ReviewModel.find(filter).populate("application");
     return results;
+  }
+
+  /* 1 - First year, 2 - Second year... */
+  private determineApplicantGradeLevel(application: ApplicationDocument): number {
+    const totalQuartersAtUCSD = this.calculateQuarterDiff(
+      application.startQuarter,
+      application.gradQuarter,
+    );
+
+    const now = new Date();
+
+    // If it's currently summer, year level is rounded up to next fall
+    // Shouldn't be relevant since we only receive applications in the fall
+    const yearsSinceStart = Math.ceil(
+      this.calculateQuarterDiff(
+        application.startQuarter,
+        now.getFullYear() * 4 + Math.floor(now.getMonth() / 3),
+      ) / 3,
+    );
+
+    return totalQuartersAtUCSD < 9 ? yearsSinceStart + 2 : yearsSinceStart;
+  }
+
+  /* Helper function to calculate academic quarters between two encoded quarter values */
+  private calculateQuarterDiff(startQuarter: number, endQuarter: number): number {
+    if (endQuarter < startQuarter) return 0;
+    const yearsBetween = Math.floor(endQuarter / 4) - Math.floor(startQuarter / 4);
+    return endQuarter - startQuarter - yearsBetween + 1;
   }
 
   serialize(review: ReviewDocument) {

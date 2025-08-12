@@ -292,7 +292,7 @@ const stages: Stage[] = [
       "programming_score",
       "doc_link",
     ],
-    autoAssignReviewers: false,
+    autoAssignReviewers: true,
     notifyReviewersWhenAssigned: false,
     hasTechnicalInterview: true,
   },
