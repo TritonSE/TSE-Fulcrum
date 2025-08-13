@@ -164,6 +164,17 @@ class ReviewService {
     return results;
   }
 
+  async getNextReviewForUser(userEmail: string): Promise<ReviewDocument | null> {
+    const result = await ReviewModel.findOne({
+      // Find a review with no fields filled in
+      $expr: {
+        $eq: [{ $size: { $objectToArray: "$fields" } }, 0],
+      },
+      reviewerEmail: userEmail,
+    });
+    return result;
+  }
+
   serialize(review: ReviewDocument) {
     return {
       _id: review._id.toHexString(),

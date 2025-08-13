@@ -21,6 +21,18 @@ router.get(
 );
 
 router.get(
+  "/next",
+  authWrapper(async (user) => {
+    const result = await ReviewService.getNextReviewForUser(user.email);
+
+    return {
+      status: 200,
+      json: result ? ReviewService.serialize(result) : null,
+    };
+  }),
+);
+
+router.get(
   "/:reviewId",
   authWrapper(async (_user, req) => {
     const result = await ReviewService.getById(req.params.reviewId);
