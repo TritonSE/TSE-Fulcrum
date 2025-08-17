@@ -122,7 +122,7 @@ class ReviewService {
       return null;
     }
 
-    let reviewers = (await UserService.getByStage(stage.id)).map((user) => user);
+    let reviewers = await UserService.getByStage(stage.id);
 
     if (reviewers.length === 0) {
       console.error(`Cannot auto-assign reviewer because stage has no reviewers: ${stage.id}`);
