@@ -156,7 +156,6 @@ class ReviewService {
     const stageFilters: Partial<Record<StageIdentifier, (reviewer: UserDocument) => boolean>> = {
       developer_phone_screen: (reviewer) =>
         gradeLevel === 1 ? reviewer.onlyFirstYearPhoneScreen : !reviewer.onlyFirstYearPhoneScreen,
-      // Dev Technical
       developer_technical: (reviewer) =>
         gradeLevel === 1 ? reviewer.onlyFirstYearTechnical : !reviewer.onlyFirstYearTechnical,
     };
@@ -216,7 +215,7 @@ class ReviewService {
     });
     return result;
   }
-  
+
   /* 1 - First year, 2 - Second year... */
   private determineApplicantGradeLevel(application: ApplicationDocument): number {
     const totalQuartersAtUCSD = this.calculateQuarterDiff(
