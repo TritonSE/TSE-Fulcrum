@@ -52,6 +52,10 @@ class UserService {
     return UserModel.findOne({ email });
   }
 
+  async getByStage(stageId: number): Promise<UserDocument[]> {
+    return UserModel.find({ assignedStageIds: stageId });
+  }
+
   async getBySessionToken(sessionToken: string): Promise<UserDocument | null> {
     const sessionTokenHash = CryptoService.hashToken(sessionToken);
     const user = await UserModel.findOne({ sessionTokenHash });
