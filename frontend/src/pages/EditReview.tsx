@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useMemo } from "react";
-import { Button, Form } from "react-bootstrap";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Button, Form, Modal } from "react-bootstrap";
 import { useParams, useLocation } from "react-router-dom";
 
 import api, { Review, Stage } from "../api";
@@ -13,6 +13,8 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   const { alerts, addAlert } = useAlerts();
   const location = useLocation();
   const { user } = useContext(GlobalContext);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [nextReviewId, setNextReviewId] = useState<string | null>(null);
 
   const editable = useMemo(
     () => !!(user && review && user.email === review.reviewerEmail),
@@ -47,7 +49,12 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
     api
       .updateReview(review)
       .then(setReview)
-      .then(() => addAlert("Review saved.", "success"))
+      .then(() =>
+        api.getNextReview().then((nextReview) => {
+          setNextReviewId(nextReview?._id ?? null);
+          setShowSuccessModal(true);
+        })
+      )
       .catch(addAlert);
   };
 
@@ -154,6 +161,25 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
         )}
         {alerts}
       </Form>
+
+      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Review saved!</Modal.Title>
+        </Modal.Header>
+        {nextReviewId === null ? (
+          <Modal.Body>You&apos;ve finished all your assigned reviews!</Modal.Body>
+        ) : null}
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowSuccessModal(false)}>
+            Close
+          </Button>
+          <a href={nextReviewId === null ? "/" : `/review/${nextReviewId}/edit`}>
+            <Button variant="primary">
+              {nextReviewId === null ? "Back to Homepage" : "Next Review"}
+            </Button>
+          </a>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

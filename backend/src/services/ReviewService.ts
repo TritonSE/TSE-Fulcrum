@@ -156,7 +156,6 @@ class ReviewService {
     const stageFilters: Partial<Record<StageIdentifier, (reviewer: UserDocument) => boolean>> = {
       developer_phone_screen: (reviewer) =>
         gradeLevel === 1 ? reviewer.onlyFirstYearPhoneScreen : !reviewer.onlyFirstYearPhoneScreen,
-      // Dev Technical
       developer_technical: (reviewer) =>
         gradeLevel === 1 ? reviewer.onlyFirstYearTechnical : !reviewer.onlyFirstYearTechnical,
     };
@@ -204,6 +203,17 @@ class ReviewService {
   async getFiltered(filter: Record<string, string>): Promise<ReviewDocument[]> {
     const results = await ReviewModel.find(filter).populate("application");
     return results;
+  }
+
+  async getNextReviewForUser(userEmail: string): Promise<ReviewDocument | null> {
+    const result = await ReviewModel.findOne({
+      // Find a review with no fields filled in
+      $expr: {
+        $eq: [{ $size: { $objectToArray: "$fields" } }, 0],
+      },
+      reviewerEmail: userEmail,
+    });
+    return result;
   }
 
   /* 1 - First year, 2 - Second year... */
