@@ -81,4 +81,15 @@ router.post(
   }),
 );
 
+router.post(
+  "/:reviewId/reassign",
+  authWrapper(async (user, req) => {
+    const result = await ReviewService.reassign(req.params.reviewId, user.email);
+    if (typeof result === "string") {
+      return { status: 400, text: result };
+    }
+    return { status: 200, json: ReviewService.serialize(result) };
+  }),
+);
+
 export default router;

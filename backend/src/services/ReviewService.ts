@@ -72,6 +72,50 @@ class ReviewService {
     return review;
   }
 
+  async reassign(id: string, currentReviewerEmail: string): Promise<ReviewDocument | string> {
+    const review = await ReviewModel.findById(id);
+    if (review === null) {
+      return "Review not found";
+    }
+
+    if (review.reviewerEmail !== currentReviewerEmail) {
+      return "Review not assigned to user";
+    }
+
+    const applicationDoc = await ApplicationService.getById(review.application);
+    if (!applicationDoc) {
+      return "Application not found";
+    }
+    applicationDoc.blockListedReviewerEmails.push(currentReviewerEmail);
+    await applicationDoc.save();
+
+    review.reviewerEmail = undefined;
+    await review.save();
+
+    const stage = StageService.getById(review.stageId);
+    if (stage === null) {
+      return "Stage missing - this shouldn't happen";
+    }
+
+    const newReviewerEmail = await this.getAutoAssignedReviewer(stage, review.application);
+    if (newReviewerEmail === null) {
+      return "Could not auto-assign reviewer";
+    }
+
+    const reviewer = await UserService.getByEmail(newReviewerEmail);
+    if (reviewer === null) {
+      return "Reviewer email is invalid";
+    }
+
+    review.reviewerEmail = newReviewerEmail;
+    await review.save();
+
+    if (stage.notifyReviewersWhenAssigned) {
+      await this.sendAssignEmail(review);
+    }
+    return review;
+  }
+
   async update(review: RawReview): Promise<ReviewDocument | string> {
     const existing = await ReviewModel.findById(review._id);
     if (existing === null) {

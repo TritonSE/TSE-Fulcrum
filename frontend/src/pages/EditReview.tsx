@@ -58,11 +58,26 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       .catch(addAlert);
   };
 
+  const onReassignClicked = () => {
+    if (review === null) {
+      addAlert("Review not loaded; cannot reassign");
+      return;
+    }
+
+    api
+      .reassignReview(review._id)
+      .then(() => addAlert("Reassigned successfully.", "success"))
+      .catch(addAlert);
+  };
+
   return (
     <div style={{ padding: "10px" }}>
       {showApplication && (
         <>
           <h2>Application</h2>
+          <Button type="button" variant="danger" onClick={onReassignClicked}>
+            Reassign
+          </Button>
           {review && <ApplicationView id={review.application} />}
         </>
       )}
