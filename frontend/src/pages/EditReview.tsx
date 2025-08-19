@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 
 import api, { Review, Stage } from "../api";
 import { GlobalContext } from "../context/GlobalContext";
@@ -11,10 +11,13 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
   const [stage, setStage] = useStateHelper<Stage>();
   const { alerts, addAlert } = useAlerts();
+  const navigate = useNavigate()
   const location = useLocation();
   const { user } = useContext(GlobalContext);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [nextReviewId, setNextReviewId] = useState<string | null>(null);
+  const [showReassignSuccessModal, setShowReassignSuccessModal] = useState(false)
+  const [showConfirmReassignModal, setShowConfirmReassignModal] = useState(false)
 
   const editable = useMemo(
     () => !!(user && review && user.email === review.reviewerEmail),
@@ -66,7 +69,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
 
     api
       .reassignReview(review._id)
-      .then(() => addAlert("Reassigned successfully.", "success"))
+      .then(() => setShowReassignSuccessModal(true))
       .catch(addAlert);
   };
 
@@ -75,7 +78,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       {showApplication && (
         <>
           <h2>Application</h2>
-          <Button type="button" variant="danger" onClick={onReassignClicked}>
+          <Button type="button" variant="danger" onClick={() => setShowConfirmReassignModal(true)}>
             Reassign
           </Button>
           {review && <ApplicationView id={review.application} />}
@@ -191,6 +194,42 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           <a href={nextReviewId === null ? "/" : `/review/${nextReviewId}/edit`}>
             <Button variant="primary">
               {nextReviewId === null ? "Back to Homepage" : "Next Review"}
+            </Button>
+          </a>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showConfirmReassignModal} onHide={() => {
+        setShowConfirmReassignModal(false)
+      }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Are you sure?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to reassign this review?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowConfirmReassignModal(false)}>
+            Cancel
+          </Button>
+            <Button variant="primary" onClick={() => {
+              setShowConfirmReassignModal(false);
+              onReassignClicked()
+            }}>
+              Yes, reassign!
+            </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showReassignSuccessModal} onHide={() => {
+        navigate('/')
+      }}>
+        <Modal.Header closeButton>
+          <Modal.Title>Reassigned successfully!</Modal.Title>
+        </Modal.Header>
+        <Modal.Footer>
+          <a href='/'>
+            <Button variant="primary">
+              Back to Homepage
             </Button>
           </a>
         </Modal.Footer>
