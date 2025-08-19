@@ -11,13 +11,13 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
   const [stage, setStage] = useStateHelper<Stage>();
   const { alerts, addAlert } = useAlerts();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const location = useLocation();
   const { user } = useContext(GlobalContext);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [nextReviewId, setNextReviewId] = useState<string | null>(null);
-  const [showReassignSuccessModal, setShowReassignSuccessModal] = useState(false)
-  const [showConfirmReassignModal, setShowConfirmReassignModal] = useState(false)
+  const [showReassignSuccessModal, setShowReassignSuccessModal] = useState(false);
+  const [showConfirmReassignModal, setShowConfirmReassignModal] = useState(false);
 
   const editable = useMemo(
     () => !!(user && review && user.email === review.reviewerEmail),
@@ -199,38 +199,43 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showConfirmReassignModal} onHide={() => {
-        setShowConfirmReassignModal(false)
-      }}>
+      <Modal
+        show={showConfirmReassignModal}
+        onHide={() => {
+          setShowConfirmReassignModal(false);
+        }}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Are you sure?</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to reassign this review?
-        </Modal.Body>
+        <Modal.Body>Are you sure you want to reassign this review?</Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowConfirmReassignModal(false)}>
             Cancel
           </Button>
-            <Button variant="primary" onClick={() => {
+          <Button
+            variant="primary"
+            onClick={() => {
               setShowConfirmReassignModal(false);
-              onReassignClicked()
-            }}>
-              Yes, reassign!
-            </Button>
+              onReassignClicked();
+            }}
+          >
+            Yes, reassign!
+          </Button>
         </Modal.Footer>
       </Modal>
-      <Modal show={showReassignSuccessModal} onHide={() => {
-        navigate('/')
-      }}>
+      <Modal
+        show={showReassignSuccessModal}
+        onHide={() => {
+          navigate("/");
+        }}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Reassigned successfully!</Modal.Title>
         </Modal.Header>
         <Modal.Footer>
-          <a href='/'>
-            <Button variant="primary">
-              Back to Homepage
-            </Button>
+          <a href="/">
+            <Button variant="primary">Back to Homepage</Button>
           </a>
         </Modal.Footer>
       </Modal>
