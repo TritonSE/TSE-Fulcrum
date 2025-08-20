@@ -20,6 +20,8 @@ function getEnv<T>(key: string, defaultValue: T, parser?: (fromEnv: string) => T
 
 const NODE_ENV = getEnv("NODE_ENV", "development");
 const ADMIN_EMAIL = getEnv("ADMIN_EMAIL", "tse@ucsd.edu");
+const applicationDeadlineString = getEnv("APPLICATION_DEADLINE", "");
+const APPLICATION_DEADLINE = applicationDeadlineString ? new Date(applicationDeadlineString) : null;
 
 // To configure these variables, use a .env file during development, or use
 // environment variables in production.
@@ -90,6 +92,18 @@ const env = {
     "https://raw.githubusercontent.com/TritonSE/TSE-Technical-Interview-Template/main/README.md",
   ),
 
+  /**
+   * Deadline to submit applications.
+   */
+
+  APPLICATION_DEADLINE,
+
+  /**
+   * How many hours before the deadline to start disabling reviewer assignment emails
+   * Default to 1 day
+   */
+  DISABLE_ASSIGNMENT_EMAILS_HOURS: parseInt(getEnv("DISABLE_ASSIGNMENT_EMAILS_HOURS", "24")),
+
   // Loaded from environment variables.
   NODE_ENV,
   PORT: getEnv("PORT", 8000, parseInt),
@@ -98,6 +112,10 @@ const env = {
 if (env.EMAIL_ENABLED && !(env.EMAIL_USERNAME && env.EMAIL_PASSWORD && env.EMAIL_HOST)) {
   console.error("Email configuration incomplete. Disabling email.");
   env.EMAIL_ENABLED = false;
+}
+
+if (!env.APPLICATION_DEADLINE) {
+  console.error("APPLICATION_DEADLINE is missing!");
 }
 
 console.log(`env: ${JSON.stringify(env, null, 2)}`);

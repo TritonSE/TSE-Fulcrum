@@ -140,9 +140,34 @@ class ReviewService {
     return reviewDocument;
   }
 
+  private shouldDisableAssignmentEmails() {
+    const nowMs = new Date().getTime();
+    const deadlineMs = env.APPLICATION_DEADLINE?.getTime();
+    if (!deadlineMs) {
+      return false;
+    }
+
+    const timeUntilDeadlineMs = deadlineMs - nowMs;
+    // Convert hours to milliseconds
+    const disableAssignmentEmailsMs = env.DISABLE_ASSIGNMENT_EMAILS_HOURS * 1000 * 60 * 60;
+    return (
+      !isNaN(env.DISABLE_ASSIGNMENT_EMAILS_HOURS) &&
+      timeUntilDeadlineMs <= disableAssignmentEmailsMs
+    );
+  }
+
   private async sendAssignEmail(review: ReviewDocument): Promise<void> {
     if (typeof review.reviewerEmail !== "string") {
       throw new Error(`No reviewer assigned to review: ${review._id.toHexString()}`);
+    }
+
+    // Disable review assignment emails when it gets close to the application deadline because we receive a LOT
+    // of last-minute applications (hundreds) and risk getting rate-limited by Gmail if we send both applicant confirmation
+    // emails and reviewer assignment emails. We want to prioritize confirmation emails and avoid spamming reviewers with
+    // assignment emails
+    if (this.shouldDisableAssignmentEmails()) {
+      console.log("Too close to application deadline, not sending assignment email");
+      return;
     }
 
     // TODO: more dependency cycle

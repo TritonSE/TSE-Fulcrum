@@ -7,8 +7,11 @@ import { countWords } from "../util";
 const RESUME_UPLOAD_URL = "/api/resume";
 const SUBMIT_URL = "/api/application";
 
-const PRESIDENT_EMAIL = "bej001@ucsd.edu";
-const DEADLINE = new Date("2025-10-13T23:59:59-07:00"); // PDT is UTC-7
+if (!process.env.REACT_APP_APPLICATION_DEADLINE) {
+  throw new Error("Missing REACT_APP_APPLICATION_DEADLINE!");
+}
+
+const DEADLINE = new Date(process.env.REACT_APP_APPLICATION_DEADLINE);
 const HEAR_ABOUT_TSE_OPTIONS = [
   "Word of mouth",
   "Tabling on Library Walk",
@@ -547,8 +550,8 @@ function Apply() {
               You may apply to either TSE or the TEST program, but not both. Please apply to the
               TEST program if you believe it would be a good fit for you. Once you apply to the TEST
               program, we will not be able to consider you for general admission, and vice versa. If
-              you are unsure about which program is right for you, please contact TSE&apos;s current
-              president at <a href={`mailto:${PRESIDENT_EMAIL}`}>{PRESIDENT_EMAIL}</a>.
+              you are unsure about which program is right for you, please contact us at{" "}
+              <a href="mailto:tse@ucsd.edu">tse@ucsd.edu</a>.
             </p>
           </Form.Text>
         </Row>
