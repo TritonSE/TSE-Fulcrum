@@ -171,6 +171,10 @@ class Api {
     ).json();
   }
 
+  async reassignReview(id: string): Promise<Review> {
+    return (await this.post(`/api/review/${id}/reassign`, undefined)).json();
+  }
+
   async getReviewById(reviewId: string): Promise<Review> {
     return (await this.get(`/api/review/${reviewId}`)).json();
   }
