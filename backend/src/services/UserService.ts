@@ -25,6 +25,7 @@ class UserService {
     onlyFirstYearTechnical,
     isDoingInterviewAlone,
     assignedStageIds,
+    isAdmin,
   }: CreateUserRequest): Promise<UserDocument | null> {
     // TODO: To avoid race conditions, we should try to save, and catch the
     // exception if the user already exists (E11000).
@@ -40,6 +41,7 @@ class UserService {
       onlyFirstYearTechnical,
       isDoingInterviewAlone,
       assignedStageIds,
+      isAdmin,
     });
     return user.save();
   }

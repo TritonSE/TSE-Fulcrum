@@ -22,6 +22,8 @@ type User = {
 
   assignedStageIds: number[];
 
+  isAdmin: boolean;
+
   // TODO: add boolean for whether a user is active, and ensure that admin account is always active
 };
 
@@ -104,6 +106,12 @@ const UserSchema = new Schema<User>({
     type: [Number],
     required: true,
     default: [],
+  },
+
+  isAdmin: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
 });
 

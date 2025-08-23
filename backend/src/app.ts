@@ -17,6 +17,7 @@ async function onStartup() {
   const admin = await UserService.create({
     email: env.ADMIN_EMAIL,
     name: "Admin",
+    isAdmin: true,
   });
   if (admin !== null) {
     console.log("Created admin user");
