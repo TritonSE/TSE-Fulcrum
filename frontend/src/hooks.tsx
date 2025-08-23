@@ -17,11 +17,12 @@ function useAlerts(): UseAlertsResult {
 
   return {
     alerts: (
-      <div>
+      <div className="alerts">
         {alertList.map(({ message, variant }, i: number) => (
           <Alert
             /* eslint-disable-next-line react/no-array-index-key */
             key={i}
+            className="alert"
             variant={variant}
             dismissible
             onClose={() => setAlertList(alertList.filter((_, j) => j !== i))}

@@ -11,3 +11,20 @@
   width: 1.5em;
   height: 1.5em;
 }
+
+.alerts {
+  position: absolute;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  top: 60px;
+  right: 20px;
+  z-index: 100000;
+
+  max-width: 500px;
+  max-height: 50%;
+}
+
+.alert {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
