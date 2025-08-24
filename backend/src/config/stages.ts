@@ -18,7 +18,7 @@ const stageIdentifiers = [
 type StageIdentifier = (typeof stageIdentifiers)[number];
 
 type FormField = {
-  type: "string" | "number" | "boolean";
+  type: "string" | "number";
   choices: unknown[];
   allowOther: boolean;
   label: string;

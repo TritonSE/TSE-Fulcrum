@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, Form, Table } from "react-bootstrap";
 
 import api, { PopulatedReview } from "../api";
+import { getReviewStatus, getReviewStatusHumanReadable, ReviewStatus } from "../helpers/review";
 import { useAlerts } from "../hooks";
 import { formatQuarter, makeComparator } from "../util";
 
@@ -67,6 +68,13 @@ function ManualAssign({
   );
 }
 
+// Used to sort reviews by status
+const reviewStatusNumericValues = {
+  [ReviewStatus.NotStarted]: 0,
+  [ReviewStatus.InProgress]: 1,
+  [ReviewStatus.Completed]: 2,
+};
+
 export default function ReviewsView({
   filter,
   showReassign,
@@ -96,7 +104,7 @@ export default function ReviewsView({
               makeComparator((r) =>
                 homepage
                   ? [
-                      Object.entries(r.fields).length > 0 ? 1 : 0,
+                      reviewStatusNumericValues[getReviewStatus(r)],
                       r.stage.name,
                       r.application.gradQuarter,
                       r.application.name,
@@ -138,7 +146,7 @@ export default function ReviewsView({
           </thead>
           <tbody>
             {reviews.map((review) => {
-              const status = Object.keys(review.fields).length > 0 ? "complete" : "blank";
+              const status = getReviewStatusHumanReadable(review);
               const pastReviewers = Object.entries(
                 reviews
                   .filter((r) => review.application._id === r.application._id)

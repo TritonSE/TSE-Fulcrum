@@ -34,7 +34,7 @@ export type BulkAdvanceOrRejectResponse = Record<
 >;
 
 interface FormField {
-  type: "string" | "number" | "boolean";
+  type: "string" | "number";
   choices: (string | number | boolean)[];
   allowOther: boolean;
   label: string;

@@ -30,6 +30,14 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       setField("fields", { ...getField("fields"), [fieldName]: value });
     }
   };
+  // Remove this field from the review object when the user erases it, so that we don't save a value
+  const clearReviewField = (fieldName: string) => {
+    if (review !== null) {
+      const fields = { ...getField("fields") };
+      delete fields[fieldName];
+      setField("fields", fields);
+    }
+  };
 
   useEffect(() => {
     api
@@ -104,23 +112,18 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
             const field = stage.fields[fieldName];
             let control;
             switch (field.type) {
-              case "boolean":
-                control = (
-                  <Form.Check
-                    type="checkbox"
-                    checked={!!getReviewField(fieldName)}
-                    onChange={(e) => setReviewField(fieldName, e.target.checked)}
-                    disabled={!editable}
-                  />
-                );
-                break;
               case "number":
                 control = (
                   <Form.Control
-                    required
                     type="number"
                     value={"" + getReviewField(fieldName)}
-                    onChange={(e) => setReviewField(fieldName, parseFloat(e.target.value))}
+                    onChange={(e) => {
+                      if (e.target.value === "") {
+                        clearReviewField(fieldName);
+                      } else {
+                        setReviewField(fieldName, parseFloat(e.target.value));
+                      }
+                    }}
                     onWheel={
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
@@ -132,7 +135,6 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
               default:
                 control = editable ? (
                   <Form.Control
-                    required
                     as="textarea"
                     rows={10}
                     value={
@@ -140,7 +142,13 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
                         ? ""
                         : getReviewField(fieldName) + ""
                     }
-                    onChange={(e) => setReviewField(fieldName, e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value === "") {
+                        clearReviewField(fieldName);
+                      } else {
+                        setReviewField(fieldName, e.target.value);
+                      }
+                    }}
                   />
                 ) : (
                   <div style={{ whiteSpace: "pre-line" }}>
