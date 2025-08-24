@@ -33,9 +33,9 @@ function useAlerts(): UseAlertsResult {
       </div>
     ),
     addAlert: (message: unknown, variant = "danger") =>
-      setAlertList([
+      setAlertList((prev) => [
         // Show a maximum of 1000 alerts.
-        ...alertList.slice(-999),
+        ...prev.slice(-999),
         { message: "" + message, variant },
       ]),
     clearAlerts: () => setAlertList([]),
