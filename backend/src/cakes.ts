@@ -16,6 +16,7 @@ const CreateUserRequest = bake({
   onlyFirstYearTechnical: optional(boolean),
   isDoingInterviewAlone: optional(boolean),
   assignedStageIds: optional(array(number)),
+  isAdmin: optional(boolean),
 });
 
 type CreateUserRequest = Infer<typeof CreateUserRequest>;
