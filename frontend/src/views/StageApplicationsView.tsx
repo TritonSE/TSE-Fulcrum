@@ -9,6 +9,7 @@ import api, {
   Progress,
   Stage,
 } from "../api";
+import { getReviewStatus, ReviewStatus } from "../helpers/review";
 import { useAlerts } from "../hooks";
 import { makeComparator, formatQuarter } from "../util";
 
@@ -104,7 +105,8 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
     grouped[appId][1].push(review);
   });
 
-  const isComplete = (review: PopulatedReview) => Object.keys(review.fields).length !== 0;
+  const isComplete = (review: PopulatedReview) =>
+    getReviewStatus(review) === ReviewStatus.Completed;
 
   let scoreKeys: string[] = [];
   reviews.filter(isComplete).forEach((review) => {
