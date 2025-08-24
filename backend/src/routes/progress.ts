@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { BulkAdvanceOrRejectRequest } from "../cakes";
 import { ProgressService } from "../services";
 
-import { authWrapper } from "./wrappers";
+import { adminRequiredWrapper, authWrapper } from "./wrappers";
 
 const router = Router();
 
@@ -23,7 +23,7 @@ router.get(
 
 router.post(
   "/bulk_advance",
-  authWrapper(async (_user, req) => {
+  adminRequiredWrapper(async (_user, req) => {
     const bodyResult = BulkAdvanceOrRejectRequest.check(req.body);
     if (!bodyResult.ok) {
       return {
@@ -59,7 +59,7 @@ router.post(
 
 router.post(
   "/bulk_reject",
-  authWrapper(async (_user, req) => {
+  adminRequiredWrapper(async (_user, req) => {
     const bodyResult = BulkAdvanceOrRejectRequest.check(req.body);
     if (!bodyResult.ok) {
       return {
