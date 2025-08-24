@@ -20,7 +20,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   const [showConfirmReassignModal, setShowConfirmReassignModal] = useState(false);
 
   const editable = useMemo(
-    () => !!(user && review && user.email === review.reviewerEmail),
+    () => !!(user && review && (user.isAdmin || user.email === review.reviewerEmail)),
     [user, review]
   );
 
@@ -78,9 +78,15 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       {showApplication && (
         <>
           <h2>Application</h2>
-          <Button type="button" variant="danger" onClick={() => setShowConfirmReassignModal(true)}>
-            Reassign
-          </Button>
+          {editable ? (
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => setShowConfirmReassignModal(true)}
+            >
+              Reassign
+            </Button>
+          ) : null}
           {review && <ApplicationView id={review.application} />}
         </>
       )}

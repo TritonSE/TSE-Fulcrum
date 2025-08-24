@@ -3,6 +3,7 @@ type Method = "get" | "post" | "put";
 export interface User {
   email: string;
   name: string;
+  isAdmin: boolean;
 }
 
 interface LogInRequest {

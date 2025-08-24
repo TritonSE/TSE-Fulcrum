@@ -3,7 +3,7 @@ import { Router } from "express";
 import { Application } from "../models";
 import { ApplicationService } from "../services";
 
-import { authWrapper, wrapper } from "./wrappers";
+import { adminRequiredWrapper, authWrapper, wrapper } from "./wrappers";
 
 const router = Router();
 
@@ -23,7 +23,7 @@ router.get(
 
 router.delete(
   "/:applicationId",
-  authWrapper(async (_user, req) => {
+  adminRequiredWrapper(async (_user, req) => {
     const result = await ApplicationService.deleteById(req.params.applicationId);
     if (typeof result === "string") {
       return {

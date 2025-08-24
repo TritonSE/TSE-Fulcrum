@@ -3,7 +3,7 @@ import { Router } from "express";
 import { RawReview } from "../models";
 import { ReviewService } from "../services";
 
-import { authWrapper } from "./wrappers";
+import { adminRequiredWrapper, authWrapper } from "./wrappers";
 
 const router = Router();
 
@@ -48,7 +48,11 @@ router.get(
 
 router.put(
   "/:reviewId",
-  authWrapper(async (_user, req) => {
+  authWrapper(async (user, req) => {
+    const review = await ReviewService.getById(req.params.reviewId);
+    if (review && !user.isAdmin && user.email !== review.reviewerEmail) {
+      return { status: 403, text: "Unauthorized to edit - not your review, and not an admin" };
+    }
     const result = await ReviewService.update(req.body as RawReview);
     if (typeof result === "string") {
       return { status: 400, text: result };
@@ -61,7 +65,7 @@ router.put(
 
 router.post(
   "/:reviewId/auto-assign",
-  authWrapper(async (_user, req) => {
+  adminRequiredWrapper(async (_user, req) => {
     const result = await ReviewService.assign(req.params.reviewId, null);
     if (typeof result === "string") {
       return { status: 400, text: result };
@@ -72,7 +76,7 @@ router.post(
 
 router.post(
   "/:reviewId/assign/:reviewerEmail",
-  authWrapper(async (_user, req) => {
+  adminRequiredWrapper(async (_user, req) => {
     const result = await ReviewService.assign(req.params.reviewId, req.params.reviewerEmail);
     if (typeof result === "string") {
       return { status: 400, text: result };
@@ -84,6 +88,11 @@ router.post(
 router.post(
   "/:reviewId/reassign",
   authWrapper(async (user, req) => {
+    const review = await ReviewService.getById(req.params.reviewId);
+    if (review && !user.isAdmin && user.email !== review.reviewerEmail) {
+      return { status: 403, text: "Unauthorized to reassign - not your review, and not an admin" };
+    }
+
     const result = await ReviewService.reassign(req.params.reviewId, user.email);
     if (typeof result === "string") {
       return { status: 400, text: result };
