@@ -364,7 +364,7 @@ function Apply() {
                 <option value="1">Spring</option>
                 {/* Hide summer because people often select summer when they mean spring. */}
                 {/* <option value="2">Summer</option> */}
-                <option value="3">Fall</option>
+                <option value="2">Fall</option>
               </Form.Select>
             </Form.Group>
           </Col>
