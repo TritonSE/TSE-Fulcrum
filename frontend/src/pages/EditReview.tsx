@@ -2,8 +2,9 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 
-import api, { Review, Stage } from "../api";
+import api, { Application, Review, Stage } from "../api";
 import { GlobalContext } from "../context/GlobalContext";
+import { getReviewStatus, ReviewStatus } from "../helpers/review";
 import { useAlerts, useStateHelper } from "../hooks";
 import ApplicationView from "../views/ApplicationView";
 
@@ -60,12 +61,22 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
     api
       .updateReview(review)
       .then(setReview)
-      .then(() =>
-        api.getNextReview().then((nextReview) => {
-          setNextReviewId(nextReview?._id ?? null);
-          setShowSuccessModal(true);
-        })
-      )
+      .then(() => {
+        if (
+          stage &&
+          // Coerce the type to PopulatedReview, which this function expect
+          // application isn't used so we can provide something of the wrong type
+          getReviewStatus({ ...review, stage, application: null as unknown as Application }) ===
+            ReviewStatus.Completed
+        ) {
+          api.getNextReview().then((nextReview) => {
+            setNextReviewId(nextReview?._id ?? null);
+            setShowSuccessModal(true);
+          });
+        } else {
+          addAlert("Review saved as draft", "success");
+        }
+      })
       .catch(addAlert);
   };
 

@@ -11,7 +11,9 @@ export const getReviewStatus = (review: PopulatedReview) => {
     return ReviewStatus.NotStarted;
   }
   // If any of the stage's fields are not present on the review, then it's not complete
-  if (Object.keys(review.stage.fields).some((fieldName) => !review.fields[fieldName])) {
+  if (
+    Object.keys(review.stage.fields).some((fieldName) => review.fields[fieldName] === undefined)
+  ) {
     return ReviewStatus.InProgress;
   }
   return ReviewStatus.Completed;
