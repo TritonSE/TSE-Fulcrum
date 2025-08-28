@@ -84,10 +84,6 @@ class ReviewService {
       return "Review not found";
     }
 
-    if (review.reviewerEmail !== currentReviewerEmail) {
-      return "Review not assigned to user";
-    }
-
     const applicationDoc = await ApplicationService.getById(review.application);
     if (!applicationDoc) {
       return "Application not found";

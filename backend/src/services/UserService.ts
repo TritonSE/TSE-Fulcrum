@@ -10,6 +10,7 @@ import EmailService from "./EmailService";
 type PublicUser = {
   email: string;
   name: string;
+  isAdmin: boolean;
 };
 
 type LogInResponse = {
@@ -161,6 +162,7 @@ class UserService {
     return {
       email: user.email,
       name: user.name,
+      isAdmin: user.isAdmin,
     };
   }
 

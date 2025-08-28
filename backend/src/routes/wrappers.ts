@@ -64,4 +64,14 @@ function authWrapper(handler: AsyncAuthHandler): RequestHandler {
   });
 }
 
-export { wrapper, getUser, authWrapper };
+// A wrapper to use around routes that require the user to be an admin
+function adminRequiredWrapper(handler: AsyncAuthHandler): RequestHandler {
+  return authWrapper((user, req, res) => {
+    if (!user.isAdmin) {
+      return { status: 403, text: "You must be an admin to perform this action" };
+    }
+    return handler(user, req, res);
+  });
+}
+
+export { wrapper, getUser, authWrapper, adminRequiredWrapper };

@@ -3,7 +3,7 @@ import { Router } from "express";
 import { CreateUserRequest } from "../cakes";
 import { UserService } from "../services";
 
-import { authWrapper } from "./wrappers";
+import { adminRequiredWrapper, authWrapper } from "./wrappers";
 
 const router = Router();
 
@@ -20,7 +20,7 @@ router.get(
 
 router.post(
   "/",
-  authWrapper(async (_user, req) => {
+  adminRequiredWrapper(async (_user, req) => {
     const bodyResult = CreateUserRequest.check(req.body);
     if (!bodyResult.ok) {
       return {
