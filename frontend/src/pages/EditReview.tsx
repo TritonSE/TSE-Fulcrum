@@ -2,8 +2,9 @@ import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 
-import api, { Review, Stage } from "../api";
+import api, { Application, Review, Stage } from "../api";
 import { GlobalContext } from "../context/GlobalContext";
+import { getReviewStatus, ReviewStatus } from "../helpers/review";
 import { useAlerts, useStateHelper } from "../hooks";
 import ApplicationView from "../views/ApplicationView";
 
@@ -30,6 +31,14 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       setField("fields", { ...getField("fields"), [fieldName]: value });
     }
   };
+  // Remove this field from the review object when the user erases it, so that we don't save a value
+  const clearReviewField = (fieldName: string) => {
+    if (review !== null) {
+      const fields = { ...getField("fields") };
+      delete fields[fieldName];
+      setField("fields", fields);
+    }
+  };
 
   useEffect(() => {
     api
@@ -52,12 +61,22 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
     api
       .updateReview(review)
       .then(setReview)
-      .then(() =>
-        api.getNextReview().then((nextReview) => {
-          setNextReviewId(nextReview?._id ?? null);
-          setShowSuccessModal(true);
-        })
-      )
+      .then(() => {
+        if (
+          stage &&
+          // Coerce the type to PopulatedReview, which this function expect
+          // application isn't used so we can provide something of the wrong type
+          getReviewStatus({ ...review, stage, application: null as unknown as Application }) ===
+            ReviewStatus.Completed
+        ) {
+          api.getNextReview().then((nextReview) => {
+            setNextReviewId(nextReview?._id ?? null);
+            setShowSuccessModal(true);
+          });
+        } else {
+          addAlert("Review saved as draft", "success");
+        }
+      })
       .catch(addAlert);
   };
 
@@ -104,23 +123,18 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
             const field = stage.fields[fieldName];
             let control;
             switch (field.type) {
-              case "boolean":
-                control = (
-                  <Form.Check
-                    type="checkbox"
-                    checked={!!getReviewField(fieldName)}
-                    onChange={(e) => setReviewField(fieldName, e.target.checked)}
-                    disabled={!editable}
-                  />
-                );
-                break;
               case "number":
                 control = (
                   <Form.Control
-                    required
                     type="number"
                     value={"" + getReviewField(fieldName)}
-                    onChange={(e) => setReviewField(fieldName, parseFloat(e.target.value))}
+                    onChange={(e) => {
+                      if (e.target.value === "") {
+                        clearReviewField(fieldName);
+                      } else {
+                        setReviewField(fieldName, parseFloat(e.target.value));
+                      }
+                    }}
                     onWheel={
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
@@ -132,7 +146,6 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
               default:
                 control = editable ? (
                   <Form.Control
-                    required
                     as="textarea"
                     rows={10}
                     value={
@@ -140,7 +153,13 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
                         ? ""
                         : getReviewField(fieldName) + ""
                     }
-                    onChange={(e) => setReviewField(fieldName, e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value === "") {
+                        clearReviewField(fieldName);
+                      } else {
+                        setReviewField(fieldName, e.target.value);
+                      }
+                    }}
                   />
                 ) : (
                   <div style={{ whiteSpace: "pre-line" }}>

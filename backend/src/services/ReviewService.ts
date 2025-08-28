@@ -16,6 +16,12 @@ import EmailService from "./EmailService";
 import StageService from "./StageService";
 import UserService from "./UserService";
 
+export enum ReviewStatus {
+  NotStarted = "notStarted",
+  InProgress = "inProgress",
+  Completed = "completed",
+}
+
 class ReviewService {
   async create(stage: Stage, application: Types.ObjectId): Promise<ReviewDocument> {
     const review = await new ReviewModel({
@@ -275,14 +281,46 @@ class ReviewService {
   }
 
   async getNextReviewForUser(userEmail: string): Promise<ReviewDocument | null> {
-    const result = await ReviewModel.findOne({
-      // Find a review with no fields filled in
+    // First, try to find a "Not Started" review (with no fields filled in)
+    let result = await ReviewModel.findOne({
       $expr: {
         $eq: [{ $size: { $objectToArray: "$fields" } }, 0],
       },
       reviewerEmail: userEmail,
     });
+
+    // If none are found, try to find an "In Progress" review
+    if (result === null) {
+      const reviewsForReviewer = await ReviewModel.find({ reviewerEmail: userEmail });
+      result =
+        reviewsForReviewer.find(
+          (review) => this.getReviewStatus(review) === ReviewStatus.InProgress,
+        ) ?? null;
+    }
+
     return result;
+  }
+
+  getReviewStatus(review: ReviewDocument) {
+    if (Object.keys(review.fields).length === 0) {
+      return ReviewStatus.NotStarted;
+    }
+    const stage = StageService.getById(review.stageId);
+    if (!stage) {
+      throw new Error(`Stage with ID ${review.stageId} not found`);
+    }
+
+    // If any of the stage's fields are not present on the review, then it's not complete
+    if (
+      Object.keys(stage.fields).some(
+        (fieldName) =>
+          (review.fields as unknown as Map<string, string | number | boolean>).get(fieldName) ===
+          undefined,
+      )
+    ) {
+      return ReviewStatus.InProgress;
+    }
+    return ReviewStatus.Completed;
   }
 
   /* 1 - First year, 2 - Second year... */
