@@ -6,6 +6,7 @@
     "@convergencelabs/monaco-collab-ext": "^0.4.0",
     "@monaco-editor/react": "^4.5.2",
     "@tailwindcss/vite": "^4.1.12",
+    "@tritonse/tse-constellation": "^0.0.18",
     "bootstrap": "^5.2.1",
     "monaco-editor": "^0.43.0",
     "react": "^18.2.0",

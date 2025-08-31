@@ -1,27 +1,13 @@
-import { useContext } from "react";
-import { Button, Nav, NavDropdown, Navbar } from "react-bootstrap";
-import { Outlet, useNavigate } from "react-router-dom";
-
-import api from "../api";
-import { GlobalContext } from "../context/GlobalContext";
+import { Outlet } from "react-router-dom";
 
 import RequireAuth from "./RequireAuth";
+import Navbar from "../components/Navbar";
 
 export default function LoggedInLayout() {
-  const { user, setUser } = useContext(GlobalContext);
-  const navigate = useNavigate();
-
-  const onLogOut = () => {
-    api.logOut().then(() => {
-      setUser(null);
-      navigate("/login");
-    });
-  };
-
   return (
     <RequireAuth>
-      <>
-        <Navbar
+      <div className="tw:flex tw:h-full tw:w-full">
+        {/* <Navbar
           expand="sm"
           sticky="top"
           style={{ background: "#eeeeee", paddingLeft: "10px", paddingRight: "10px" }}
@@ -42,9 +28,10 @@ export default function LoggedInLayout() {
               </Button>
             </Nav>
           </Navbar.Collapse>
-        </Navbar>
+        </Navbar> */}
+        <Navbar />
         <Outlet />
-      </>
+      </div>
     </RequireAuth>
   );
 }

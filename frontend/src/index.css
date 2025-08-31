@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
 @import "tailwindcss" prefix(tw);
 
 @theme {
@@ -7,6 +8,25 @@
   --color-accent: #697b82;
   --color-accent-light: #cedcdc;
   --color-link: #3680ff;
+}
+
+@layer utilities {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    font-family: "Rubik", sans-serif;
+    @apply tw:tracking-wide;
+  }
+
+  html,
+  body,
+  #root {
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
 }
 
 .ApplicationForm > .row > :not(.form-text) {
