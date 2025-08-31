@@ -7,11 +7,11 @@ import { countWords } from "../util";
 const RESUME_UPLOAD_URL = "/api/resume";
 const SUBMIT_URL = "/api/application";
 
-if (!process.env.REACT_APP_APPLICATION_DEADLINE) {
-  throw new Error("Missing REACT_APP_APPLICATION_DEADLINE!");
+if (!import.meta.env.VITE_APPLICATION_DEADLINE) {
+  throw new Error("Missing VITE_APPLICATION_DEADLINE!");
 }
 
-const DEADLINE = new Date(process.env.REACT_APP_APPLICATION_DEADLINE);
+const DEADLINE = new Date(import.meta.env.VITE_APPLICATION_DEADLINE);
 const HEAR_ABOUT_TSE_OPTIONS = [
   "Word of mouth",
   "Tabling on Library Walk",
