@@ -8,7 +8,6 @@ const stageIdentifiers = [
   "developer_phone_screen",
   "developer_technical",
   "test_designer_resume_review",
-  "test_designer_phone_screen",
   "test_designer_technical",
   "test_developer_resume_review",
   "test_developer_technical",
