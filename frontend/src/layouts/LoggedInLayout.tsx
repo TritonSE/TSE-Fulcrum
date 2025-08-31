@@ -1,7 +1,8 @@
 import { Outlet } from "react-router-dom";
 
-import RequireAuth from "./RequireAuth";
 import Navbar from "../components/Navbar";
+
+import RequireAuth from "./RequireAuth";
 
 export default function LoggedInLayout() {
   return (
@@ -30,7 +31,9 @@ export default function LoggedInLayout() {
           </Navbar.Collapse>
         </Navbar> */}
         <Navbar />
-        <Outlet />
+        <div className="tw:overflow-y-auto tw:w-full tw:h-full tw:px-5 tw:py-5">
+          <Outlet />
+        </div>
       </div>
     </RequireAuth>
   );
