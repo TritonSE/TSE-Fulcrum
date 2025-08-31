@@ -1,12 +1,12 @@
 @import "tailwindcss" prefix(tw);
 
 @theme {
-  --color-teal-primary: #0C2B35;
+  --color-teal-primary: #0c2b35;
   --color-teal-secondary: #153641;
-  --color-cream-primary: #FCF6E5;
-  --color-accent: #697B82;
-  --color-accent-light: #CEDCDC;
-  --color-link: #3680FF;
+  --color-cream-primary: #fcf6e5;
+  --color-accent: #697b82;
+  --color-accent-light: #cedcdc;
+  --color-link: #3680ff;
 }
 
 .ApplicationForm > .row > :not(.form-text) {
