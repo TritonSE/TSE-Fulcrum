@@ -1,3 +1,14 @@
+@import "tailwindcss" prefix(tw);
+
+@theme {
+  --color-teal-primary: #0C2B35;
+  --color-teal-secondary: #153641;
+  --color-cream-primary: #FCF6E5;
+  --color-accent: #697B82;
+  --color-accent-light: #CEDCDC;
+  --color-link: #3680FF;
+}
+
 .ApplicationForm > .row > :not(.form-text) {
   margin-top: 1rem;
 }
