@@ -46,20 +46,10 @@ export default function Login() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        background: "#0c2a34",
-        color: "white",
-      }}
-    >
-      <div style={{ minWidth: "320px" }}>
-        <h1 style={{ textAlign: "center" }}>
+    <div className="tw:flex tw:items-center tw:justify-center tw:min-h-screen tw:bg-teal-primary tw:text-cream-primary">
+      <div className="tw:min-w-[320px] tw:flex tw:flex-col tw:gap-2">
+        <h1 className="tw:flex tw:flex-col tw:items-center tw:gap-3">
           <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
-          <br />
           TSE Fulcrum
         </h1>
         <Form onSubmit={onSubmit}>
@@ -73,13 +63,7 @@ export default function Login() {
             <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
           </Form.Group>
           <br />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-around",
-              gap: "4px",
-            }}
-          >
+          <div className="tw:flex tw:justify-around tw:gap-4">
             <Button type="submit">Log in</Button>
             <Button variant="secondary" onClick={onForgotPassword}>
               Forgot password
