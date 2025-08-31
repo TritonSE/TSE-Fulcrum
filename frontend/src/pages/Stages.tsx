@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Table } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 import api, { Stage } from "../api";
 import { useAlerts } from "../hooks";
@@ -24,7 +25,7 @@ export default function Stages() {
           {stages.map((stage) => (
             <tr key={stage.id}>
               <td>
-                <a href={`/stage/${stage.id}/applications`}>{stage.name}</a>
+                <Link to={`/stage/${stage.id}/applications`}>{stage.name}</Link>
               </td>
             </tr>
           ))}
