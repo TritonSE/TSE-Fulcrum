@@ -8,10 +8,8 @@ const stageIdentifiers = [
   "developer_phone_screen",
   "developer_technical",
   "test_designer_resume_review",
-  "test_designer_phone_screen",
   "test_designer_technical",
   "test_developer_resume_review",
-  "test_developer_phone_screen",
   "test_developer_technical",
 ] as const;
 
@@ -114,7 +112,7 @@ const stages: Stage[] = [
   },
   {
     id: 4,
-    identifier: "test_designer_phone_screen",
+    identifier: "designer_phone_screen",
     pipelineIdentifier: "designer",
     pipelineIndex: 1,
     numReviews: 1,
