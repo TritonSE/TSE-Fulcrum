@@ -48,7 +48,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
         api.getStageById(newReview.stageId).then(setStage).catch(addAlert);
       })
       .catch(addAlert);
-  }, []);
+  }, [id]);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -217,7 +217,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
             Close
           </Button>
           <Link to={nextReviewId === null ? "/" : `/review/${nextReviewId}/edit`}>
-            <Button variant="primary">
+            <Button variant="primary" onClick={() => setShowSuccessModal(false)}>
               {nextReviewId === null ? "Back to Homepage" : "Next Review"}
             </Button>
           </Link>
