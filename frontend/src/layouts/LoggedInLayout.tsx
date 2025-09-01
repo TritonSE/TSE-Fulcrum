@@ -9,7 +9,7 @@ export default function LoggedInLayout() {
     <RequireAuth>
       <div className="tw:flex tw:h-full tw:w-full">
         <Navbar />
-        <div className="tw:overflow-y-auto tw:w-full tw:h-full tw:px-5 tw:py-5">
+        <div className="tw:overflow-auto tw:w-full tw:h-full tw:px-5 tw:py-5">
           <Outlet />
         </div>
       </div>

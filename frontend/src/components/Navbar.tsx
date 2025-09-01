@@ -75,11 +75,12 @@ function Navbar() {
   return (
     <nav className="tw:bg-teal-primary tw:h-full tw:min-w-64 tw:flex tw:flex-col tw:gap-5 tw:px-6 tw:pt-5 tw:pb-10 tw:text-cream-primary">
       {/* Logo */}
-      <Link className="tw:flex tw:gap-3 tw:items-center tw:justify-center tw:!no-underline" to="/">
+      <Link
+        className="tw:flex tw:gap-3 tw:items-center tw:justify-center tw:!no-underline tw:!text-cream-primary"
+        to="/"
+      >
         <img src="/logo.svg" alt="Logo" className="tw:h-12 tw:w-4" />
-        <h1 className="tw:text-cream-primary tw:!text-xl tw:font-bold tw:uppercase tw:!m-0">
-          Fulcrum
-        </h1>
+        <h1 className="tw:!text-xl tw:font-bold tw:uppercase tw:!m-0">Fulcrum</h1>
       </Link>
 
       {/* Navigation links by pipeline and stage */}
