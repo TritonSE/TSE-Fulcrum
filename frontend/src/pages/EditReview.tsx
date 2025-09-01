@@ -259,9 +259,9 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           <Modal.Title>Reassigned successfully!</Modal.Title>
         </Modal.Header>
         <Modal.Footer>
-          <a href="/">
+          <Link to="/">
             <Button variant="primary">Back to Homepage</Button>
-          </a>
+          </Link>
         </Modal.Footer>
       </Modal>
     </div>
