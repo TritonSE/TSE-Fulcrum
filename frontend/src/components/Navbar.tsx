@@ -113,7 +113,7 @@ function Navbar() {
         <div className="tw:rounded-4xl tw:border-2 tw:border-cream-primary tw:p-3 tw:aspect-square tw:flex tw:items-center tw:justify-center">
           <span className="tw:font-bold">{userInitials}</span>
         </div>
-        <div className="tw:flex tw:flex-col tw:items-center">
+        <div className="tw:flex tw:flex-col tw:items-center tw:text-center">
           <h3 className="tw:text-cream-primary tw:!text-2xl tw:!m-0 tw:font-bold">{user?.name}</h3>
           <p className="tw:text-xs tw:!m-0 tw:font-regular">{user?.email}</p>
         </div>
