@@ -10,6 +10,8 @@ import cpp from "react-syntax-highlighter/dist/esm/languages/prism/cpp";
 import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { io, type Socket } from "socket.io-client";
 
+import TSELogo from "../components/TSELogo";
+
 SyntaxHighlighter.registerLanguage("cpp", cpp);
 
 const LANGS = ["python", "javascript", "java", "cpp", "text"];
@@ -66,10 +68,6 @@ interface CodeProps {
   className?: string;
 }
 
-interface LoadingProps {
-  msg: string;
-}
-
 interface TimerProps {
   role: number;
   since: number;
@@ -104,28 +102,6 @@ function MarkdownImage({
   width,
 }: React.ClassAttributes<HTMLImageElement> & React.ImgHTMLAttributes<HTMLImageElement>) {
   return <img src={src?.replace("&amp;", "&")} alt={alt} height={height} width={width} />;
-}
-
-function LoadingScreen({ msg }: LoadingProps) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        textAlign: "center",
-        background: "#0c2a34",
-        color: "white",
-      }}
-    >
-      <div>
-        <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
-        <br />
-        <h1>{msg}</h1>
-      </div>
-    </div>
-  );
 }
 
 function Timer({ role, since, start }: TimerProps) {
@@ -385,7 +361,7 @@ export default function Interview() {
   }, [selectFrom, selectTo]);
 
   if (!socket) {
-    return <LoadingScreen msg="Connecting..." />;
+    return <TSELogo msg="Connecting..." />;
   }
 
   return (
@@ -504,7 +480,7 @@ export default function Interview() {
           />
         </div>
       )}
-      {role === INTERVIEWEE && !active && <LoadingScreen msg="Please wait for your interviewer." />}
+      {role === INTERVIEWEE && !active && <TSELogo msg="Please wait for your interviewer." />}
       {active && (
         <Timer
           role={role}
