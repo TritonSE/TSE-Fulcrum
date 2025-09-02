@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, Form, Table } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 import api, { PopulatedReview } from "../api";
 import { getReviewStatus, getReviewStatusHumanReadable, ReviewStatus } from "../helpers/review";
@@ -160,7 +161,7 @@ export default function ReviewsView({
                 <tr key={review._id}>
                   <td>{review.stage.name}</td>
                   <td>
-                    <a href={`/review/${review._id}/edit`}>{review.application.name}</a>
+                    <Link to={`/review/${review._id}/edit`}>{review.application.name}</Link>
                   </td>
                   <td>{review.application.pronouns}</td>
                   {homepage && <td>{review.application.email}</td>}

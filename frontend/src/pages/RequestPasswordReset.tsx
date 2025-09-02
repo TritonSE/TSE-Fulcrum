@@ -27,37 +27,20 @@ export default function RequestPasswordReset() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        background: "#0c2a34",
-        color: "white",
-      }}
-    >
-      <div style={{ minWidth: "320px" }}>
-        <h1 style={{ textAlign: "center", width: "200px", margin: "0 auto 0.5rem" }}>
+    <div className="tw:flex tw:items-center tw:justify-center tw:min-h-screen tw:bg-teal-primary tw:text-cream-primary">
+      <div className="tw:w-[320px] tw:flex tw:flex-col tw:items-center">
+        <h1 className="tw:text-center tw:w-[200px] tw:mx-auto tw:mb-2 tw:flex tw:flex-col tw:items-center tw:gap-2">
           <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
-          <br />
           Request Password Reset
         </h1>
-        <Form onSubmit={onSubmit}>
+        <Form onSubmit={onSubmit} className="tw:flex tw:flex-col tw:gap-5 tw:w-full">
           <Form.Group controlId="email">
             <Form.Label>Email address</Form.Label>
             <Form.Control type="email" onChange={(e) => setEmail(e.target.value)} />
           </Form.Group>
-          <br />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
+          <div className="tw:flex tw:justify-center">
             <Button type="submit">Request password reset</Button>
           </div>
-          <br />
           {alerts}
         </Form>
       </div>

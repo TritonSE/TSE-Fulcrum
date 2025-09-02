@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Form, Table } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 import api, {
   Application,
@@ -265,7 +266,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                   <td>{i + 1}</td>
                   <td>{score}</td>
                   <td>
-                    <a href={`/application/${app._id}`}>{app.name}</a>
+                    <Link to={`/application/${app._id}`}>{app.name}</Link>
                   </td>
                   <td>{app.pronouns}</td>
                   <td>{`${formatQuarter(app.startQuarter)} to ${formatQuarter(

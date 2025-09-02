@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 
 import api, { Application, Review, Stage } from "../api";
 import { GlobalContext } from "../context/GlobalContext";
@@ -48,7 +48,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
         api.getStageById(newReview.stageId).then(setStage).catch(addAlert);
       })
       .catch(addAlert);
-  }, []);
+  }, [id]);
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -113,13 +113,13 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       <Form onSubmit={onSubmit}>
         {stage && stage.hasTechnicalInterview && (
           <>
-            <a
-              href={location.pathname.replace("edit", "interview")}
+            <Link
+              to={location.pathname.replace("edit", "interview")}
               target="_blank"
               rel="noreferrer noopener"
             >
               Technical interview
-            </a>
+            </Link>
             <br />
             <br />
           </>
@@ -216,11 +216,11 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           <Button variant="secondary" onClick={() => setShowSuccessModal(false)}>
             Close
           </Button>
-          <a href={nextReviewId === null ? "/" : `/review/${nextReviewId}/edit`}>
-            <Button variant="primary">
+          <Link to={nextReviewId === null ? "/" : `/review/${nextReviewId}/edit`}>
+            <Button variant="primary" onClick={() => setShowSuccessModal(false)}>
               {nextReviewId === null ? "Back to Homepage" : "Next Review"}
             </Button>
-          </a>
+          </Link>
         </Modal.Footer>
       </Modal>
 
@@ -259,9 +259,9 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           <Modal.Title>Reassigned successfully!</Modal.Title>
         </Modal.Header>
         <Modal.Footer>
-          <a href="/">
+          <Link to="/">
             <Button variant="primary">Back to Homepage</Button>
-          </a>
+          </Link>
         </Modal.Footer>
       </Modal>
     </div>
