@@ -3,6 +3,7 @@ import { Button, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 import api from "../api";
+import TSELogo from "../components/TSELogo";
 import { GlobalContext } from "../context/GlobalContext";
 import { useAlerts } from "../hooks";
 
@@ -46,33 +47,27 @@ export default function Login() {
   };
 
   return (
-    <div className="tw:flex tw:items-center tw:justify-center tw:min-h-screen tw:bg-teal-primary tw:text-cream-primary">
-      <div className="tw:min-w-[320px] tw:flex tw:flex-col tw:gap-2">
-        <h1 className="tw:flex tw:flex-col tw:items-center tw:gap-3">
-          <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
-          TSE Fulcrum
-        </h1>
-        <Form onSubmit={onSubmit}>
-          <Form.Group controlId="email">
-            <Form.Label>Email address</Form.Label>
-            <Form.Control type="email" onChange={(e) => setField("email", e.target.value)} />
-          </Form.Group>
-          <br />
-          <Form.Group controlId="password">
-            <Form.Label>Password</Form.Label>
-            <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
-          </Form.Group>
-          <br />
-          <div className="tw:flex tw:justify-around tw:gap-4">
-            <Button type="submit">Log in</Button>
-            <Button variant="secondary" onClick={onForgotPassword}>
-              Forgot password
-            </Button>
-          </div>
-          <br />
-          {alerts}
-        </Form>
-      </div>
-    </div>
+    <TSELogo msg="TSE Fulcrum">
+      <Form onSubmit={onSubmit}>
+        <Form.Group controlId="email">
+          <Form.Label>Email address</Form.Label>
+          <Form.Control type="email" onChange={(e) => setField("email", e.target.value)} />
+        </Form.Group>
+        <br />
+        <Form.Group controlId="password">
+          <Form.Label>Password</Form.Label>
+          <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
+        </Form.Group>
+        <br />
+        <div className="tw:flex tw:justify-around tw:gap-4">
+          <Button type="submit">Log in</Button>
+          <Button variant="secondary" onClick={onForgotPassword}>
+            Forgot password
+          </Button>
+        </div>
+        <br />
+        {alerts}
+      </Form>
+    </TSELogo>
   );
 }
