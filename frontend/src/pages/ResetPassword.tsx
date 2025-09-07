@@ -3,6 +3,7 @@ import { Button, Form } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import api from "../api";
+import TSELogo from "../components/TSELogo";
 import { useAlerts } from "../hooks";
 
 export default function ResetPassword() {
@@ -54,48 +55,32 @@ export default function ResetPassword() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        background: "#0c2a34",
-        color: "white",
-      }}
-    >
-      <div style={{ minWidth: "320px" }}>
-        <h1 style={{ textAlign: "center" }}>
-          <img width="64" height="64" src="/logo512.png" alt="TSE logo" />
-          <br />
-          Reset Password
-        </h1>
-        <Form onSubmit={onSubmit}>
-          <Form.Group controlId="email">
-            <Form.Label>Email address</Form.Label>
-            <Form.Control type="email" onChange={(e) => setField("email", e.target.value)} />
-          </Form.Group>
-          <Form.Group controlId="password">
-            <Form.Label>Password</Form.Label>
-            <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
-          </Form.Group>
-          <Form.Group controlId="confirm-password">
-            <Form.Label>Confirm password</Form.Label>
-            <Form.Control type="password" onChange={(e) => setConfirmPassword(e.target.value)} />
-          </Form.Group>
-          <br />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            <Button type="submit">Reset password</Button>
-          </div>
-          <br />
-          {alerts}
-        </Form>
-      </div>
-    </div>
+    <TSELogo msg="Reset Password">
+      <Form onSubmit={onSubmit}>
+        <Form.Group controlId="email">
+          <Form.Label>Email address</Form.Label>
+          <Form.Control type="email" onChange={(e) => setField("email", e.target.value)} />
+        </Form.Group>
+        <Form.Group controlId="password">
+          <Form.Label>Password</Form.Label>
+          <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
+        </Form.Group>
+        <Form.Group controlId="confirm-password">
+          <Form.Label>Confirm password</Form.Label>
+          <Form.Control type="password" onChange={(e) => setConfirmPassword(e.target.value)} />
+        </Form.Group>
+        <br />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Button type="submit">Reset password</Button>
+        </div>
+        <br />
+        {alerts}
+      </Form>
+    </TSELogo>
   );
 }
