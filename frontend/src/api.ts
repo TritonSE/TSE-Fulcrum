@@ -55,6 +55,9 @@ export interface Review {
 export type PopulatedReview = Omit<Review, "stage" | "application"> & {
   stage: Stage;
   application: Application;
+
+  // Computed by backend
+  applicantYear: number;
 };
 
 export interface Progress {

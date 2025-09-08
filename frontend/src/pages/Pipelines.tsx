@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Table } from "react-bootstrap";
 
 import api, { Pipeline } from "../api";
-import { useAlerts } from "../hooks";
+import { useAlerts } from "../hooks/alerts";
 
 export default function Pipelines() {
   const [pipelines, setPipelines] = useState<Pipeline[]>([]);

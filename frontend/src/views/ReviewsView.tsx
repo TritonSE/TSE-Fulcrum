@@ -1,11 +1,19 @@
+import { ColumnDef } from "@tanstack/react-table";
+import { Button, LoadingSpinner, Table, TextField } from "@tritonse/tse-constellation";
 import { useEffect, useState } from "react";
-import { Button, Form, Table } from "react-bootstrap";
-import { Link } from "react-router-dom";
 
 import api, { PopulatedReview } from "../api";
-import { getReviewStatus, getReviewStatusHumanReadable, ReviewStatus } from "../helpers/review";
-import { useAlerts } from "../hooks";
-import { formatQuarter, makeComparator } from "../util";
+import { ApplicantInfoCell } from "../components/ApplicantInfoCell";
+import { StatusChip } from "../components/StatusChip";
+import { formatApplicantYear } from "../helpers/application";
+import {
+  getReviewStatus,
+  getReviewStatusHumanReadable,
+  reviewStatusColors,
+} from "../helpers/review";
+import { useAlerts } from "../hooks/alerts";
+import { useUsers } from "../hooks/users";
+import { makeComparator } from "../util";
 
 function AutoAssignButton({
   id,
@@ -26,7 +34,7 @@ function AutoAssignButton({
   };
   return (
     <Button onClick={onClick} disabled={!enabled}>
-      Auto-assign reviewer
+      Auto-assign
     </Button>
   );
 }
@@ -53,12 +61,11 @@ function ManualAssign({
       });
   };
   return (
-    <div style={{ display: "flex", flexFlow: "row nowrap" }}>
-      <Form.Control
-        style={{ maxWidth: "20em" }}
+    <div className="tw:flex tw:flex-col tw:gap-y-3">
+      <TextField
         type="email"
         value={reviewerEmail}
-        onChange={(e) => setReviewerEmail(e.target.value)}
+        onChange={setReviewerEmail}
         disabled={!enabled}
         placeholder="Reviewer's email address"
       />
@@ -69,30 +76,11 @@ function ManualAssign({
   );
 }
 
-// Used to sort reviews by status
-const reviewStatusNumericValues = {
-  [ReviewStatus.NotStarted]: 0,
-  [ReviewStatus.InProgress]: 1,
-  [ReviewStatus.Completed]: 2,
-};
-
-export default function ReviewsView({
-  filter,
-  showReassign,
-  homepage = false,
-}: {
-  filter: Record<string, string>;
-  showReassign?: boolean;
-  homepage?: boolean;
-}) {
-  const [reviews, setReviews] = useState<PopulatedReview[]>([]);
+export default function ReviewsView({ filter }: { filter: Record<string, string> }) {
+  const [reviews, setReviews] = useState<PopulatedReview[] | null>(null);
   const { alerts, addAlert } = useAlerts();
+  const { emailsToUsers } = useUsers();
 
-  if (homepage) {
-    useEffect(() => {
-      document.title = "TSE Fulcrum - Home";
-    }, []);
-  }
   // TODO: audit all other useEffects to check dependency lists
   useEffect(() => {
     api
@@ -102,24 +90,13 @@ export default function ReviewsView({
           newReviews
             .slice()
             .sort(
-              makeComparator((r) =>
-                homepage
-                  ? [
-                      reviewStatusNumericValues[getReviewStatus(r)],
-                      r.stage.name,
-                      r.application.gradQuarter,
-                      r.application.name,
-                      r.reviewerEmail || "",
-                      r._id,
-                    ]
-                  : [
-                      r.stage.name,
-                      r.application.gradQuarter,
-                      r.application.name,
-                      r.reviewerEmail || "",
-                      r._id,
-                    ]
-              )
+              makeComparator((r) => [
+                r.stage.name,
+                r.application.gradQuarter,
+                r.application.name,
+                r.reviewerEmail || "",
+                r._id,
+              ])
             )
         )
       )
@@ -128,80 +105,91 @@ export default function ReviewsView({
 
   return (
     <div>
-      {reviews.length === 0 ? (
+      {!reviews ? (
+        <LoadingSpinner />
+      ) : reviews.length === 0 ? (
         "No reviews to display."
       ) : (
-        <Table>
-          <thead>
-            <tr>
-              <th>Stage</th>
-              <th>Name</th>
-              <th>Pronouns</th>
-              {homepage && <th>Email</th>}
-              <th>Degree Timeline</th>
-              {!homepage && <th>Past Reviewers</th>}
-              {!homepage && <th>Reviewer</th>}
-              <th>Status</th>
-              {showReassign && <th>Reassign</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {reviews.map((review) => {
-              const status = getReviewStatusHumanReadable(review);
-              const pastReviewers = Object.entries(
-                reviews
-                  .filter((r) => review.application._id === r.application._id)
-                  .map((r) => [r.stage.name, r.reviewerEmail || "(unassigned)"])
-                  .reduce(
-                    (o, [stage, reviewer]) => ({ ...o, [stage]: [...(o[stage] || []), reviewer] }),
-                    {} as Record<string, string[]>
-                  )
-              ).sort();
-              return (
-                <tr key={review._id}>
-                  <td>{review.stage.name}</td>
-                  <td>
-                    <Link to={`/review/${review._id}/edit`}>{review.application.name}</Link>
-                  </td>
-                  <td>{review.application.pronouns}</td>
-                  {homepage && <td>{review.application.email}</td>}
-                  <td>{`${formatQuarter(review.application.startQuarter)} to ${formatQuarter(
-                    review.application.gradQuarter
-                  )}`}</td>
-                  {!homepage && (
-                    <td>
-                      {pastReviewers.length === 0
-                        ? "(none)"
-                        : pastReviewers.map(([stage, reviewers]) => (
-                            <p key={stage}>{`${stage}: ${reviewers.slice().sort().join(" ")}`}</p>
-                          ))}
-                    </td>
-                  )}
-                  {!homepage && (
-                    <td>
-                      {review.reviewerEmail || (
-                        <AutoAssignButton id={review._id} addAlert={addAlert} />
-                      )}
-                    </td>
-                  )}
-                  <td>{status}</td>
-                  {showReassign && (
-                    <td>
-                      <ManualAssign id={review._id} addAlert={addAlert} />
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+        <Table
+          className="reviews-table"
+          columns={
+            [
+              {
+                accessorKey: "stage.name",
+                header: "Stage",
+              },
+              {
+                cell: (cell) => (
+                  <ApplicantInfoCell
+                    application={cell.row.original.application}
+                    linkDestination={`/review/${cell.row.original._id}/edit`}
+                  />
+                ),
+                header: "Applicant",
+              },
+              {
+                accessorFn: (review) => formatApplicantYear(review.applicantYear),
+                header: "Year",
+              },
+              {
+                cell: (cell) => {
+                  const review = cell.row.original;
+                  const pastReviewers = Object.entries(
+                    reviews
+                      .filter((r) => review.application._id === r.application._id)
+                      .map((r) => [
+                        r.stage.name,
+                        r.reviewerEmail
+                          ? emailsToUsers[r.reviewerEmail]?.name ?? "(unknown user)"
+                          : "(unassigned)",
+                      ])
+                      .reduce(
+                        (o, [stage, reviewer]) => ({
+                          ...o,
+                          [stage]: [...(o[stage] || []), reviewer],
+                        }),
+                        {} as Record<string, string[]>
+                      )
+                  ).sort();
+                  return pastReviewers.length === 0
+                    ? "(none)"
+                    : pastReviewers.map(([stage, reviewers]) => (
+                        <p key={stage}>{`${stage}: ${reviewers.slice().sort().join(", ")}`}</p>
+                      ));
+                },
+                header: "Past Reviewers",
+              },
+              {
+                cell: (cell) =>
+                  cell.row.original.reviewerEmail ? (
+                    emailsToUsers[cell.row.original.reviewerEmail]?.name ?? "(unknown user)"
+                  ) : (
+                    <AutoAssignButton id={cell.row.original._id} addAlert={addAlert} />
+                  ),
+                header: "Reviewer",
+              },
+              {
+                cell: (cell) => (
+                  <StatusChip
+                    color={reviewStatusColors[getReviewStatus(cell.row.original)]}
+                    text={getReviewStatusHumanReadable(cell.row.original)}
+                  />
+                ),
+                header: "Status",
+              },
+              {
+                cell: (cell) => <ManualAssign id={cell.row.original._id} addAlert={addAlert} />,
+                header: "Reassign",
+              },
+            ] as ColumnDef<PopulatedReview>[]
+          }
+          data={reviews}
+          enablePagination={false}
+          enableGlobalFiltering={false}
+          actionElement={false}
+        />
       )}
       {alerts}
     </div>
   );
 }
-
-ReviewsView.defaultProps = {
-  showReassign: false,
-  homepage: false,
-};

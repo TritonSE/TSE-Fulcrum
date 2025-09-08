@@ -355,6 +355,9 @@ class ReviewService {
       application: review.application.toJSON(),
       reviewerEmail: review.reviewerEmail,
       fields: review.fields,
+      applicantYear: this.determineApplicantGradeLevel(
+        review.application as unknown as ApplicationDocument,
+      ),
     };
   }
 }

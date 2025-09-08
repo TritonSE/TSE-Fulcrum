@@ -3,7 +3,7 @@ import { Button, Form } from "react-bootstrap";
 
 import api from "../api";
 import TSELogo from "../components/TSELogo";
-import { useAlerts } from "../hooks";
+import { useAlerts } from "../hooks/alerts";
 
 export default function RequestPasswordReset() {
   const [email, setEmail] = useState("");

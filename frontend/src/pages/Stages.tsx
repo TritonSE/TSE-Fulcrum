@@ -3,7 +3,7 @@ import { Table } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
 import api, { Stage } from "../api";
-import { useAlerts } from "../hooks";
+import { useAlerts } from "../hooks/alerts";
 
 export default function Stages() {
   const [stages, setStages] = useState<Stage[]>([]);

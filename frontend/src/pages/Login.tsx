@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import TSELogo from "../components/TSELogo";
 import { GlobalContext } from "../context/GlobalContext";
-import { useAlerts } from "../hooks";
+import { useAlerts } from "../hooks/alerts";
 
 export default function Login() {
   const { user, setUser, redirectAfterLogin } = useContext(GlobalContext);

@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import api from "../api";
 import TSELogo from "../components/TSELogo";
-import { useAlerts } from "../hooks";
+import { useAlerts } from "../hooks/alerts";
 
 export default function ResetPassword() {
   const [data, setData] = useState({ email: "", password: "", passwordResetToken: "" });
