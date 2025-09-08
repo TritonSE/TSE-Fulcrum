@@ -35,11 +35,6 @@ const env = {
   MONGODB_URL: getEnv("MONGODB_URL", "mongodb://127.0.0.1:27017/tse-fulcrum"),
 
   /**
-   * Base URL of the current deployment. Used to generate links in emails.
-   */
-  DEPLOYMENT_URL: getEnv("DEPLOYMENT_URL", "http://localhost:3000"),
-
-  /**
    * Username for the email account used to send emails.
    */
   EMAIL_USERNAME: getEnv("EMAIL_USERNAME", ""),

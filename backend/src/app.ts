@@ -11,6 +11,7 @@ import morgan from "morgan";
 import env from "./env";
 import routes from "./routes";
 import { InterviewService, UserService } from "./services";
+import { ApplicationLocalStorage, asyncLocalStorage } from "./storage";
 
 async function onStartup() {
   // Create the admin account if necessary.
@@ -36,6 +37,17 @@ async function main() {
   app.use(morgan("combined"));
   app.use(bodyParser.json());
   app.use(cookieParser());
+
+  // Global middleware to provide context to all routes via async local storage
+  app.use((req, _res, next) => {
+    asyncLocalStorage.run(
+      { deploymentUrl: `${req.protocol}://${req.get("host")}` } as ApplicationLocalStorage,
+      () => {
+        // Runs next request handler inside a context where it can access the local storage context
+        next();
+      },
+    );
+  });
 
   app.use("/api", routes);
 
