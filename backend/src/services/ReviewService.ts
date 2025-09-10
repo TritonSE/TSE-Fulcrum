@@ -10,6 +10,7 @@ import {
   ReviewModel,
   UserDocument,
 } from "../models";
+import { retrieveDeploymentUrl } from "../storage";
 
 import ApplicationService from "./ApplicationService";
 import EmailService from "./EmailService";
@@ -179,7 +180,7 @@ class ReviewService {
     await EmailService.send({
       recipient: review.reviewerEmail,
       subject: `${stage?.name} for ${application?.name}`,
-      body: `${env.DEPLOYMENT_URL}/review/${review._id.toHexString()}/edit`,
+      body: `${retrieveDeploymentUrl()}/review/${review._id.toHexString()}/edit`,
     });
   }
 

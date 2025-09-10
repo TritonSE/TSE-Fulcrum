@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import { CreateUserRequest, LogInRequest, ResetPasswordRequest } from "../cakes";
 import env from "../env";
 import { UserDocument, UserModel } from "../models";
+import { retrieveDeploymentUrl } from "../storage";
 
 import CryptoService from "./CryptoService";
 import EmailService from "./EmailService";
@@ -122,7 +123,7 @@ class UserService {
       recipient: email,
       subject: `Password reset for ${env.DEPLOYMENT_NAME}`,
       body: [
-        `Use this link to reset your password: ${env.DEPLOYMENT_URL}/reset-password?token=${passwordResetToken}`,
+        `Use this link to reset your password: ${retrieveDeploymentUrl()}/reset-password?token=${passwordResetToken}`,
         `This link will expire in ${env.PASSWORD_RESET_EXPIRATION_MINS} minutes. If you did not request a password reset, you can safely ignore this email.`,
       ].join("\n\n"),
     });
