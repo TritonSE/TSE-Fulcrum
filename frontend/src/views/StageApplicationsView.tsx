@@ -186,10 +186,18 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         <h2>{titleText}</h2>
         <div className="tw:flex tw:flex-row tw:gap-x-5 tw:align-center">
           <p className="tw:!m-auto">{selectedApplicationIds.length} selected</p>
-          <Button onClick={() => setModalState("advance")} variant="success">
+          <Button
+            disabled={selectedApplicationIds.length === 0}
+            onClick={() => setModalState("advance")}
+            variant="success"
+          >
             Advance
           </Button>
-          <Button onClick={() => setModalState("reject")} variant="danger">
+          <Button
+            disabled={selectedApplicationIds.length === 0}
+            onClick={() => setModalState("reject")}
+            variant="danger"
+          >
             Reject
           </Button>
         </div>

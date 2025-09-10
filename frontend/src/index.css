@@ -89,7 +89,7 @@
   border: 3px solid white !important;
 }
 
-.reviews-table thead svg {
+.reviews-table thead label > svg {
   fill: white !important;
 }
 
