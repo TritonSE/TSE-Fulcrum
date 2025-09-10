@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 
 import api from "../api";
-import { useAlerts } from "../hooks";
+import { useAlerts } from "../hooks/alerts";
 
 export default function ResetPassword() {
   const [data, setData] = useState({ email: "", name: "" });

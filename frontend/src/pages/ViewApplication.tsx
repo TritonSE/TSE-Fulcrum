@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import api, { PopulatedReview } from "../api";
-import { useAlerts } from "../hooks";
+import { useAlerts } from "../hooks/alerts";
 import { makeComparator } from "../util";
 import ApplicationView from "../views/ApplicationView";
 

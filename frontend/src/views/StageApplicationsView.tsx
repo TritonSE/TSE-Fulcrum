@@ -1,87 +1,69 @@
+import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
+import { Checkbox, LoadingSpinner, Modal, Table } from "@tritonse/tse-constellation";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Button, Form, Table } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Button } from "react-bootstrap";
 
-import api, {
-  Application,
-  BulkAdvanceOrRejectResponse,
-  PipelineIdentifier,
-  PopulatedReview,
-  Progress,
-  Stage,
-} from "../api";
-import { getReviewStatus, ReviewStatus } from "../helpers/review";
-import { useAlerts } from "../hooks";
-import { makeComparator, formatQuarter } from "../util";
+import api, { Application, PopulatedReview, Progress, Stage } from "../api";
+import { ApplicantInfoCell } from "../components/ApplicantInfoCell";
+import { StatusChip } from "../components/StatusChip";
+import {
+  APPLICANT_YEARS,
+  applicationStatusColors,
+  formatApplicantYear,
+  getApplicationStageStatus,
+  toTitleCase,
+} from "../helpers/application";
+import {
+  formatFieldNameHumanReadable,
+  getReviewStatus,
+  getReviewStatusHumanReadable,
+  ReviewStatus,
+  reviewStatusColors,
+} from "../helpers/review";
+import { useAlerts } from "../hooks/alerts";
+import { useUsers } from "../hooks/users";
+import { makeComparator } from "../util";
 
 const SCORE_REGEX = /^(.*_)?score$/;
 const RATING_REGEX = /^(.*_)?rating$/;
 
-function AdvanceButton({
-  pipelineIdentifier,
-  applicationIds,
-  addAlert,
-  onAdvanced,
-}: {
-  pipelineIdentifier: PipelineIdentifier;
-  applicationIds: string[];
-  addAlert: (message: unknown) => void;
-  onAdvanced: (response: BulkAdvanceOrRejectResponse) => void;
-}) {
-  const onClick = () => {
-    api
-      .bulkAdvanceApplications(pipelineIdentifier, applicationIds)
-      .then(onAdvanced)
-      .catch(addAlert);
-  };
-  return (
-    <Button variant="success" onClick={onClick}>
-      Advance
-    </Button>
-  );
-}
-
-function RejectButton({
-  pipelineIdentifier,
-  applicationIds,
-  addAlert,
-  onRejected,
-}: {
-  pipelineIdentifier: PipelineIdentifier;
-  applicationIds: string[];
-  addAlert: (message: unknown) => void;
-  onRejected: (response: BulkAdvanceOrRejectResponse) => void;
-}) {
-  const onClick = () => {
-    api.bulkRejectApplications(pipelineIdentifier, applicationIds).then(onRejected).catch(addAlert);
-  };
-  return (
-    <Button variant="danger" onClick={onClick}>
-      Reject
-    </Button>
-  );
-}
-
 export default function StageApplicationsView({ stageId }: { stageId: number }) {
   const [progresses, setProgresses] = useState<Progress[]>([]);
   const [reviews, setReviews] = useState<PopulatedReview[]>([]);
-  const [selectedAction, setSelectedAction] = useState("none");
   const [stage, setStage] = useState<Stage | null>(null);
   const { alerts, addAlert } = useAlerts();
-  // Map of applicationIds to whether the checkbox for that application is selected
-  const [checkboxesSelectedMap, setCheckboxesSelectedMap] = useState<Record<string, boolean>>({});
-  // List of selected applicationIds
-  const selectedApplications = useMemo(
-    () =>
-      Object.keys(checkboxesSelectedMap).filter(
-        (applicationId) => checkboxesSelectedMap[applicationId]
-      ),
-    [checkboxesSelectedMap]
+  const { emailsToUsers } = useUsers();
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [modalState, setModalState] = useState<"advance" | "reject" | null>(null);
+  const [showingYearFilter, setShowingYearFilter] = useState(false);
+  const [yearsAreSelected, setYearsAreSelected] = useState(
+    Object.fromEntries(APPLICANT_YEARS.map((year) => [year, false]))
+  );
+  const selectedYears = useMemo(
+    () => Object.keys(yearsAreSelected).filter((year) => yearsAreSelected[year]),
+    [yearsAreSelected]
   );
 
   useEffect(() => {
-    api.getFilteredReviews({ stageId: stageId.toString() }).then(setReviews).catch(addAlert);
-  }, [stageId]);
+    api
+      .getFilteredReviews({ stageId: stageId.toString() })
+      .then((newReviews) => {
+        // In-memory filter - applicant year is computed anyway. Can optimize this if it's too slow with hundreds of applicants
+        if (selectedYears.length === 0) {
+          setReviews(newReviews);
+        } else {
+          setReviews(
+            newReviews.filter((review) =>
+              selectedYears.includes(formatApplicantYear(review.applicantYear))
+            )
+          );
+        }
+
+        // Reset checkbox state since some rows may disappear after filtering
+        setRowSelection({});
+      })
+      .catch(addAlert);
+  }, [stageId, selectedYears]);
 
   useEffect(() => {
     api
@@ -95,9 +77,6 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
       })
       .catch(addAlert);
   }, [stageId]);
-
-  const scoreAlerts: string[] = [];
-  const addScoreAlert = (alert: string) => scoreAlerts.push(alert);
 
   const grouped: Record<string, [Application, PopulatedReview[]]> = {};
   reviews.forEach((review) => {
@@ -118,7 +97,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
       scoreKeys = currentScoreKeys;
     } else if (JSON.stringify(scoreKeys) !== JSON.stringify(currentScoreKeys)) {
       // ^^^ crummy way of checking array equality
-      addScoreAlert(
+      addAlert(
         `Mismatched score fields - score calculation is probably incorrect! ${JSON.stringify(
           scoreKeys
         )}, ${JSON.stringify(currentScoreKeys)}`
@@ -135,7 +114,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
             .map((scoreKey) => {
               const score = review.fields[scoreKey];
               if (typeof score !== "number") {
-                addScoreAlert(
+                addAlert(
                   `Review ${review._id} field ${scoreKey}: expected number, got ${typeof score}`
                 );
                 return 0;
@@ -152,196 +131,254 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
 
   const progressesByApplication = Object.fromEntries(progresses.map((p) => [p.application, p]));
 
+  const selectedApplicationIds = Object.keys(rowSelection).filter((row) => rowSelection[row]);
+
+  const titleText = stage
+    ? `${stage.name}${withScores ? " (" + withScores.length + ")" : null}`
+    : "";
+
+  const onCofirmAdvanceReject = async () => {
+    try {
+      if (!stage) {
+        addAlert("Stage not loaded");
+        return;
+      }
+
+      let response;
+      if (modalState === "advance") {
+        response = await api.bulkAdvanceApplications(
+          stage.pipelineIdentifier,
+          selectedApplicationIds
+        );
+      } else if (modalState === "reject") {
+        response = await api.bulkRejectApplications(
+          stage.pipelineIdentifier,
+          selectedApplicationIds
+        );
+      } else {
+        addAlert(`Unknown action: ${modalState}`);
+        return;
+      }
+
+      let successCount = 0;
+
+      Object.keys(response).forEach((applicationId) => {
+        if (response[applicationId].success) {
+          successCount++;
+        } else {
+          addAlert(
+            `Failed to ${modalState} applicant ${grouped[applicationId][0].name}: ${response[applicationId].value}`
+          );
+        }
+      });
+      addAlert(`Successfully ${modalState}ed ${successCount} applicants!`, "success");
+    } catch (error) {
+      addAlert(error);
+    } finally {
+      setRowSelection({});
+      setModalState(null);
+    }
+  };
+
   return (
-    <div>
-      {stage && <h2>{stage.name}</h2>}
-      {scoreAlerts.map((alert) => (
-        <Alert variant="danger">{alert}</Alert>
-      ))}
-      {withScores.length === 0 ? (
-        "No applications to display."
-      ) : (
-        <Table>
-          <thead>
-            <tr>
-              <td>Row</td>
-              <td>Average Score</td>
-              <td>Name</td>
-              <td>Pronouns</td>
-              <td>Degree Timeline</td>
-              <td>Review Status</td>
-              <td>
-                Select action:
-                <Form.Select
-                  style={{ width: "10em" }}
-                  onChange={(e) => setSelectedAction(e.target.value)}
-                >
-                  <option value="none">None</option>
-                  <option value="advance">Advance</option>
-                  <option value="reject">Reject</option>
-                </Form.Select>
-                {selectedAction === "advance" && !!stage && (
-                  <AdvanceButton
-                    pipelineIdentifier={stage.pipelineIdentifier}
-                    applicationIds={selectedApplications}
-                    addAlert={addAlert}
-                    onAdvanced={(response) => {
-                      setCheckboxesSelectedMap({});
-                      let successCount = 0;
-                      Object.keys(response).forEach((applicationId) => {
-                        if (response[applicationId].success) {
-                          successCount++;
-                        } else {
-                          addAlert(
-                            `Failed to advance applicant ${grouped[applicationId][0].name}: ${response[applicationId].value}`
-                          );
-                        }
-                      });
+    <div className="tw:px-12 tw:py-6">
+      <div className="tw:flex tw:flex-row tw:justify-between tw:mb-8">
+        <h2>{titleText}</h2>
+        <div className="tw:flex tw:flex-row tw:gap-x-5 tw:align-center">
+          <p className="tw:!m-auto">{selectedApplicationIds.length} selected</p>
+          <Button
+            disabled={selectedApplicationIds.length === 0}
+            onClick={() => setModalState("advance")}
+            variant="success"
+          >
+            Advance
+          </Button>
+          <Button
+            disabled={selectedApplicationIds.length === 0}
+            onClick={() => setModalState("reject")}
+            variant="danger"
+          >
+            Reject
+          </Button>
+        </div>
+      </div>
 
-                      addAlert(`Successfully advanced ${successCount} applicants!`, "success");
-                    }}
-                  />
-                )}
-                {selectedAction === "reject" && !!stage && (
-                  <RejectButton
-                    pipelineIdentifier={stage.pipelineIdentifier}
-                    applicationIds={selectedApplications}
-                    addAlert={addAlert}
-                    onRejected={(response) => {
-                      setCheckboxesSelectedMap({});
-                      let successCount = 0;
-
-                      Object.keys(response).forEach((applicationId) => {
-                        if (response[applicationId].success) {
-                          successCount++;
-                        } else {
-                          addAlert(
-                            `Failed to reject applicant ${grouped[applicationId][0].name}: ${response[applicationId].value}`
-                          );
-                        }
-                      });
-                      addAlert(`Successfully rejected ${successCount} applicants!`, "success");
-                    }}
-                  />
-                )}
-              </td>
-              <td>Application Status</td>
-              <td>Raw Data</td>
-              <td>Ratings</td>
-              <td>Max Score Difference</td>
-            </tr>
-          </thead>
-          <tbody>
-            {withScores.map(([app, appReviews, score], i) => {
-              const incompleteCount = appReviews.filter((r) => !isComplete(r)).length;
-              const allComplete = incompleteCount === 0;
-
-              const progress: Progress | undefined = progressesByApplication[app._id];
-              let progressMessage: string;
-              let pendingAtThisStage = false;
-              if (progress === undefined) {
-                progressMessage = `error: no progress for application ${app._id} and pipeline ${stage?.pipelineIdentifier}`;
-              } else if (!stage) {
-                progressMessage = "waiting for stage to load...";
-              } else {
-                const progressIndex = progress.stageIndex;
-                const stageIndex = stage.pipelineIndex;
-                let stageDescription;
-                if (progressIndex < stageIndex) {
-                  stageDescription =
-                    "at earlier stage (ERROR: why do reviews exist for this stage then?)";
-                } else if (progressIndex === stageIndex) {
-                  stageDescription = "at this stage";
-                  if (progress.state === "pending") {
-                    pendingAtThisStage = true;
-                  }
-                } else {
-                  stageDescription = "at later stage";
-                }
-                progressMessage = `${progress.state} ${stageDescription}`;
-              }
-
-              return (
-                <tr key={app._id}>
-                  <td>{i + 1}</td>
-                  <td>{score}</td>
-                  <td>
-                    <Link to={`/application/${app._id}`}>{app.name}</Link>
-                  </td>
-                  <td>{app.pronouns}</td>
-                  <td>{`${formatQuarter(app.startQuarter)} to ${formatQuarter(
-                    app.gradQuarter
-                  )}`}</td>
-                  <td>{allComplete ? "all completed" : `${incompleteCount} incomplete`}</td>
-                  <td>
-                    {pendingAtThisStage ? (
-                      <>
-                        {selectedAction === "advance" || selectedAction === "reject" ? (
-                          <Form.Check
-                            type="checkbox"
-                            checked={checkboxesSelectedMap[app._id] ?? false}
-                            onChange={(e) =>
-                              setCheckboxesSelectedMap({
-                                ...checkboxesSelectedMap,
-                                [app._id]: e.target.checked,
-                              })
-                            }
-                            style={{ display: "flex" }}
-                          />
-                        ) : null}
-                        {selectedAction === "none" && "(no action selected)"}
-                      </>
-                    ) : (
-                      "(unavailable)"
+      <Table
+        className="reviews-table"
+        columns={
+          [
+            {
+              cell: (cell) =>
+                progressesByApplication[cell.row.original[0]._id] && stage ? (
+                  <StatusChip
+                    color={
+                      applicationStatusColors[
+                        getApplicationStageStatus(
+                          stage,
+                          progressesByApplication[cell.row.original[0]._id]
+                        )
+                      ]
+                    }
+                    text={toTitleCase(
+                      getApplicationStageStatus(
+                        stage,
+                        progressesByApplication[cell.row.original[0]._id]
+                      )
                     )}
-                  </td>
-                  <td>{progressMessage}</td>
-                  <td>
-                    {appReviews.map((r) => (
-                      <p key={r._id}>
-                        {`${r.reviewerEmail || "(no reviewer assigned)"}${
-                          isComplete(r) ? "" : " (incomplete)"
-                        }: ${JSON.stringify(
-                          Object.fromEntries(
-                            Object.entries(r.fields)
-                              .filter(([k, _v]) => SCORE_REGEX.test(k))
-                              .sort(makeComparator(([k, _v]) => [k]))
-                          )
-                        )}`}
-                      </p>
+                  />
+                ) : (
+                  <LoadingSpinner />
+                ),
+              header: "Status",
+            },
+            {
+              accessorFn: ([_, __, score]) => score,
+              header: "Avg Score",
+            },
+            {
+              cell: (cell) => (
+                <ApplicantInfoCell
+                  application={cell.row.original[0]}
+                  linkDestination={`/application/${cell.row.original[0]._id}`}
+                />
+              ),
+              header: "Applicant",
+            },
+            {
+              accessorFn: ([_, appReviews]) =>
+                // Guaranteed at least 1 review per applicant (otherwise they wouldn't show up in table)
+                formatApplicantYear(appReviews[0].applicantYear),
+              header: () => (
+                <div className="tw:flex tw:flex-col tw:gap-y-1">
+                  <div className="tw:flex tw:flex-row tw:gap-x-3 tw:align-center">
+                    <p className="tw:!m-auto">Year</p>
+                    <Button onClick={() => setShowingYearFilter(!showingYearFilter)}>
+                      {showingYearFilter ? "Hide" : "Show"} Filter
+                    </Button>
+                  </div>
+                  {showingYearFilter &&
+                    APPLICANT_YEARS.map((year) => (
+                      <Checkbox
+                        key={year}
+                        checked={yearsAreSelected[year]}
+                        onChange={(checked) =>
+                          setYearsAreSelected({ ...yearsAreSelected, [year]: checked })
+                        }
+                        id={year}
+                        label={year}
+                      />
                     ))}
-                  </td>
-                  <td>
-                    {appReviews.map((r) => (
-                      <p key={r._id}>
-                        {`${r.reviewerEmail || "(no reviewer assigned)"}${
-                          isComplete(r) ? "" : " (incomplete)"
-                        }: ${JSON.stringify(
-                          Object.fromEntries(
-                            Object.entries(r.fields)
-                              .filter(([k, _v]) => RATING_REGEX.test(k))
-                              .sort(makeComparator(([k, _v]) => [k]))
-                          )
-                        )}`}
-                      </p>
-                    ))}
-                  </td>
-                  <td>
-                    {scoreKeys
-                      .map((scoreKey) => {
-                        const scores = appReviews
-                          .map((r) => r.fields[scoreKey])
-                          .map((s) => (typeof s === "number" ? s : 0));
-                        return Math.max(...scores) - Math.min(...scores);
-                      })
-                      .reduce((a, b) => Math.max(a, b), 0)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
-      )}
+                </div>
+              ),
+              id: "year",
+            },
+            {
+              cell: (cell) => (
+                <div className="tw:flex tw:flex-col tw:gap-y-4 tw:justify-between">
+                  {cell.row.original[1].map((review) =>
+                    review.reviewerEmail ? (
+                      Object.keys(emailsToUsers).length > 0 ? (
+                        <p key={review._id} className="tw:!m-0 tw:font-bold">
+                          {emailsToUsers[review.reviewerEmail]?.name}
+                        </p>
+                      ) : (
+                        <LoadingSpinner key={review._id} />
+                      )
+                    ) : (
+                      <p className="tw:!m-0">(unassigned)</p>
+                    )
+                  )}
+                </div>
+              ),
+              header: "Reviewers",
+            },
+            {
+              cell: (cell) => (
+                <div className="tw:flex tw:flex-col tw:gap-y-4">
+                  {cell.row.original[1].map((review) =>
+                    review.reviewerEmail ? (
+                      getReviewStatus(review) === ReviewStatus.Completed ? (
+                        <div key={review._id} className="tw:flex tw:flex-col tw:gap-y-2">
+                          {Object.entries(review.fields)
+                            .filter(
+                              ([fieldName]) =>
+                                SCORE_REGEX.test(fieldName) || RATING_REGEX.test(fieldName)
+                            )
+                            .sort(makeComparator(([k, _v]) => [k]))
+                            .map(([fieldName, fieldValue]) => (
+                              <p key={fieldName} className="tw:!m-0 tw:whitespace-nowrap">
+                                {formatFieldNameHumanReadable(fieldName)}: {fieldValue ?? 0}
+                              </p>
+                            ))}
+                        </div>
+                      ) : (
+                        <StatusChip
+                          key={review._id}
+                          color={reviewStatusColors[getReviewStatus(review)]}
+                          text={getReviewStatusHumanReadable(review)}
+                        />
+                      )
+                    ) : null
+                  )}
+                </div>
+              ),
+              header: "Scores",
+            },
+            {
+              accessorFn: ([_, appReviews]) =>
+                scoreKeys
+                  .map((scoreKey) => {
+                    const scores = appReviews
+                      .map((r) => r.fields[scoreKey])
+                      .map((s) => (typeof s === "number" ? s : 0));
+                    return Math.max(...scores) - Math.min(...scores);
+                  })
+                  .reduce((a, b) => Math.max(a, b), 0),
+              header: "Max Score Diff",
+            },
+          ] as ColumnDef<typeof withScores[number]>[]
+        }
+        data={withScores}
+        enablePagination={false}
+        enableGlobalFiltering={false}
+        enableSorting={false}
+        enableRowSelection={(row) =>
+          !!stage &&
+          !!progressesByApplication[row.original[0]._id] &&
+          getApplicationStageStatus(stage, progressesByApplication[row.original[0]._id]) ===
+            "pending"
+        }
+        enableMultiRowSelection
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
+        getRowId={([application]) => application._id}
+      />
+      <Modal
+        isOpen={modalState !== null}
+        onClose={() => setModalState(null)}
+        title="Are you sure?"
+        content={
+          <>
+            <p>
+              Are you sure you want to {modalState} {selectedApplicationIds.length} applicant(s)?
+            </p>
+            <p>
+              {modalState === "advance"
+                ? "This WILL NOT automatically email those candidates; we manually send emails to let them know they advanced & schedule the phone screen/technical interview"
+                : modalState === "reject"
+                ? "This WILL automatically send rejection emails to these candidates."
+                : ""}
+            </p>
+          </>
+        }
+        primaryActionComponent={<Button onClick={onCofirmAdvanceReject}>Yes, {modalState}!</Button>}
+        secondaryActionComponent={
+          <Button onClick={() => setModalState(null)} variant="secondary">
+            Cancel
+          </Button>
+        }
+        withDividers={false}
+      />
       {alerts}
     </div>
   );

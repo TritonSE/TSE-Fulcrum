@@ -66,12 +66,14 @@ const generalRules = {
 
   // Stylistic rules.
   "lines-between-class-members": "off",
+  "no-nested-ternary": "off",
 };
 
 const reactRules = {
   "react/jsx-filename-extension": "off",
   "react/prop-types": "off",
   "react/destructuring-assignment": "off",
+  "react/no-unstable-nested-components": "off",
 
   // Allow prop spreading, but require explicit spreading for HTML tags.
   "react/jsx-props-no-spreading": [

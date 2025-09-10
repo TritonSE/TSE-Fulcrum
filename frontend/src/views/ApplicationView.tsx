@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import api, { Application } from "../api";
-import { useAlerts, useStateHelper } from "../hooks";
+import { useAlerts, useStateHelper } from "../hooks/alerts";
 import { formatQuarter } from "../util";
 
 function row(label: unknown, value: unknown) {

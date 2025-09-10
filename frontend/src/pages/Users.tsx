@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Table } from "react-bootstrap";
 
 import api, { User } from "../api";
-import { useAlerts } from "../hooks";
+import { useAlerts } from "../hooks/alerts";
 
 export default function Users() {
   const [users, setUsers] = useState<User[]>([]);

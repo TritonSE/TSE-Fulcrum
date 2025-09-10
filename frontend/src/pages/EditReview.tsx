@@ -5,7 +5,7 @@ import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import api, { Application, Review, Stage } from "../api";
 import { GlobalContext } from "../context/GlobalContext";
 import { getReviewStatus, ReviewStatus } from "../helpers/review";
-import { useAlerts, useStateHelper } from "../hooks";
+import { useAlerts, useStateHelper } from "../hooks/alerts";
 import ApplicationView from "../views/ApplicationView";
 
 export function ReviewView({ id, showApplication }: { id: string; showApplication: boolean }) {
@@ -66,8 +66,12 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           stage &&
           // Coerce the type to PopulatedReview, which this function expect
           // application isn't used so we can provide something of the wrong type
-          getReviewStatus({ ...review, stage, application: null as unknown as Application }) ===
-            ReviewStatus.Completed
+          getReviewStatus({
+            ...review,
+            stage,
+            application: null as unknown as Application,
+            applicantYear: 0,
+          }) === ReviewStatus.Completed
         ) {
           api.getNextReview().then((nextReview) => {
             setNextReviewId(nextReview?._id ?? null);
