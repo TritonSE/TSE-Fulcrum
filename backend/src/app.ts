@@ -40,13 +40,11 @@ async function main() {
 
   // Global middleware to provide context to all routes via async local storage
   app.use((req, _res, next) => {
-    asyncLocalStorage.run(
-      { deploymentUrl: `${req.protocol}://${req.get("host")}` } as ApplicationLocalStorage,
-      () => {
-        // Runs next request handler inside a context where it can access the local storage context
-        next();
-      },
-    );
+    const deploymentUrl = req.get("origin") ?? `${req.protocol}://${req.get("host")}`;
+    asyncLocalStorage.run({ deploymentUrl } as ApplicationLocalStorage, () => {
+      // Runs next request handler inside a context where it can access the local storage context
+      next();
+    });
   });
 
   app.use("/api", routes);
