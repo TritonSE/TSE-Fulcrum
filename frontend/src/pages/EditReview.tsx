@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Button, Form, Modal } from "react-bootstrap";
+import { Form, Modal } from "react-bootstrap";
+import { Button } from "@tritonse/tse-constellation";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 
 import api, { Application, Review, Stage } from "../api";
@@ -97,109 +98,110 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   };
 
   return (
-    <div>
+    <div className="tw:flex tw:flex-col tw:gap-8">
       {showApplication && review && (
         <ApplicationHeader
           applicationId={review.application}
           reassignReview={editable ? () => setShowConfirmReassignModal(true) : undefined}
         />
       )}
-      <h2>{`${stage && stage.name} (${(review && review.reviewerEmail) || "unassigned"})`}</h2>
-      <Form onSubmit={onSubmit}>
-        {stage && stage.hasTechnicalInterview && (
-          <>
-            <Link
-              to={location.pathname.replace("edit", "interview")}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              Technical interview
-            </Link>
-            <br />
-            <br />
-          </>
-        )}
-        {stage &&
-          stage.fieldOrder.map((fieldName) => {
-            const field = stage.fields[fieldName];
-            let control;
-            switch (field.type) {
-              case "number":
-                control = (
-                  <Form.Control
-                    type="number"
-                    value={"" + getReviewField(fieldName)}
-                    onChange={(e) => {
-                      if (e.target.value === "") {
-                        clearReviewField(fieldName);
-                      } else {
-                        setReviewField(fieldName, parseFloat(e.target.value));
+      <div>
+        <h2 className="tw:!text-3xl tw:!text-teal-primary">{`${stage && stage.name}`}</h2>
+        <Form onSubmit={onSubmit}>
+          {stage && stage.hasTechnicalInterview && (
+            <>
+              <Link
+                to={location.pathname.replace("edit", "interview")}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                Technical interview
+              </Link>
+              <br />
+              <br />
+            </>
+          )}
+          {stage &&
+            stage.fieldOrder.map((fieldName) => {
+              const field = stage.fields[fieldName];
+              let control;
+              switch (field.type) {
+                case "number":
+                  control = (
+                    <Form.Control
+                      type="number"
+                      value={"" + getReviewField(fieldName)}
+                      onChange={(e) => {
+                        if (e.target.value === "") {
+                          clearReviewField(fieldName);
+                        } else {
+                          setReviewField(fieldName, parseFloat(e.target.value));
+                        }
+                      }}
+                      onWheel={
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
                       }
-                    }}
-                    onWheel={
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
-                    }
-                    disabled={!editable}
-                  />
-                );
-                break;
-              default:
-                control = editable ? (
-                  <Form.Control
-                    as="textarea"
-                    rows={10}
-                    value={
-                      typeof getReviewField(fieldName) === "undefined"
+                      disabled={!editable}
+                    />
+                  );
+                  break;
+                default:
+                  control = editable ? (
+                    <Form.Control
+                      as="textarea"
+                      rows={10}
+                      value={
+                        typeof getReviewField(fieldName) === "undefined"
+                          ? ""
+                          : getReviewField(fieldName) + ""
+                      }
+                      onChange={(e) => {
+                        if (e.target.value === "") {
+                          clearReviewField(fieldName);
+                        } else {
+                          setReviewField(fieldName, e.target.value);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div style={{ whiteSpace: "pre-line" }}>
+                      {typeof getReviewField(fieldName) === "undefined"
                         ? ""
-                        : getReviewField(fieldName) + ""
-                    }
-                    onChange={(e) => {
-                      if (e.target.value === "") {
-                        clearReviewField(fieldName);
-                      } else {
-                        setReviewField(fieldName, e.target.value);
-                      }
-                    }}
-                  />
-                ) : (
-                  <div style={{ whiteSpace: "pre-line" }}>
-                    {typeof getReviewField(fieldName) === "undefined"
-                      ? ""
-                      : getReviewField(fieldName) + ""}
-                  </div>
-                );
-                break;
-            }
-            return (
-              <Form.Group controlId={`${id}-${fieldName}`} key={id + fieldName}>
-                <Form.Label>{field.label}</Form.Label>
-                {field.description && (
-                  <>
-                    <br />
-                    <Form.Text>
-                      {field.description}{" "}
-                      {field.rubricLink && (
-                        <a href={field.rubricLink} target="_blank" rel="noreferrer noopener">
-                          See rubric
-                        </a>
-                      )}
-                    </Form.Text>
-                  </>
-                )}
-                {control}
-                <br />
-              </Form.Group>
-            );
-          })}
-        {editable && (
-          <Button type="submit" variant="success">
-            Save
-          </Button>
-        )}
-        {alerts}
-      </Form>
-
+                        : getReviewField(fieldName) + ""}
+                    </div>
+                  );
+                  break;
+              }
+              return (
+                <Form.Group controlId={`${id}-${fieldName}`} key={id + fieldName}>
+                  <Form.Label>{field.label}</Form.Label>
+                  {field.description && (
+                    <>
+                      <br />
+                      <Form.Text>
+                        {field.description}{" "}
+                        {field.rubricLink && (
+                          <a href={field.rubricLink} target="_blank" rel="noreferrer noopener">
+                            See rubric
+                          </a>
+                        )}
+                      </Form.Text>
+                    </>
+                  )}
+                  {control}
+                  <br />
+                </Form.Group>
+              );
+            })}
+          {editable && (
+            <Button type="submit" className="tw:!px-2.5 tw:!py-1.5">
+              Save
+            </Button>
+          )}
+          {alerts}
+        </Form>
+      </div>
       <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Review saved!</Modal.Title>
@@ -208,11 +210,14 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           <Modal.Body>You&apos;ve finished all your assigned reviews!</Modal.Body>
         ) : null}
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowSuccessModal(false)}>
+          <Button
+            className="tw:!px-2.5 tw:!py-1.5 tw:!bg-cream-primary tw:!text-teal-primary"
+            onClick={() => setShowSuccessModal(false)}
+          >
             Close
           </Button>
           <Link to={nextReviewId === null ? "/" : `/review/${nextReviewId}/edit`}>
-            <Button variant="primary" onClick={() => setShowSuccessModal(false)}>
+            <Button className="tw:!px-2.5 tw:!py-1.5" onClick={() => setShowSuccessModal(false)}>
               {nextReviewId === null ? "Back to Homepage" : "Next Review"}
             </Button>
           </Link>
@@ -230,11 +235,14 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
         </Modal.Header>
         <Modal.Body>Are you sure you want to reassign this review?</Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirmReassignModal(false)}>
+          <Button
+            className="tw:!px-2.5 tw:!py-1.5 tw:!bg-cream-primary tw:!text-teal-primary"
+            onClick={() => setShowConfirmReassignModal(false)}
+          >
             Cancel
           </Button>
           <Button
-            variant="primary"
+            className="tw:!px-2.5 tw:!py-1.5"
             onClick={() => {
               setShowConfirmReassignModal(false);
               onReassignClicked();
@@ -255,7 +263,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
         </Modal.Header>
         <Modal.Footer>
           <Link to="/">
-            <Button variant="primary">Back to Homepage</Button>
+            <Button className="tw:!px-2.5 tw:!py-1.5">Back to Homepage</Button>
           </Link>
         </Modal.Footer>
       </Modal>

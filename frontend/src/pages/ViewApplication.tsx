@@ -23,18 +23,20 @@ export default function ViewApplication() {
   return (
     <div className="tw:flex tw:flex-col tw:gap-8">
       <ApplicationHeader applicationId={applicationId || ""} />
-      {reviews
-        .slice()
-        .sort(
-          makeComparator((r) => [
-            r.stage.pipelineIdentifier,
-            r.stage.pipelineIndex,
-            r.reviewerEmail || "",
-          ])
-        )
-        .map((r) => (
-          <ReviewView key={r._id} id={r._id} showApplication={false} />
-        ))}
+      <div className="tw:flex tw:flex-col tw:gap-7">
+        {reviews
+          .slice()
+          .sort(
+            makeComparator((r) => [
+              r.stage.pipelineIdentifier,
+              r.stage.pipelineIndex,
+              r.reviewerEmail || "",
+            ])
+          )
+          .map((r) => (
+            <ReviewView key={r._id} id={r._id} showApplication={false} />
+          ))}
+      </div>
       {alerts}
     </div>
   );

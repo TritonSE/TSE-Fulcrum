@@ -18,7 +18,7 @@ function PromptDropdown({ title, content }: { title: string; content: string | u
         onClick={() => setIsOpen(!isOpen)}
         className="tw:w-full tw:flex tw:items-center tw:justify-between tw:p-4 tw:bg-accent-light tw:text-left"
       >
-        <h3 className="tw:!m-0 tw:!font-normal tw:!text-2xl">{title}</h3>
+        <h3 className="tw:!m-0 tw:!font-normal tw:!text-2xl tw:!text-teal-primary">{title}</h3>
         <ChevronDown
           className={twMerge("tw:transition-transform", isOpen ? "tw:rotate-180" : "")}
         />
