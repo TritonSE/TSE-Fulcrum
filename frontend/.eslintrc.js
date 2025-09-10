@@ -85,6 +85,9 @@ const reactRules = {
   "react/sort-comp": "warn",
   "react/prefer-stateless-function": "warn",
   "react/no-array-index-key": "warn",
+
+  // False positives
+  "react/require-default-props": "off",
 };
 
 /**

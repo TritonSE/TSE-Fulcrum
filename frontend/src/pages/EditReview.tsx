@@ -3,10 +3,10 @@ import { Button, Form, Modal } from "react-bootstrap";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 
 import api, { Application, Review, Stage } from "../api";
+import ApplicationHeader from "../components/ApplicationHeader";
 import { GlobalContext } from "../context/GlobalContext";
 import { getReviewStatus, ReviewStatus } from "../helpers/review";
 import { useAlerts, useStateHelper } from "../hooks/alerts";
-import ApplicationView from "../views/ApplicationView";
 
 export function ReviewView({ id, showApplication }: { id: string; showApplication: boolean }) {
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
@@ -97,21 +97,12 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   };
 
   return (
-    <div style={{ padding: "10px" }}>
-      {showApplication && (
-        <>
-          <h2>Application</h2>
-          {editable ? (
-            <Button
-              type="button"
-              variant="danger"
-              onClick={() => setShowConfirmReassignModal(true)}
-            >
-              Reassign
-            </Button>
-          ) : null}
-          {review && <ApplicationView id={review.application} />}
-        </>
+    <div>
+      {showApplication && review && (
+        <ApplicationHeader
+          applicationId={review.application}
+          reassignReview={editable ? () => setShowConfirmReassignModal(true) : undefined}
+        />
       )}
       <h2>{`${stage && stage.name} (${(review && review.reviewerEmail) || "unassigned"})`}</h2>
       <Form onSubmit={onSubmit}>

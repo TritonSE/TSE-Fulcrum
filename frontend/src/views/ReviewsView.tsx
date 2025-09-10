@@ -122,7 +122,7 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                 cell: (cell) => (
                   <ApplicantInfoCell
                     application={cell.row.original.application}
-                    linkDestination={`/review/${cell.row.original._id}/edit`}
+                    linkDestination={`/application/${cell.row.original.application._id}`}
                   />
                 ),
                 header: "Applicant",
