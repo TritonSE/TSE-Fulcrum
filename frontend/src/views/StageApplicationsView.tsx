@@ -181,7 +181,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
   };
 
   return (
-    <div className="tw:px-12 tw:py-6">
+    <div>
       <div className="tw:flex tw:flex-row tw:justify-between tw:mb-8">
         <h2>{titleText}</h2>
         <div className="tw:flex tw:flex-row tw:gap-x-5 tw:align-center">

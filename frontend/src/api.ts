@@ -41,6 +41,7 @@ interface FormField {
   label: string;
   description: string;
   rubricLink?: string;
+  maxValue?: number;
   weight?: number;
 }
 

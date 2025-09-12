@@ -6,13 +6,14 @@ import ApplicationHeader from "../components/ApplicationHeader";
 import { useAlerts } from "../hooks/alerts";
 import { makeComparator } from "../util";
 
-import { ReviewView } from "./EditReview";
+import ScoreCard from "../components/ScoreCard";
 
 export default function ViewApplication() {
   const { applicationId } = useParams();
   const { alerts, addAlert } = useAlerts();
 
   const [reviews, setReviews] = useState<PopulatedReview[]>([]);
+
   useEffect(() => {
     api
       .getFilteredReviews({ application: applicationId || "" })
@@ -20,22 +21,45 @@ export default function ViewApplication() {
       .catch(addAlert);
   }, [applicationId]);
 
+  const sortedReviews = reviews
+    .slice()
+    .sort(
+      makeComparator((r) => [
+        r.stage.pipelineIdentifier,
+        r.stage.pipelineIndex,
+        r.reviewerEmail || "",
+      ])
+    );
+
+  // Group reviews by stage
+  const groupedReviews = sortedReviews.reduce((acc, review) => {
+    const key = review.stage.name;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(review);
+    return acc;
+  }, {} as Record<string, PopulatedReview[]>);
+
+  // Get unique stage names
+  const stages = Array.from(new Set(sortedReviews.map((r) => r.stage.name)));
+
   return (
     <div className="tw:flex tw:flex-col tw:gap-8">
       <ApplicationHeader applicationId={applicationId || ""} />
       <div className="tw:flex tw:flex-col tw:gap-7">
-        {reviews
-          .slice()
-          .sort(
-            makeComparator((r) => [
-              r.stage.pipelineIdentifier,
-              r.stage.pipelineIndex,
-              r.reviewerEmail || "",
-            ])
-          )
-          .map((r) => (
-            <ReviewView key={r._id} id={r._id} showApplication={false} />
-          ))}
+        {stages.map((stage) => {
+          const reviewsInGroup = groupedReviews[stage];
+
+          return (
+            <div key={stage} className="tw:flex tw:flex-col tw:gap-3">
+              <h2 className="tw:!text-2xl tw:!m-0 tw:!text-teal-primary tw:!font-bold">{stage}</h2>
+              <div className="tw:flex tw:gap-15 tw:flex-wrap">
+                {reviewsInGroup.map((r) => (
+                  <ScoreCard key={r._id} review={r} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
       {alerts}
     </div>
