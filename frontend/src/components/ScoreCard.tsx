@@ -1,7 +1,8 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
+
 import { PopulatedReview } from "../api";
 import { formatFieldNameHumanReadable } from "../helpers/review";
-import { Link } from "react-router-dom";
 
 interface ScoreCardProps {
   review: PopulatedReview;
