@@ -6,6 +6,7 @@ import ApplicationHeader from "../components/ApplicationHeader";
 import ScoreCard from "../components/ScoreCard";
 import { useAlerts } from "../hooks/alerts";
 import { makeComparator } from "../util";
+import StageNotes from "../components/StageNotes";
 
 export default function ViewApplication() {
   const { applicationId } = useParams();
@@ -56,6 +57,7 @@ export default function ViewApplication() {
                   <ScoreCard key={r._id} review={r} />
                 ))}
               </div>
+              <StageNotes reviewsInStage={reviewsInGroup} />
             </div>
           );
         })}

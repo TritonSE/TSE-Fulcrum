@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
 import { PopulatedReview } from "../api";
@@ -10,18 +9,14 @@ interface ScoreCardProps {
 
 export default function ScoreCard({ review }: ScoreCardProps) {
   // Each field in this array is [fieldName, fieldValue, maxValue, rubricLink]
-  const scoreAndRatingFields = useMemo(
-    () =>
-      Object.entries(review.stage.fields || {})
-        .filter(([key, _]) => key.includes("score") || key.includes("rating"))
-        .map(([key, _]) => [
-          key,
-          review.fields[key],
-          review.stage.fields[key].maxValue,
-          review.stage.fields[key].rubricLink,
-        ]),
-    [review.stage.fields, review.fields]
-  );
+  const scoreAndRatingFields = Object.entries(review.stage.fields || {})
+    .filter(([key, _]) => key.includes("score") || key.includes("rating"))
+    .map(([key, _]) => [
+      key,
+      review.fields[key],
+      review.stage.fields[key].maxValue,
+      review.stage.fields[key].rubricLink,
+    ]);
 
   return (
     <div className="tw:flex tw:flex-col tw:rounded-lg tw:overflow-hidden tw:min-w-90">
