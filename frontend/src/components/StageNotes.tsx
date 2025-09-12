@@ -1,4 +1,4 @@
-import { Application, PopulatedReview } from "../api";
+import { PopulatedReview } from "../api";
 import { formatFieldNameHumanReadable } from "../helpers/review";
 
 interface StageNotesProps {
@@ -19,8 +19,8 @@ export default function StageNotes({ reviewsInStage: reviews }: StageNotesProps)
     <div className="tw:bg-cream-primary tw:p-6 tw:rounded-lg">
       <h3 className="tw:!m-0 tw:!mb-2 tw:!text-teal-primary tw:!text-xl">Notes: </h3>
       <div className="tw:flex tw:flex-col tw:gap-3">
-        {notesFields.map(([key, value, email], index) => (
-          <div key={index} className="tw:flex tw:flex-col">
+        {notesFields.map(([key, value, email]) => (
+          <div key={`${key}-${email}`} className="tw:flex tw:flex-col">
             ({email})
             <div>
               <span className="tw:font-medium">

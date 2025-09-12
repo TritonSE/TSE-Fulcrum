@@ -4,9 +4,9 @@ import { useParams } from "react-router-dom";
 import api, { PopulatedReview } from "../api";
 import ApplicationHeader from "../components/ApplicationHeader";
 import ScoreCard from "../components/ScoreCard";
+import StageNotes from "../components/StageNotes";
 import { useAlerts } from "../hooks/alerts";
 import { makeComparator } from "../util";
-import StageNotes from "../components/StageNotes";
 
 export default function ViewApplication() {
   const { applicationId } = useParams();
