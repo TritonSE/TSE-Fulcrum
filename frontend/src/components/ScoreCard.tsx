@@ -21,8 +21,8 @@ export default function ScoreCard({ review }: ScoreCardProps) {
   return (
     <div className="tw:flex tw:flex-col tw:rounded-lg tw:overflow-hidden tw:min-w-90">
       <div className="tw:bg-accent tw:p-2.5 tw:text-white tw:flex tw:justify-between tw:items-center">
-        <span>{review.reviewerEmail}</span>
-        <Link to={`/review/${review._id}/edit`} className="tw:!text-white">
+        <span>{review.reviewerEmail ?? "(Unassigned)"}</span>
+        <Link to={`/review/${review._id}/edit`} className="tw:!text-white tw:underline">
           View
         </Link>
       </div>

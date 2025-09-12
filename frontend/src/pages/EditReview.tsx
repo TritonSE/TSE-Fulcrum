@@ -1,6 +1,6 @@
-import { Button } from "@tritonse/tse-constellation";
+import { Button, Modal } from "@tritonse/tse-constellation";
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Form, Modal } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 
 import api, { Application, Review, Stage } from "../api";
@@ -63,6 +63,12 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       .updateReview(review)
       .then(setReview)
       .then(() => {
+        // If the user is an admin but not the assigned reviewer, don't show pop up
+        if (user?.isAdmin && user?.email !== review.reviewerEmail) {
+          addAlert("Review saved successfully", "success");
+          return;
+        }
+
         if (
           stage &&
           // Coerce the type to PopulatedReview, which this function expect
@@ -114,6 +120,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
                 to={location.pathname.replace("edit", "interview")}
                 target="_blank"
                 rel="noreferrer noopener"
+                className="tw:text-link tw:underline"
               >
                 Technical interview
               </Link>
@@ -202,47 +209,37 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           {alerts}
         </Form>
       </div>
-      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Review saved!</Modal.Title>
-        </Modal.Header>
-        {nextReviewId === null ? (
-          <Modal.Body>You&apos;ve finished all your assigned reviews!</Modal.Body>
-        ) : null}
-        <Modal.Footer>
-          <Button
-            className="tw:!px-2.5 tw:!py-1.5 tw:!bg-cream-primary tw:!text-teal-primary"
-            onClick={() => setShowSuccessModal(false)}
-          >
-            Close
-          </Button>
+
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Review saved!"
+        content={nextReviewId === null ? "You've finished all your assigned reviews!" : ""}
+        primaryActionComponent={
           <Link to={nextReviewId === null ? "/" : `/review/${nextReviewId}/edit`}>
-            <Button className="tw:!px-2.5 tw:!py-1.5" onClick={() => setShowSuccessModal(false)}>
+            <Button onClick={() => setShowSuccessModal(false)}>
               {nextReviewId === null ? "Back to Homepage" : "Next Review"}
             </Button>
           </Link>
-        </Modal.Footer>
-      </Modal>
+        }
+        secondaryActionComponent={
+          <Button onClick={() => setShowSuccessModal(false)} variant="secondary">
+            Close
+          </Button>
+        }
+        withDividers={false}
+      />
 
       <Modal
-        show={showConfirmReassignModal}
-        onHide={() => {
+        isOpen={showConfirmReassignModal}
+        onClose={() => {
           setShowConfirmReassignModal(false);
         }}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Are you sure?</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Are you sure you want to reassign this review?</Modal.Body>
-        <Modal.Footer>
+        title="Are you sure?"
+        content="Are you sure you want to reassign this review?"
+        withDividers={false}
+        primaryActionComponent={
           <Button
-            className="tw:!px-2.5 tw:!py-1.5 tw:!bg-cream-primary tw:!text-teal-primary"
-            onClick={() => setShowConfirmReassignModal(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            className="tw:!px-2.5 tw:!py-1.5"
             onClick={() => {
               setShowConfirmReassignModal(false);
               onReassignClicked();
@@ -250,23 +247,28 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           >
             Yes, reassign!
           </Button>
-        </Modal.Footer>
-      </Modal>
+        }
+        secondaryActionComponent={
+          <Button variant="secondary" onClick={() => setShowConfirmReassignModal(false)}>
+            Cancel
+          </Button>
+        }
+      />
+
       <Modal
-        show={showReassignSuccessModal}
-        onHide={() => {
+        isOpen={showReassignSuccessModal}
+        onClose={() => {
           navigate("/");
         }}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Reassigned successfully!</Modal.Title>
-        </Modal.Header>
-        <Modal.Footer>
+        withDividers={false}
+        title="Reassigned successfully!"
+        content=""
+        primaryActionComponent={
           <Link to="/">
-            <Button className="tw:!px-2.5 tw:!py-1.5">Back to Homepage</Button>
+            <Button>Back to Homepage</Button>
           </Link>
-        </Modal.Footer>
-      </Modal>
+        }
+      />
     </div>
   );
 }
