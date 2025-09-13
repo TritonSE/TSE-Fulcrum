@@ -1,13 +1,7 @@
 import { Types } from "mongoose";
 
 import { Pipeline } from "../config";
-import {
-  Application,
-  ApplicationDocument,
-  ApplicationModel,
-  ProgressModel,
-  ReviewModel,
-} from "../models";
+import { Application, ApplicationDocument, ApplicationModel } from "../models";
 
 import EmailService from "./EmailService";
 import PipelineService from "./PipelineService";
@@ -52,21 +46,6 @@ class ApplicationService {
         "Thank you for your interest in Triton Software Engineering! This email confirms that we have received your application.",
       ].join("\n\n"),
     });
-
-    return result;
-  }
-
-  async deleteById(id: string): Promise<ApplicationDocument | string> {
-    const result = await ApplicationModel.findByIdAndDelete(id);
-    if (result === null) {
-      return "Application not found";
-    }
-
-    await ProgressModel.deleteMany({ application: id });
-
-    // TODO: once we denormalize review counts by reviewer, we need to decrement
-    // the review counts here
-    await ReviewModel.deleteMany({ application: id });
 
     return result;
   }

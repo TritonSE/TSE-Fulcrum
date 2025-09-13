@@ -17,11 +17,6 @@ interface ResetPasswordRequest {
   passwordResetToken: string;
 }
 
-interface CreateUserRequest {
-  email: string;
-  name: string;
-}
-
 export type PipelineIdentifier = "designer" | "test_designer" | "developer" | "test_developer";
 
 export interface Pipeline {
@@ -144,10 +139,6 @@ class Api {
 
   async getAllUsers(): Promise<User[]> {
     return (await this.get("/api/user")).json();
-  }
-
-  async createUser(request: CreateUserRequest): Promise<User> {
-    return (await this.post("/api/user", request)).json();
   }
 
   async getAllPipelines(): Promise<Pipeline[]> {
