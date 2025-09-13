@@ -1,7 +1,7 @@
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
-import { Checkbox, LoadingSpinner, Modal, Table } from "@tritonse/tse-constellation";
+import { Checkbox, LoadingSpinner, Modal, Table, Button } from "@tritonse/tse-constellation";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "react-bootstrap";
+import { twMerge } from "tailwind-merge";
 
 import api, { Application, PopulatedReview, Progress, Stage } from "../api";
 import { ApplicantInfoCell } from "../components/ApplicantInfoCell";
@@ -189,14 +189,20 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
           <Button
             disabled={selectedApplicationIds.length === 0}
             onClick={() => setModalState("advance")}
-            variant="success"
+            className={twMerge(
+              "tw:!px-3 tw:!rounded-lg tw:!bg-green-700",
+              selectedApplicationIds.length === 0 && "tw:opacity-60"
+            )}
           >
             Advance
           </Button>
           <Button
             disabled={selectedApplicationIds.length === 0}
             onClick={() => setModalState("reject")}
-            variant="danger"
+            className={twMerge(
+              "tw:!px-3 tw:!rounded-lg tw:!bg-red-600",
+              selectedApplicationIds.length === 0 && "tw:opacity-60"
+            )}
           >
             Reject
           </Button>

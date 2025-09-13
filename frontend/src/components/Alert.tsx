@@ -1,4 +1,4 @@
-export type Variant = "success" | "danger" | "warning";
+export type Variant = "success" | "danger" | "warning" | "info";
 
 interface AlertProps {
   className?: string;
@@ -16,6 +16,8 @@ export default function Alert({ variant, className, onClose, children }: AlertPr
         return "tw:bg-red-50 tw:border-red-200 tw:text-red-800";
       case "warning":
         return "tw:bg-yellow-50 tw:border-yellow-200 tw:text-yellow-800";
+      case "info":
+        return "tw:bg-blue-50 tw:border-blue-200 tw:text-blue-800";
       default:
         return "tw:bg-gray-50 tw:border-gray-200 tw:text-gray-800";
     }
@@ -24,7 +26,7 @@ export default function Alert({ variant, className, onClose, children }: AlertPr
   return (
     <div
       className={`
-        tw:px-4 tw:py-3 tw:mb-4 tw:border tw:rounded-md tw:relative tw:w-100
+        tw:px-5 tw:py-4 tw:mb-4 tw:border tw:rounded-md tw:relative tw:w-100
         ${getVariantClasses()}
         ${className || ""}
       `}

@@ -1,5 +1,6 @@
+import { Button } from "@tritonse/tse-constellation";
 import { useEffect, useState } from "react";
-import { Button, Form } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import api from "../api";
@@ -76,7 +77,9 @@ export default function ResetPassword() {
             justifyContent: "center",
           }}
         >
-          <Button type="submit">Reset password</Button>
+          <Button type="submit" className="tw:!bg-blue-600 tw:!px-3 tw:!rounded-lg">
+            Reset password
+          </Button>
         </div>
         <br />
         {alerts}
