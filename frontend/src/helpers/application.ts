@@ -11,6 +11,7 @@ export const APPLICANT_YEARS = [
 export type ApplicantYear = typeof APPLICANT_YEARS[number];
 
 export const formatApplicantYear = (year: number): ApplicantYear => {
+  console.log(year);
   switch (year) {
     case 1:
       return "1st";

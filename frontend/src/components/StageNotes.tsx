@@ -19,17 +19,18 @@ export default function StageNotes({ reviewsInStage: reviews }: StageNotesProps)
     <div className="tw:bg-cream-primary tw:p-6 tw:rounded-lg">
       <h3 className="tw:!m-0 tw:!mb-2 tw:!text-teal-primary tw:!text-xl">Notes: </h3>
       <div className="tw:flex tw:flex-col tw:gap-3">
-        {notesFields.map(([key, value, email]) => (
-          <div key={`${key}-${email}`} className="tw:flex tw:flex-col">
-            ({email})
-            <div>
-              <span className="tw:font-medium">
-                {formatFieldNameHumanReadable(key).replace("Notes", "")}
-              </span>
-              : {value}
+        {notesFields.map(([key, value, email]) => {
+          const label = formatFieldNameHumanReadable(key).replace("Notes", "").trim();
+
+          return (
+            <div key={`${key}-${email}`} className="tw:flex tw:flex-col">
+              ({email})
+              <div>
+                <span className="tw:font-medium">{label === "" ? "General" : label}</span>: {value}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -172,7 +172,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Blurb score",
-        maxValue: 5,
+        maxValue: 4,
         description: "Out of 4",
       },
     },

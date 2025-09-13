@@ -258,7 +258,10 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                 <div className="tw:flex tw:flex-col tw:gap-y-1">
                   <div className="tw:flex tw:flex-row tw:gap-x-3 tw:align-center">
                     <p className="tw:!m-auto">Year</p>
-                    <Button onClick={() => setShowingYearFilter(!showingYearFilter)}>
+                    <Button
+                      onClick={() => setShowingYearFilter(!showingYearFilter)}
+                      className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:!bg-blue-600"
+                    >
                       {showingYearFilter ? "Hide" : "Show"} Filter
                     </Button>
                   </div>
