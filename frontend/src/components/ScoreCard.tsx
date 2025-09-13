@@ -27,7 +27,11 @@ export default function ScoreCard({ review }: ScoreCardProps) {
         </Link>
       </div>
       <div className="tw:rounded-b-lg tw:border tw:border-top-0 tw:border-teal-primary tw:p-5">
-        <div className="tw:grid tw:grid-cols-2 tw:gap-5">
+        <div
+          className={`tw:grid tw:gap-5 tw:content-center tw:items-center ${
+            scoreAndRatingFields.length === 1 ? "tw:grid-cols-1" : "tw:grid-cols-2"
+          }`}
+        >
           {scoreAndRatingFields.map(([field, value, maxValue, rubricLink]) => (
             <div
               className="tw:flex tw:flex-col tw:gap-3 tw:items-center tw:text-teal-primary"

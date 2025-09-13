@@ -48,8 +48,15 @@ export const formatFieldNameHumanReadable = (fieldName: string) => {
     return toTitleCase(fieldName);
   }
   const words = fieldName.split("_");
+
   return words
     .filter((word) => word !== "rating" && word !== "score")
-    .map((word) => toTitleCase(word))
+    .map((word) => {
+      if (word === "test") {
+        return "TEST";
+      }
+
+      return toTitleCase(word);
+    })
     .join(" ");
 };

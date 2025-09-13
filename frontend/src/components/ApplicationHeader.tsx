@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 import api, { Application } from "../api";
-import { formatPhoneNumber, toTitleCase } from "../helpers/application";
+import { formatPhoneNumber } from "../helpers/application";
+import { formatFieldNameHumanReadable } from "../helpers/review";
 import { useAlerts } from "../hooks/alerts";
 import { formatQuarter } from "../util";
 
@@ -85,6 +86,10 @@ export default function ApplicationHeader({
         <p className="tw:!m-0">Grad Date: {formatQuarter(application?.gradQuarter || 0)}</p>
         <p className="tw:!m-0">Phone: {formatPhoneNumber(application?.phone || "")}</p>
         <p className="tw:!m-0">Email: {application?.email}</p>
+        <p className="tw:!m-0">
+          Previously in TEST:{" "}
+          {application?.prevTest ? formatFieldNameHumanReadable(application?.prevTest) : "No"}
+        </p>
         <a href={application?.resumeUrl} target="_blank" rel="noreferrer noopener">
           Resume
         </a>
@@ -100,7 +105,13 @@ export default function ApplicationHeader({
             return null;
           }
 
-          return <PromptDropdown key={key} title={toTitleCase(key)} content={response} />;
+          return (
+            <PromptDropdown
+              key={key}
+              title={formatFieldNameHumanReadable(key)}
+              content={response}
+            />
+          );
         })}
       </div>
       {alerts}
