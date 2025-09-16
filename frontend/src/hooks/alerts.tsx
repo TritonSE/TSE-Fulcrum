@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { Alert } from "react-bootstrap";
+
+import Alert, { Variant } from "../components/Alert";
 
 interface UseAlertsResult {
   alerts: React.ReactNode;
-  addAlert: (alert: unknown, variant?: string) => void;
+  addAlert: (alert: unknown, variant?: Variant) => void;
   clearAlerts: () => void;
 }
 
 interface AlertData {
   message: string;
-  variant: string;
+  variant: Variant;
 }
 
 function useAlerts(): UseAlertsResult {
@@ -17,14 +18,13 @@ function useAlerts(): UseAlertsResult {
 
   return {
     alerts: (
-      <div className="alerts">
+      <div className="tw:absolute tw:overflow-x-hideen tw:overflow-y-auto tw:top-[50px] tw:right-[20px] tw:z-50 tw:max-w-[500px] tw:max-h-[50%]">
         {alertList.map(({ message, variant }, i: number) => (
           <Alert
             /* eslint-disable-next-line react/no-array-index-key */
             key={i}
-            className="alert"
+            className="tw:shadow-md"
             variant={variant}
-            dismissible
             onClose={() => setAlertList(alertList.filter((_, j) => j !== i))}
           >
             {message}
@@ -44,7 +44,7 @@ function useAlerts(): UseAlertsResult {
 
 interface UseAlertResult {
   alert: React.ReactNode;
-  setAlert: (alert: unknown, variant?: string) => void;
+  setAlert: (alert: unknown, variant?: Variant) => void;
 }
 
 function useAlert(): UseAlertResult {

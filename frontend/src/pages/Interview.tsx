@@ -1,14 +1,16 @@
 import { RemoteSelectionManager } from "@convergencelabs/monaco-collab-ext";
 import Editor, { type Monaco } from "@monaco-editor/react";
+import { Button } from "@tritonse/tse-constellation";
 import { type editor as MonacoEditor } from "monaco-editor";
 import { useState, useEffect, useRef, type ReactNode } from "react";
-import { Button, Dropdown } from "react-bootstrap";
+import { Dropdown } from "react-bootstrap";
 import Markdown from "react-markdown";
 import { useLocation } from "react-router-dom";
 import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import cpp from "react-syntax-highlighter/dist/esm/languages/prism/cpp";
 import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { io, type Socket } from "socket.io-client";
+import { twMerge } from "tailwind-merge";
 
 import TSELogo from "../components/TSELogo";
 
@@ -368,24 +370,29 @@ export default function Interview() {
     <>
       <style>{css}</style>
       {role === INTERVIEWER && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "48px",
-            background: "rgb(238, 238, 238)",
-            padding: "5px",
-          }}
-        >
-          <Button onClick={() => window.close()}>← Back to Review</Button>
-          <div style={{ flex: 1 }}>&nbsp;</div>
-          <Button variant={active ? "warning" : "success"} onClick={toggleInterview}>
+        <div className="tw:flex tw:items-center tw:justify-center tw:h-12 tw:mb-3">
+          <Button
+            className="tw:!bg-blue-600 tw:!px-2 tw:!py-2 tw:!rounded-lg"
+            onClick={() => window.close()}
+          >
+            ← Back to Review
+          </Button>
+          <div className="tw:flex-1">&nbsp;</div>
+          <Button
+            className={twMerge(
+              "tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg",
+              active ? "tw:!bg-amber-400" : ""
+            )}
+            onClick={toggleInterview}
+          >
             {active ? "End" : "Begin"} Interview
           </Button>
           <div>&nbsp;&nbsp;&nbsp;</div>
           <Button
-            variant={blinking ? "success" : "secondary"}
+            className={twMerge(
+              "tw:!bg-accent tw:!px-3 tw:!py-2 tw:!rounded-lg tw:transition-all tw:duration-500",
+              blinking ? "tw:!bg-green-500" : ""
+            )}
             onClick={() => {
               navigator.clipboard.writeText(
                 window.location.origin +

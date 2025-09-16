@@ -1,5 +1,6 @@
+import { Button } from "@tritonse/tse-constellation";
 import { useContext, useEffect, useState } from "react";
-import { Button, Form } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 import api from "../api";
@@ -60,8 +61,10 @@ export default function Login() {
         </Form.Group>
         <br />
         <div className="tw:flex tw:justify-around tw:gap-4">
-          <Button type="submit">Log in</Button>
-          <Button variant="secondary" onClick={onForgotPassword}>
+          <Button type="submit" className="tw:!bg-blue-600 tw:!px-3 tw:!rounded-lg">
+            Log in
+          </Button>
+          <Button onClick={onForgotPassword} className="tw:!bg-accent tw:!px-3 tw:!rounded-lg">
             Forgot password
           </Button>
         </div>

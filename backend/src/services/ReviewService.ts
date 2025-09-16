@@ -222,7 +222,10 @@ class ReviewService {
       reviewers = excludingPreviousReviewers;
     }
 
-    const gradeLevel = this.determineApplicantGradeLevel(applicationDoc);
+    const gradeLevel = ApplicationService.determineApplicantGradeLevel(
+      applicationDoc.startQuarter,
+      applicationDoc.gradQuarter,
+    );
 
     // Define filters for each stage
     const stageFilters: Partial<Record<StageIdentifier, (reviewer: UserDocument) => boolean>> = {
@@ -320,35 +323,9 @@ class ReviewService {
     return ReviewStatus.Completed;
   }
 
-  /* 1 - First year, 2 - Second year... */
-  private determineApplicantGradeLevel(application: ApplicationDocument): number {
-    const totalQuartersAtUCSD = this.calculateQuarterDiff(
-      application.startQuarter,
-      application.gradQuarter,
-    );
-
-    const now = new Date();
-
-    // If it's currently summer, year level is rounded up to next fall
-    // Shouldn't be relevant since we only receive applications in the fall
-    const yearsSinceStart = Math.ceil(
-      this.calculateQuarterDiff(
-        application.startQuarter,
-        now.getFullYear() * 4 + Math.floor(now.getMonth() / 3),
-      ) / 3,
-    );
-
-    return totalQuartersAtUCSD < 9 ? yearsSinceStart + 2 : yearsSinceStart;
-  }
-
-  /* Helper function to calculate academic quarters between two encoded quarter values */
-  private calculateQuarterDiff(startQuarter: number, endQuarter: number): number {
-    if (endQuarter < startQuarter) return 0;
-    const yearsBetween = Math.floor(endQuarter / 4) - Math.floor(startQuarter / 4);
-    return endQuarter - startQuarter - yearsBetween + 1;
-  }
-
   serialize(review: ReviewDocument) {
+    const application = review.application as unknown as ApplicationDocument;
+
     return {
       _id: review._id.toHexString(),
       stageId: review.stageId,
@@ -356,8 +333,9 @@ class ReviewService {
       application: review.application.toJSON(),
       reviewerEmail: review.reviewerEmail,
       fields: review.fields,
-      applicantYear: this.determineApplicantGradeLevel(
-        review.application as unknown as ApplicationDocument,
+      applicantYear: ApplicationService.determineApplicantGradeLevel(
+        application.startQuarter,
+        application.gradQuarter,
       ),
     };
   }

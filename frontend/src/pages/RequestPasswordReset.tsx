@@ -1,5 +1,6 @@
+import { Button } from "@tritonse/tse-constellation";
 import { useState, useEffect } from "react";
-import { Button, Form } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 
 import api from "../api";
 import TSELogo from "../components/TSELogo";
@@ -15,7 +16,14 @@ export default function RequestPasswordReset() {
 
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     clearAlerts();
+
+    if (email === "") {
+      addAlert("Please enter an email address.", "danger");
+      return;
+    }
+
     api
       .requestPasswordReset(email)
       .then(() => {
@@ -35,7 +43,9 @@ export default function RequestPasswordReset() {
           <Form.Control type="email" onChange={(e) => setEmail(e.target.value)} />
         </Form.Group>
         <div className="tw:flex tw:justify-center">
-          <Button type="submit">Request password reset</Button>
+          <Button type="submit" className="tw:!bg-blue-600 tw:!px-3 tw:!rounded-lg">
+            Request password reset
+          </Button>
         </div>
         {alerts}
       </Form>

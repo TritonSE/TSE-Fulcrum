@@ -1,12 +1,13 @@
+import { Button, Modal } from "@tritonse/tse-constellation";
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Button, Form, Modal } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 
 import api, { Application, Review, Stage } from "../api";
+import ApplicationHeader from "../components/ApplicationHeader";
 import { GlobalContext } from "../context/GlobalContext";
 import { getReviewStatus, ReviewStatus } from "../helpers/review";
 import { useAlerts, useStateHelper } from "../hooks/alerts";
-import ApplicationView from "../views/ApplicationView";
 
 export function ReviewView({ id, showApplication }: { id: string; showApplication: boolean }) {
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
@@ -62,6 +63,12 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
       .updateReview(review)
       .then(setReview)
       .then(() => {
+        // If the user is an admin but not the assigned reviewer, don't show pop up
+        if (user?.isAdmin && user?.email !== review.reviewerEmail) {
+          addAlert("Review saved successfully", "success");
+          return;
+        }
+
         if (
           stage &&
           // Coerce the type to PopulatedReview, which this function expect
@@ -97,153 +104,142 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   };
 
   return (
-    <div style={{ padding: "10px" }}>
-      {showApplication && (
-        <>
-          <h2>Application</h2>
-          {editable ? (
-            <Button
-              type="button"
-              variant="danger"
-              onClick={() => setShowConfirmReassignModal(true)}
-            >
-              Reassign
-            </Button>
-          ) : null}
-          {review && <ApplicationView id={review.application} />}
-        </>
+    <div className="tw:flex tw:flex-col tw:gap-8">
+      {showApplication && review && (
+        <ApplicationHeader
+          applicationId={review.application}
+          reassignReview={editable ? () => setShowConfirmReassignModal(true) : undefined}
+        />
       )}
-      <h2>{`${stage && stage.name} (${(review && review.reviewerEmail) || "unassigned"})`}</h2>
-      <Form onSubmit={onSubmit}>
-        {stage && stage.hasTechnicalInterview && (
-          <>
-            <Link
-              to={location.pathname.replace("edit", "interview")}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              Technical interview
-            </Link>
-            <br />
-            <br />
-          </>
-        )}
-        {stage &&
-          stage.fieldOrder.map((fieldName) => {
-            const field = stage.fields[fieldName];
-            let control;
-            switch (field.type) {
-              case "number":
-                control = (
-                  <Form.Control
-                    type="number"
-                    value={"" + getReviewField(fieldName)}
-                    onChange={(e) => {
-                      if (e.target.value === "") {
-                        clearReviewField(fieldName);
-                      } else {
-                        setReviewField(fieldName, parseFloat(e.target.value));
+      <div>
+        <h2 className="tw:!text-3xl tw:!text-teal-primary">{`${stage && stage.name}`}</h2>
+        <Form onSubmit={onSubmit}>
+          {stage && stage.hasTechnicalInterview && (
+            <>
+              <Link
+                to={location.pathname.replace("edit", "interview")}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="tw:text-link tw:underline"
+              >
+                Technical interview
+              </Link>
+              <br />
+              <br />
+            </>
+          )}
+          {stage &&
+            stage.fieldOrder.map((fieldName) => {
+              const field = stage.fields[fieldName];
+              let control;
+              switch (field.type) {
+                case "number":
+                  control = (
+                    <Form.Control
+                      type="number"
+                      value={"" + getReviewField(fieldName)}
+                      onChange={(e) => {
+                        if (e.target.value === "") {
+                          clearReviewField(fieldName);
+                        } else {
+                          setReviewField(fieldName, parseFloat(e.target.value));
+                        }
+                      }}
+                      onWheel={
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
                       }
-                    }}
-                    onWheel={
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
-                    }
-                    disabled={!editable}
-                  />
-                );
-                break;
-              default:
-                control = editable ? (
-                  <Form.Control
-                    as="textarea"
-                    rows={10}
-                    value={
-                      typeof getReviewField(fieldName) === "undefined"
+                      disabled={!editable}
+                    />
+                  );
+                  break;
+                default:
+                  control = editable ? (
+                    <Form.Control
+                      as="textarea"
+                      rows={10}
+                      value={
+                        typeof getReviewField(fieldName) === "undefined"
+                          ? ""
+                          : getReviewField(fieldName) + ""
+                      }
+                      onChange={(e) => {
+                        if (e.target.value === "") {
+                          clearReviewField(fieldName);
+                        } else {
+                          setReviewField(fieldName, e.target.value);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div style={{ whiteSpace: "pre-line" }}>
+                      {typeof getReviewField(fieldName) === "undefined"
                         ? ""
-                        : getReviewField(fieldName) + ""
-                    }
-                    onChange={(e) => {
-                      if (e.target.value === "") {
-                        clearReviewField(fieldName);
-                      } else {
-                        setReviewField(fieldName, e.target.value);
-                      }
-                    }}
-                  />
-                ) : (
-                  <div style={{ whiteSpace: "pre-line" }}>
-                    {typeof getReviewField(fieldName) === "undefined"
-                      ? ""
-                      : getReviewField(fieldName) + ""}
-                  </div>
-                );
-                break;
-            }
-            return (
-              <Form.Group controlId={`${id}-${fieldName}`} key={id + fieldName}>
-                <Form.Label>{field.label}</Form.Label>
-                {field.description && (
-                  <>
-                    <br />
-                    <Form.Text>
-                      {field.description}{" "}
-                      {field.rubricLink && (
-                        <a href={field.rubricLink} target="_blank" rel="noreferrer noopener">
-                          See rubric
-                        </a>
-                      )}
-                    </Form.Text>
-                  </>
-                )}
-                {control}
-                <br />
-              </Form.Group>
-            );
-          })}
-        {editable && (
-          <Button type="submit" variant="success">
-            Save
-          </Button>
-        )}
-        {alerts}
-      </Form>
+                        : getReviewField(fieldName) + ""}
+                    </div>
+                  );
+                  break;
+              }
+              return (
+                <Form.Group controlId={`${id}-${fieldName}`} key={id + fieldName}>
+                  <Form.Label>{field.label}</Form.Label>
+                  {field.description && (
+                    <>
+                      <br />
+                      <Form.Text>
+                        {field.description}{" "}
+                        {field.rubricLink && (
+                          <a href={field.rubricLink} target="_blank" rel="noreferrer noopener">
+                            See rubric
+                          </a>
+                        )}
+                      </Form.Text>
+                    </>
+                  )}
+                  {control}
+                  <br />
+                </Form.Group>
+              );
+            })}
+          {editable && (
+            <Button type="submit" className="tw:!px-2.5 tw:!py-1.5">
+              Save
+            </Button>
+          )}
+          {alerts}
+        </Form>
+      </div>
 
-      <Modal show={showSuccessModal} onHide={() => setShowSuccessModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Review saved!</Modal.Title>
-        </Modal.Header>
-        {nextReviewId === null ? (
-          <Modal.Body>You&apos;ve finished all your assigned reviews!</Modal.Body>
-        ) : null}
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowSuccessModal(false)}>
-            Close
-          </Button>
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Review saved!"
+        content={nextReviewId === null ? "You've finished all your assigned reviews!" : ""}
+        primaryActionComponent={
           <Link to={nextReviewId === null ? "/" : `/review/${nextReviewId}/edit`}>
-            <Button variant="primary" onClick={() => setShowSuccessModal(false)}>
+            <Button onClick={() => setShowSuccessModal(false)}>
               {nextReviewId === null ? "Back to Homepage" : "Next Review"}
             </Button>
           </Link>
-        </Modal.Footer>
-      </Modal>
+        }
+        secondaryActionComponent={
+          <Button onClick={() => setShowSuccessModal(false)} variant="secondary">
+            Close
+          </Button>
+        }
+        withDividers={false}
+      />
 
       <Modal
-        show={showConfirmReassignModal}
-        onHide={() => {
+        isOpen={showConfirmReassignModal}
+        onClose={() => {
           setShowConfirmReassignModal(false);
         }}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Are you sure?</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Are you sure you want to reassign this review?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowConfirmReassignModal(false)}>
-            Cancel
-          </Button>
+        title="Are you sure?"
+        content="Are you sure you want to reassign this review?"
+        withDividers={false}
+        primaryActionComponent={
           <Button
-            variant="primary"
             onClick={() => {
               setShowConfirmReassignModal(false);
               onReassignClicked();
@@ -251,23 +247,28 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           >
             Yes, reassign!
           </Button>
-        </Modal.Footer>
-      </Modal>
+        }
+        secondaryActionComponent={
+          <Button variant="secondary" onClick={() => setShowConfirmReassignModal(false)}>
+            Cancel
+          </Button>
+        }
+      />
+
       <Modal
-        show={showReassignSuccessModal}
-        onHide={() => {
+        isOpen={showReassignSuccessModal}
+        onClose={() => {
           navigate("/");
         }}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Reassigned successfully!</Modal.Title>
-        </Modal.Header>
-        <Modal.Footer>
+        withDividers={false}
+        title="Reassigned successfully!"
+        content=""
+        primaryActionComponent={
           <Link to="/">
-            <Button variant="primary">Back to Homepage</Button>
+            <Button>Back to Homepage</Button>
           </Link>
-        </Modal.Footer>
-      </Modal>
+        }
+      />
     </div>
   );
 }

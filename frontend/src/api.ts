@@ -17,11 +17,6 @@ interface ResetPasswordRequest {
   passwordResetToken: string;
 }
 
-interface CreateUserRequest {
-  email: string;
-  name: string;
-}
-
 export type PipelineIdentifier = "designer" | "test_designer" | "developer" | "test_developer";
 
 export interface Pipeline {
@@ -41,6 +36,7 @@ interface FormField {
   label: string;
   description: string;
   rubricLink?: string;
+  maxValue?: number;
   weight?: number;
 }
 
@@ -87,6 +83,8 @@ export interface Application {
   pronouns: string;
   email: string;
   phone: string;
+
+  applicantYear: number;
 
   // Calendar year, e.g. 2022.
   yearApplied: number;
@@ -143,10 +141,6 @@ class Api {
 
   async getAllUsers(): Promise<User[]> {
     return (await this.get("/api/user")).json();
-  }
-
-  async createUser(request: CreateUserRequest): Promise<User> {
-    return (await this.post("/api/user", request)).json();
   }
 
   async getAllPipelines(): Promise<Pipeline[]> {

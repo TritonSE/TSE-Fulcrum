@@ -1,13 +1,7 @@
 import { Types } from "mongoose";
 
 import { Pipeline } from "../config";
-import {
-  Application,
-  ApplicationDocument,
-  ApplicationModel,
-  ProgressModel,
-  ReviewModel,
-} from "../models";
+import { Application, ApplicationDocument, ApplicationModel } from "../models";
 
 import EmailService from "./EmailService";
 import PipelineService from "./PipelineService";
@@ -56,27 +50,43 @@ class ApplicationService {
     return result;
   }
 
-  async deleteById(id: string): Promise<ApplicationDocument | string> {
-    const result = await ApplicationModel.findByIdAndDelete(id);
-    if (result === null) {
-      return "Application not found";
-    }
-
-    await ProgressModel.deleteMany({ application: id });
-
-    // TODO: once we denormalize review counts by reviewer, we need to decrement
-    // the review counts here
-    await ReviewModel.deleteMany({ application: id });
-
-    return result;
-  }
-
   async getById(id: string | Types.ObjectId): Promise<ApplicationDocument | null> {
     return ApplicationModel.findById(id);
   }
 
+  /* 1 - First year, 2 - Second year... */
+  public determineApplicantGradeLevel(startQuarter: number, gradQuarter: number): number {
+    const totalQuartersAtUCSD = this.calculateQuarterDiff(startQuarter, gradQuarter);
+
+    const now = new Date();
+
+    // If it's currently summer, year level is rounded up to next fall
+    // Shouldn't be relevant since we only receive applications in the fall
+    const yearsSinceStart = Math.ceil(
+      this.calculateQuarterDiff(
+        startQuarter,
+        now.getFullYear() * 4 + Math.floor(now.getMonth() / 3),
+      ) / 3,
+    );
+
+    return totalQuartersAtUCSD < 9 ? yearsSinceStart + 2 : yearsSinceStart;
+  }
+
+  /* Helper function to calculate academic quarters between two encoded quarter values */
+  private calculateQuarterDiff(startQuarter: number, endQuarter: number): number {
+    if (endQuarter < startQuarter) return 0;
+    const yearsBetween = Math.floor(endQuarter / 4) - Math.floor(startQuarter / 4);
+    return endQuarter - startQuarter - yearsBetween + 1;
+  }
+
   serialize(application: ApplicationDocument) {
-    return application.toJSON();
+    return {
+      ...application.toJSON(),
+      applicantYear: this.determineApplicantGradeLevel(
+        application.startQuarter,
+        application.gradQuarter,
+      ),
+    };
   }
 }
 

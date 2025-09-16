@@ -3,6 +3,7 @@ import { Button, LoadingSpinner, Table, TextField } from "@tritonse/tse-constell
 import { useEffect, useState } from "react";
 
 import api, { PopulatedReview } from "../api";
+import { Variant } from "../components/Alert";
 import { ApplicantInfoCell } from "../components/ApplicantInfoCell";
 import { StatusChip } from "../components/StatusChip";
 import { formatApplicantYear } from "../helpers/application";
@@ -20,7 +21,7 @@ function AutoAssignButton({
   addAlert,
 }: {
   id: string;
-  addAlert: (message: unknown, variant?: string) => void;
+  addAlert: (message: unknown, variant?: Variant) => void;
 }) {
   const [enabled, setEnabled] = useState(true);
   const onClick = () => {
@@ -44,7 +45,7 @@ function ManualAssign({
   addAlert,
 }: {
   id: string;
-  addAlert: (message: unknown, variant?: string) => void;
+  addAlert: (message: unknown, variant?: Variant) => void;
 }) {
   const [enabled, setEnabled] = useState(true);
   const [reviewerEmail, setReviewerEmail] = useState("");
@@ -69,7 +70,7 @@ function ManualAssign({
         disabled={!enabled}
         placeholder="Reviewer's email address"
       />
-      <Button onClick={onClick} disabled={!enabled}>
+      <Button onClick={onClick} disabled={!enabled} className="tw:!flex tw:!justify-center">
         Reassign
       </Button>
     </div>
@@ -122,7 +123,7 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                 cell: (cell) => (
                   <ApplicantInfoCell
                     application={cell.row.original.application}
-                    linkDestination={`/review/${cell.row.original._id}/edit`}
+                    linkDestination={`/application/${cell.row.original.application._id}`}
                   />
                 ),
                 header: "Applicant",

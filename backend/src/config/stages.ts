@@ -20,6 +20,7 @@ type FormField = {
   choices: unknown[];
   allowOther: boolean;
   label: string;
+  maxValue?: number;
   description: string;
   rubricLink?: string;
   weight?: number;
@@ -51,9 +52,10 @@ const stages: Stage[] = [
       combined_score: {
         type: "number",
         choices: [],
+        maxValue: 5,
         allowOther: true,
-        label: "Score (out of 5)",
-        description: "",
+        label: "Score",
+        description: "Out of 5",
       },
     },
     fieldOrder: ["combined_score"],
@@ -160,6 +162,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Resume score",
+        maxValue: 5,
         description: "Out of 5",
         rubricLink:
           "https://docs.google.com/document/d/1EsdDrFu9F7G0K_-Jvawhh4A58s5w2vJFBvHo9_7Zmz0/edit?usp=sharing",
@@ -169,6 +172,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Blurb score",
+        maxValue: 4,
         description: "Out of 4",
       },
     },
@@ -203,6 +207,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Resume score",
+        maxValue: 23,
         description: "Out of 23 points",
         rubricLink:
           "https://docs.google.com/spreadsheets/d/18hrzhhFH_9faubB8Ya079sdByf8fSqsOinyvNEnjoBc/edit",
@@ -212,6 +217,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Blurb score",
+        maxValue: 4,
         description: "Out of 4 points",
         rubricLink:
           "https://docs.google.com/document/d/1iUqwXcOAhgaOWGWmbeg5GlxdXxZS2UYAlnCclNZWg1E/edit",
@@ -242,6 +248,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Behavioral rating",
+        maxValue: 3,
         description:
           "1 for bad, 2 for okay, 3 for great (see Appendix I of the technical interview guide)",
       },
@@ -257,6 +264,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Communication rating",
+        maxValue: 3,
         description:
           "1 for bad, 2 for okay, 3 for great (see Appendix I of the technical interview guide)",
       },
@@ -272,6 +280,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Code quality rating",
+        maxValue: 3,
         description:
           "1 for bad, 2 for okay, 3 for great (see Appendix I of the technical interview guide)",
       },
@@ -354,6 +363,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Behavioral score",
+        maxValue: 5,
         description: "Out of 5",
         rubricLink:
           "https://docs.google.com/document/d/1wO6xyCrB50SVGYJGVvkOOaT1QHWLytm8y9HCvNI3qEI/edit?usp=sharing",
@@ -378,6 +388,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Conceptual question score",
+        maxValue: 2,
         description: "Out of 2",
       },
       testing_question: {
@@ -392,6 +403,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Testing question score",
+        maxValue: 3,
         description: "Out of 3",
       },
       problem_solving_question: {
@@ -406,6 +418,7 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Problem-solving question score",
+        maxValue: 5,
         description: "Out of 5",
       },
       notes: {

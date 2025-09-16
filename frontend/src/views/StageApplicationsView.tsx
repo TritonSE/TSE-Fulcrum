@@ -1,7 +1,7 @@
 import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
-import { Checkbox, LoadingSpinner, Modal, Table } from "@tritonse/tse-constellation";
+import { Checkbox, LoadingSpinner, Modal, Table, Button } from "@tritonse/tse-constellation";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "react-bootstrap";
+import { twMerge } from "tailwind-merge";
 
 import api, { Application, PopulatedReview, Progress, Stage } from "../api";
 import { ApplicantInfoCell } from "../components/ApplicantInfoCell";
@@ -181,7 +181,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
   };
 
   return (
-    <div className="tw:px-12 tw:py-6">
+    <div>
       <div className="tw:flex tw:flex-row tw:justify-between tw:mb-8">
         <h2>{titleText}</h2>
         <div className="tw:flex tw:flex-row tw:gap-x-5 tw:align-center">
@@ -189,14 +189,20 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
           <Button
             disabled={selectedApplicationIds.length === 0}
             onClick={() => setModalState("advance")}
-            variant="success"
+            className={twMerge(
+              "tw:!px-3 tw:!rounded-lg tw:!bg-green-700",
+              selectedApplicationIds.length === 0 && "tw:opacity-60"
+            )}
           >
             Advance
           </Button>
           <Button
             disabled={selectedApplicationIds.length === 0}
             onClick={() => setModalState("reject")}
-            variant="danger"
+            className={twMerge(
+              "tw:!px-3 tw:!rounded-lg tw:!bg-red-600",
+              selectedApplicationIds.length === 0 && "tw:opacity-60"
+            )}
           >
             Reject
           </Button>
@@ -252,7 +258,10 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                 <div className="tw:flex tw:flex-col tw:gap-y-1">
                   <div className="tw:flex tw:flex-row tw:gap-x-3 tw:align-center">
                     <p className="tw:!m-auto">Year</p>
-                    <Button onClick={() => setShowingYearFilter(!showingYearFilter)}>
+                    <Button
+                      onClick={() => setShowingYearFilter(!showingYearFilter)}
+                      className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:!bg-blue-600"
+                    >
                       {showingYearFilter ? "Hide" : "Show"} Filter
                     </Button>
                   </div>
