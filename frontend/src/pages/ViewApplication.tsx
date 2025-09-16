@@ -25,6 +25,7 @@ export default function ViewApplication() {
     .slice()
     .sort(
       makeComparator((r) => [
+        -r.stage.pipelineIndex,
         r.stage.pipelineIdentifier,
         r.stage.pipelineIndex,
         r.reviewerEmail || "",

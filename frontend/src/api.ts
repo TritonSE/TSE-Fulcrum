@@ -84,6 +84,8 @@ export interface Application {
   email: string;
   phone: string;
 
+  applicantYear: number;
+
   // Calendar year, e.g. 2022.
   yearApplied: number;
 

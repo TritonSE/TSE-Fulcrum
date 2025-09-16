@@ -1,5 +1,6 @@
 import { PopulatedReview } from "../api";
 import { formatFieldNameHumanReadable } from "../helpers/review";
+import { useUsers } from "../hooks/users";
 
 interface StageNotesProps {
   reviewsInStage: PopulatedReview[];
@@ -7,6 +8,8 @@ interface StageNotesProps {
 
 /* Lists notes from all reviewers */
 export default function StageNotes({ reviewsInStage: reviews }: StageNotesProps) {
+  const { emailsToUsers } = useUsers();
+
   const notesFields = reviews.flatMap((r) =>
     Object.entries(r.fields)
       .filter(([key, _]) => key.includes("notes"))
@@ -24,9 +27,10 @@ export default function StageNotes({ reviewsInStage: reviews }: StageNotesProps)
 
           return (
             <div key={`${key}-${email}`} className="tw:flex tw:flex-col">
-              ({email})
+              ({emailsToUsers[email]?.name ?? "(unknown user)"})
               <div>
-                <span className="tw:font-medium">{label === "" ? "General" : label}</span>: {value}
+                <span className="tw:font-medium">{label === "" ? "General" : label}: </span>
+                <span className="tw:whitespace-pre-line">{value}</span>
               </div>
             </div>
           );

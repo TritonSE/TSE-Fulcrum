@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 import api, { Application } from "../api";
-import { formatPhoneNumber } from "../helpers/application";
+import { formatApplicantYear, formatPhoneNumber } from "../helpers/application";
 import { formatFieldNameHumanReadable } from "../helpers/review";
 import { useAlerts } from "../hooks/alerts";
 import { formatQuarter } from "../util";
@@ -13,7 +13,7 @@ function PromptDropdown({ title, content }: { title: string; content: string | u
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="tw:rounded-lg tw:overflow-hidden">
+    <div className="tw:rounded-lg tw:overflow-hidden tw:border tw:border-teal-primary">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -25,7 +25,7 @@ function PromptDropdown({ title, content }: { title: string; content: string | u
         />
       </button>
       {isOpen && (
-        <div className="tw:p-4 tw:border tw:border-teal-primary tw:border-t-0 tw:rounded-b-lg">
+        <div className="tw:p-4 tw:border-t tw:border-teal-primary tw:rounded-b-lg">
           <div className="tw:whitespace-pre-line">{content || "No response provided"}</div>
         </div>
       )}
@@ -37,6 +37,12 @@ interface ApplicationHeaderProps {
   applicationId: string;
   reassignReview?: () => void;
 }
+
+const field = (name: string, value: string) => (
+  <p className="tw:!m-0">
+    <b>{name}</b>: {value}
+  </p>
+);
 
 /* Displays information about the applicant, including a Reassign button if being used in the Review page */
 export default function ApplicationHeader({
@@ -60,7 +66,11 @@ export default function ApplicationHeader({
     "About Me": application?.aboutPrompt,
     "Why TSE": application?.interestPrompt,
     "TEST Barriers": application?.testBarriersPrompt,
-    ...application?.rolePrompts,
+    // Format role prompts as "Why [role]"
+    ...Object.entries(application?.rolePrompts || {}).reduce((acc, [key, value]) => {
+      acc[`Why ${formatFieldNameHumanReadable(key)}`] = value;
+      return acc;
+    }, {} as Record<string, string | undefined>),
   };
 
   return (
@@ -77,19 +87,20 @@ export default function ApplicationHeader({
           </Button>
         )}
       </div>
-      <div className="tw:grid tw:grid-rows-4 tw:grid-flow-col tw:w-fit tw:gap-x-30 tw:gap-y-2 tw:!text-lg">
-        <p className="tw:!m-0">ID: {application?._id}</p>
-        <p className="tw:!m-0">
-          Major: {application?.major} ({application?.majorDept})
-        </p>
-        <p className="tw:!m-0">Start Date: {formatQuarter(application?.startQuarter || 0)}</p>
-        <p className="tw:!m-0">Grad Date: {formatQuarter(application?.gradQuarter || 0)}</p>
-        <p className="tw:!m-0">Phone: {formatPhoneNumber(application?.phone || "")}</p>
-        <p className="tw:!m-0">Email: {application?.email}</p>
-        <p className="tw:!m-0">
-          Previously in TEST:{" "}
-          {application?.prevTest ? formatFieldNameHumanReadable(application?.prevTest) : "No"}
-        </p>
+      <div className="tw:grid tw:grid-rows-5 tw:grid-flow-col tw:w-fit tw:gap-x-30 tw:gap-y-2 tw:!text-lg">
+        {field("ID", application?._id || "")}
+        {field("Major", `${application?.major} (${application?.majorDept})`)}
+        {field("Year", formatApplicantYear(application?.applicantYear || 0))}
+        {field("Start Date", formatQuarter(application?.startQuarter || 0))}
+        {field("Grad Date", formatQuarter(application?.gradQuarter || 0))}
+        {field("Phone", formatPhoneNumber(application?.phone || ""))}
+        {field("Email", application?.email || "")}
+        {field(
+          "Previously in TEST",
+          application?.prevTest && application?.prevTest !== "none"
+            ? formatFieldNameHumanReadable(application?.prevTest)
+            : "No"
+        )}
         <a href={application?.resumeUrl} target="_blank" rel="noreferrer noopener">
           Resume
         </a>
@@ -105,13 +116,7 @@ export default function ApplicationHeader({
             return null;
           }
 
-          return (
-            <PromptDropdown
-              key={key}
-              title={formatFieldNameHumanReadable(key)}
-              content={response}
-            />
-          );
+          return <PromptDropdown key={key} title={key} content={response} />;
         })}
       </div>
       {alerts}
