@@ -21,14 +21,14 @@ export default function StageNotes({ reviewsInStage: reviews }: StageNotesProps)
   return (
     <div className="tw:bg-cream-primary tw:p-6 tw:rounded-lg">
       <h3 className="tw:!m-0 tw:!mb-2 tw:!text-teal-primary tw:!text-xl">Notes: </h3>
-      <div className="tw:flex tw:flex-col tw:gap-3">
+      <div className="tw:flex tw:flex-col tw:gap-5">
         {notesFields.map(([key, value, email]) => {
           const label = formatFieldNameHumanReadable(key).replace("Notes", "").trim();
 
           return (
             <div key={`${key}-${email}`} className="tw:flex tw:flex-col">
               ({emailsToUsers[email]?.name ?? "(unknown user)"})
-              <div>
+              <div className="tw:flex tw:flex-col">
                 <span className="tw:font-medium">{label === "" ? "General" : label}: </span>
                 <span className="tw:whitespace-pre-line">{value}</span>
               </div>
