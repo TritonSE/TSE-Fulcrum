@@ -1,6 +1,7 @@
 import { Button } from "@tritonse/tse-constellation";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 
 import api, { Application } from "../api";
@@ -8,7 +9,6 @@ import { formatApplicantYear, formatPhoneNumber } from "../helpers/application";
 import { formatFieldNameHumanReadable } from "../helpers/review";
 import { useAlerts } from "../hooks/alerts";
 import { formatQuarter } from "../util";
-import { Link } from "react-router-dom";
 
 function PromptDropdown({ title, content }: { title: string; content: string | undefined }) {
   const [isOpen, setIsOpen] = useState(true);

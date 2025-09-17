@@ -1,10 +1,10 @@
+import { LoadingSpinner } from "@tritonse/tse-constellation";
 import { ChangeEvent, FormEventHandler, useState, WheelEventHandler } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
-import { LoadingSpinner } from "@tritonse/tse-constellation";
 
-import { countWords } from "../util";
-import { useAlerts } from "../hooks/alerts";
 import api from "../api";
+import { useAlerts } from "../hooks/alerts";
+import { countWords } from "../util";
 
 if (!import.meta.env.VITE_APPLICATION_DEADLINE) {
   throw new Error("Missing VITE_APPLICATION_DEADLINE!");
