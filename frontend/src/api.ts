@@ -17,6 +17,10 @@ interface ResetPasswordRequest {
   passwordResetToken: string;
 }
 
+interface ResumeUploadResponse {
+  resumeUrl: string;
+}
+
 export type PipelineIdentifier = "designer" | "test_designer" | "developer" | "test_developer";
 
 export interface Pipeline {
@@ -108,6 +112,8 @@ export interface Application {
   rolePrompts: Record<string, string>;
 }
 
+type SubmitApplicationRequest = Omit<Application, "_id" | "applicantYear" | "yearApplied">;
+
 class Api {
   async logIn(request: LogInRequest): Promise<User | null> {
     const response = await this.uncheckedPost("/api/auth/log-in", request);
@@ -143,8 +149,18 @@ class Api {
     return (await this.get("/api/user")).json();
   }
 
+  async uploadResume(resumeFile: File): Promise<ResumeUploadResponse> {
+    const formData = new FormData();
+    formData.append("resumeFile", resumeFile);
+    return (await this.post("/api/resume", formData)).json();
+  }
+
   async getAllPipelines(): Promise<Pipeline[]> {
     return (await this.get("/api/pipeline")).json();
+  }
+
+  async submitApplication(application: SubmitApplicationRequest): Promise<void> {
+    await this.post("/api/application", application);
   }
 
   async getApplicationById(applicationId: string): Promise<Application> {
@@ -267,17 +283,18 @@ class Api {
     body: unknown,
     headers: Record<string, string>
   ): Promise<Response> {
+    const isFormData = body instanceof FormData;
     const hasBody = body !== undefined;
 
     const newHeaders = { ...headers };
-    if (hasBody) {
+    if (hasBody && !isFormData) {
       newHeaders["Content-Type"] = "application/json";
     }
 
     const response = await fetch(url, {
       method,
       headers: newHeaders,
-      body: hasBody ? JSON.stringify(body) : undefined,
+      body: isFormData ? body : hasBody ? JSON.stringify(body) : undefined,
     });
 
     return response;

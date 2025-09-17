@@ -19,9 +19,11 @@ import { makeComparator } from "../util";
 function AutoAssignButton({
   id,
   addAlert,
+  refreshReviews,
 }: {
   id: string;
   addAlert: (message: unknown, variant?: Variant) => void;
+  refreshReviews: () => void;
 }) {
   const [enabled, setEnabled] = useState(true);
   const onClick = () => {
@@ -30,6 +32,7 @@ function AutoAssignButton({
       .then((review) => {
         addAlert(`Auto-assigned review to ${review.reviewerEmail}`, "success");
         setEnabled(false);
+        refreshReviews();
       })
       .catch(addAlert);
   };
@@ -43,9 +46,11 @@ function AutoAssignButton({
 function ManualAssign({
   id,
   addAlert,
+  refreshReviews,
 }: {
   id: string;
   addAlert: (message: unknown, variant?: Variant) => void;
+  refreshReviews: () => void;
 }) {
   const [enabled, setEnabled] = useState(true);
   const [reviewerEmail, setReviewerEmail] = useState("");
@@ -55,6 +60,7 @@ function ManualAssign({
       .assignReview(id, reviewerEmail)
       .then((review) => {
         addAlert(`Assigned review to ${review.reviewerEmail}`, "success");
+        refreshReviews();
       })
       .catch((e) => {
         addAlert(e);
@@ -82,8 +88,7 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
   const { alerts, addAlert } = useAlerts();
   const { emailsToUsers } = useUsers();
 
-  // TODO: audit all other useEffects to check dependency lists
-  useEffect(() => {
+  const loadReviews = () => {
     api
       .getFilteredReviews(filter)
       .then((newReviews) =>
@@ -102,7 +107,10 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
         )
       )
       .catch(addAlert);
-  }, [filter]);
+  };
+
+  // TODO: audit all other useEffects to check dependency lists
+  useEffect(loadReviews, [filter]);
 
   return (
     <div>
@@ -155,7 +163,9 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                   return pastReviewers.length === 0
                     ? "(none)"
                     : pastReviewers.map(([stage, reviewers]) => (
-                        <p key={stage}>{`${stage}: ${reviewers.slice().sort().join(", ")}`}</p>
+                        <p key={stage}>
+                          <b>{stage}</b>: {reviewers.slice().sort().join(", ")}
+                        </p>
                       ));
                 },
                 header: "Past Reviewers",
@@ -165,7 +175,11 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                   cell.row.original.reviewerEmail ? (
                     emailsToUsers[cell.row.original.reviewerEmail]?.name ?? "(unknown user)"
                   ) : (
-                    <AutoAssignButton id={cell.row.original._id} addAlert={addAlert} />
+                    <AutoAssignButton
+                      id={cell.row.original._id}
+                      addAlert={addAlert}
+                      refreshReviews={loadReviews}
+                    />
                   ),
                 header: "Reviewer",
               },
@@ -179,7 +193,13 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                 header: "Status",
               },
               {
-                cell: (cell) => <ManualAssign id={cell.row.original._id} addAlert={addAlert} />,
+                cell: (cell) => (
+                  <ManualAssign
+                    id={cell.row.original._id}
+                    addAlert={addAlert}
+                    refreshReviews={loadReviews}
+                  />
+                ),
                 header: "Reassign",
               },
             ] as ColumnDef<PopulatedReview>[]

@@ -46,7 +46,7 @@ const stages: Stage[] = [
     identifier: "test_designer_technical",
     pipelineIdentifier: "test_designer",
     pipelineIndex: 1,
-    numReviews: 2,
+    numReviews: 1,
     name: "TEST Designer Technical Interview",
     fields: {
       combined_score: {
@@ -165,7 +165,7 @@ const stages: Stage[] = [
         maxValue: 5,
         description: "Out of 5",
         rubricLink:
-          "https://docs.google.com/document/d/1EsdDrFu9F7G0K_-Jvawhh4A58s5w2vJFBvHo9_7Zmz0/edit?usp=sharing",
+          "https://docs.google.com/document/d/1R4DDKGWaRkSOtzzJNMzWEoqzhOuGKH6Ty0VYO_7CDDg/edit?usp=sharing",
       },
       blurb_score: {
         type: "number",
@@ -210,7 +210,7 @@ const stages: Stage[] = [
         maxValue: 23,
         description: "Out of 23 points",
         rubricLink:
-          "https://docs.google.com/spreadsheets/d/18hrzhhFH_9faubB8Ya079sdByf8fSqsOinyvNEnjoBc/edit",
+          "https://docs.google.com/spreadsheets/d/1cVX-QezWZO4-tT4D8dwWee7ISSI-7rGhs6fBIWJfsBc/edit",
       },
       blurb_score: {
         type: "number",
@@ -220,7 +220,7 @@ const stages: Stage[] = [
         maxValue: 4,
         description: "Out of 4 points",
         rubricLink:
-          "https://docs.google.com/document/d/1iUqwXcOAhgaOWGWmbeg5GlxdXxZS2UYAlnCclNZWg1E/edit",
+          "https://docs.google.com/document/d/1A8MVKJqx0dXNK0OuB_yfByCfq7wr2cwL7J_1HmzXdoM/edit",
       },
     },
     fieldOrder: ["resume_score", "blurb_score"],
@@ -251,6 +251,8 @@ const stages: Stage[] = [
         maxValue: 3,
         description:
           "1 for bad, 2 for okay, 3 for great (see Appendix I of the technical interview guide)",
+        rubricLink:
+          "https://docs.google.com/document/d/1b8JM76fFYOrfXS51nc9Tkrb2h2Ail7d_fUrxVM3ISlI/edit?usp=sharing",
       },
       behavioral_notes: {
         type: "string",
@@ -366,7 +368,7 @@ const stages: Stage[] = [
         maxValue: 5,
         description: "Out of 5",
         rubricLink:
-          "https://docs.google.com/document/d/1wO6xyCrB50SVGYJGVvkOOaT1QHWLytm8y9HCvNI3qEI/edit?usp=sharing",
+          "https://docs.google.com/document/d/1w5t8JU_ho2tyV-zUt1REqBn7lpoOAsvMZqooJk_YvGc/edit?usp=sharing",
         weight: 2,
       },
       grade_level: {

@@ -109,6 +109,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
         <ApplicationHeader
           applicationId={review.application}
           reassignReview={editable ? () => setShowConfirmReassignModal(true) : undefined}
+          showApplicationLink
         />
       )}
       <div>

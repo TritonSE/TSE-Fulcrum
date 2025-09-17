@@ -15,7 +15,14 @@
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module",
-    "project": true
+    "project": "./tsconfig.json"
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "project": "./tsconfig.json"
+      }
+    }
   },
   "plugins": ["@typescript-eslint", "import"],
   "rules": {
@@ -74,6 +81,7 @@
     ],
 
     // Disabled because of too many false positives.
-    "@typescript-eslint/no-unnecessary-condition": "off"
+    "@typescript-eslint/no-unnecessary-condition": "off",
+    "import/no-named-as-default-member": "off"
   }
 }

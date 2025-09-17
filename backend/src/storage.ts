@@ -8,5 +8,5 @@ export type ApplicationLocalStorage = {
 
 export const retrieveDeploymentUrl = () => {
   const store = asyncLocalStorage.getStore() as ApplicationLocalStorage;
-  return store.deploymentUrl;
+  return store?.deploymentUrl;
 };

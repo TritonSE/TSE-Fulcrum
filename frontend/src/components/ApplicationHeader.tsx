@@ -8,6 +8,7 @@ import { formatApplicantYear, formatPhoneNumber } from "../helpers/application";
 import { formatFieldNameHumanReadable } from "../helpers/review";
 import { useAlerts } from "../hooks/alerts";
 import { formatQuarter } from "../util";
+import { Link } from "react-router-dom";
 
 function PromptDropdown({ title, content }: { title: string; content: string | undefined }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -36,6 +37,7 @@ function PromptDropdown({ title, content }: { title: string; content: string | u
 interface ApplicationHeaderProps {
   applicationId: string;
   reassignReview?: () => void;
+  showApplicationLink?: boolean;
 }
 
 const field = (name: string, value: string) => (
@@ -48,6 +50,7 @@ const field = (name: string, value: string) => (
 export default function ApplicationHeader({
   applicationId,
   reassignReview,
+  showApplicationLink,
 }: ApplicationHeaderProps) {
   const [application, setApplication] = useState<Application>();
   const { alerts, addAlert } = useAlerts();
@@ -104,6 +107,9 @@ export default function ApplicationHeader({
         <a href={application?.resumeUrl} target="_blank" rel="noreferrer noopener">
           Resume
         </a>
+        {showApplicationLink && (
+          <Link to={`/application/${application?._id}`}>View Application</Link>
+        )}
       </div>
       <div className="tw:flex tw:flex-col tw:gap-8">
         {Object.entries(prompts).map(([key, response]) => {
