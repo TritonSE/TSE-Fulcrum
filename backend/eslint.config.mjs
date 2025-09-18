@@ -28,15 +28,6 @@ export default antfu({
       "ts/no-shadow": ["error", { ignoreTypeValueShadow: true }],
       "ts/no-unsafe-unary-minus": "error",
       "ts/no-unused-expressions": "error",
-      "ts/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          destructuredArrayIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_",
-        },
-      ],
       "ts/switch-exhaustiveness-check": "error",
 
       // Stylistic
