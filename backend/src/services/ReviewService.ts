@@ -250,7 +250,7 @@ class ReviewService {
     const countsAndEmails = await Promise.all(
       reviewers.map((reviewer) =>
         ReviewModel.count({ reviewerEmail: reviewer.email, stageId: stage.id }).then(
-          // Double count for solo interviewers because interview buddies go to both people's interviews
+          // Double count for interview buddies because interview buddies go to both people's interviews
           (count) =>
             [
               stage.identifier === "developer_technical" && !reviewer.isDoingInterviewAlone
