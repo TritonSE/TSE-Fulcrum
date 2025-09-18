@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/app.js",
+    "start": "node dist/src/app.js",
     "dev": "nodemon --watch src --ext ts --exec ts-node src/app.ts",
     "test": "jest",
     "upsert-users": "ts-node src/scripts/upsertUsers.ts",
