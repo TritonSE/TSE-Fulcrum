@@ -1,10 +1,12 @@
 import { LoadingSpinner } from "@tritonse/tse-constellation";
-import { ChangeEvent, FormEventHandler, useState, WheelEventHandler } from "react";
+import { useState } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
 
 import api from "../api";
 import { useAlerts } from "../hooks/alerts";
 import { countWords } from "../util";
+
+import type { ChangeEvent, FormEventHandler, WheelEventHandler } from "react";
 
 if (!import.meta.env.VITE_APPLICATION_DEADLINE) {
   throw new Error("Missing VITE_APPLICATION_DEADLINE!");
@@ -61,8 +63,8 @@ function Apply() {
         ...prevObj,
         [curKey]: false,
       }),
-      {} as Record<string, boolean>
-    )
+      {} as Record<string, boolean>,
+    ),
   );
 
   const [prompts, setPrompts] = useState<{ [key: string]: string }>({
@@ -80,7 +82,7 @@ function Apply() {
 
   const getWordCountText = (promptKey: string): string =>
     `Max ${SHORT_ANSWER_MAX_WORDS} words: ${countWords(
-      prompts[promptKey] || ""
+      prompts[promptKey] || "",
     )}/${SHORT_ANSWER_MAX_WORDS}`;
 
   const isPromptOverLimit = (promptKey: string): boolean =>
@@ -128,9 +130,11 @@ function Apply() {
       return;
     }
     const startQuarter =
-      parseInt(personalInfo.startQuarter, 10) + 4 * parseInt(personalInfo.startYear, 10);
+      Number.parseInt(personalInfo.startQuarter, 10) +
+      4 * Number.parseInt(personalInfo.startYear, 10);
     const gradQuarter =
-      parseInt(personalInfo.gradQuarter, 10) + 4 * parseInt(personalInfo.gradYear, 10);
+      Number.parseInt(personalInfo.gradQuarter, 10) +
+      4 * Number.parseInt(personalInfo.gradYear, 10);
 
     const selectedHearAboutTSE = Object.entries(hearAboutTse)
       .filter(([_role, selected]) => selected)
@@ -143,7 +147,7 @@ function Apply() {
     }
 
     // There will only ever be a few prompts, so using for...of should be fine here.
-    /* eslint-disable no-restricted-syntax */
+
     for (const prompt of Object.keys(prompts)) {
       if (isPromptOverLimit(prompt)) {
         addAlert(`One or more of your responses is over the word limit.`);
@@ -184,7 +188,7 @@ function Apply() {
           .then(() => {
             addAlert(
               "Thank you for applying to Triton Software Engineering! You will receive a confirmation email shortly. Please monitor your UCSD email for updates on your application status. We promise to get back to you!",
-              "success"
+              "success",
             );
           })
           .catch((err) => {
@@ -196,7 +200,7 @@ function Apply() {
       })
       .catch((err) => {
         addAlert(
-          `Could not upload your resume. Please contact tse@ucsd.edu for support. Error: ${err}`
+          `Could not upload your resume. Please contact tse@ucsd.edu for support. Error: ${err}`,
         );
         setSubmitting(false);
       });

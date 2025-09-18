@@ -1,6 +1,9 @@
-import { Infer, array, bake, boolean, number, optional, string, union } from "caketype";
+/* eslint-disable ts/no-redeclare */
+import { array, bake, boolean, number, optional, string, union } from "caketype";
 
 import { pipelineIdentifiers } from "./config";
+
+import type { Infer } from "caketype";
 
 const LogInRequest = bake({
   email: string,
@@ -41,9 +44,9 @@ const BulkAdvanceOrRejectRequest = bake({
 });
 
 export {
-  LogInRequest,
-  CreateUserRequest,
-  ResetPasswordRequest,
-  RequestPasswordResetRequest,
   BulkAdvanceOrRejectRequest,
+  CreateUserRequest,
+  LogInRequest,
+  RequestPasswordResetRequest,
+  ResetPasswordRequest,
 };

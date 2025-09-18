@@ -28,4 +28,4 @@ const pipelines: Pipeline[] = [
   },
 ];
 
-export { pipelineIdentifiers, Pipeline, PipelineIdentifier, pipelines };
+export { Pipeline, PipelineIdentifier, pipelineIdentifiers, pipelines };

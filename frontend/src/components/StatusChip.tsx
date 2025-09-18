@@ -1,7 +1,7 @@
-interface StatusChipProps {
+type StatusChipProps = {
   color: string;
   text: string;
-}
+};
 
 /**
  * A chip that displays an applicant/review status, given the provided color and text

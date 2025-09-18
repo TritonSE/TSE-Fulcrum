@@ -1,4 +1,6 @@
-import { HydratedDocument, Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
+
+import type { HydratedDocument } from "mongoose";
 
 type InterviewState = {
   room: string;
@@ -52,4 +54,4 @@ const InterviewSchema = new Schema<InterviewState>({
 const InterviewModel = model("Interview", InterviewSchema);
 type InterviewDocument = HydratedDocument<InterviewState>;
 
-export { InterviewModel, InterviewDocument, InterviewState };
+export { InterviewDocument, InterviewModel, InterviewState };

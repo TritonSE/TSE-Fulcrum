@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 
-import api, { Application } from "../api";
+import api from "../api";
 import { formatApplicantYear, formatPhoneNumber } from "../helpers/application";
 import { formatFieldNameHumanReadable } from "../helpers/review";
 import { useAlerts } from "../hooks/alerts";
 import { formatQuarter } from "../util";
+
+import type { Application } from "../api";
 
 function PromptDropdown({ title, content }: { title: string; content: string | undefined }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -34,11 +36,11 @@ function PromptDropdown({ title, content }: { title: string; content: string | u
   );
 }
 
-interface ApplicationHeaderProps {
+type ApplicationHeaderProps = {
   applicationId: string;
   reassignReview?: () => void;
   showApplicationLink?: boolean;
-}
+};
 
 const field = (name: string, value: string) => (
   <p className="tw:!m-0">
@@ -70,10 +72,13 @@ export default function ApplicationHeader({
     "Why TSE": application?.interestPrompt,
     "TEST Barriers": application?.testBarriersPrompt,
     // Format role prompts as "Why [role]"
-    ...Object.entries(application?.rolePrompts || {}).reduce((acc, [key, value]) => {
-      acc[`Why ${formatFieldNameHumanReadable(key)}`] = value;
-      return acc;
-    }, {} as Record<string, string | undefined>),
+    ...Object.entries(application?.rolePrompts || {}).reduce(
+      (acc, [key, value]) => {
+        acc[`Why ${formatFieldNameHumanReadable(key)}`] = value;
+        return acc;
+      },
+      {} as Record<string, string | undefined>,
+    ),
   };
 
   return (
@@ -102,7 +107,7 @@ export default function ApplicationHeader({
           "Previously in TEST",
           application?.prevTest && application?.prevTest !== "none"
             ? formatFieldNameHumanReadable(application?.prevTest)
-            : "No"
+            : "No",
         )}
         <a href={application?.resumeUrl} target="_blank" rel="noreferrer noopener">
           Resume

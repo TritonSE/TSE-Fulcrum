@@ -1,4 +1,6 @@
-import { PipelineIdentifier, Stage, stages } from "../config";
+import { stages } from "../config";
+
+import type { PipelineIdentifier, Stage } from "../config";
 
 class StageService {
   getById(id: number): Stage | null {

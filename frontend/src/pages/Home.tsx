@@ -1,14 +1,16 @@
-import { useContext, useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
-import api, { PopulatedReview, Stage } from "../api";
+import api from "../api";
 import YourReviewsTable from "../components/YourReviewsTable";
 import { GlobalContext } from "../context/GlobalContext";
 import { getReviewStatus, reviewStatusNumericValues } from "../helpers/review";
 import { useAlerts } from "../hooks/alerts";
 import { makeComparator } from "../util";
 
+import type { PopulatedReview, Stage } from "../api";
+
 export default function Home() {
-  const { user } = useContext(GlobalContext);
+  const { user } = use(GlobalContext);
 
   const [stagesAndReviews, setStagesAndReviews] = useState<[Stage, PopulatedReview[]][]>([]);
   const { alerts, addAlert } = useAlerts();
@@ -30,18 +32,21 @@ export default function Home() {
             r.application.name,
             r.reviewerEmail || "",
             r._id,
-          ])
+          ]),
         );
 
         // Group reviews by stage so we can display one table per stage
         setStagesAndReviews(
-          sortedReviews.reduce((acc, r) => {
-            if (acc.length === 0 || r.stageId !== acc.at(-1)?.[0].id) {
-              acc.push([r.stage, []]);
-            }
-            acc.at(-1)?.[1].push(r);
-            return acc;
-          }, [] as [Stage, PopulatedReview[]][])
+          sortedReviews.reduce(
+            (acc, r) => {
+              if (acc.length === 0 || r.stageId !== acc.at(-1)?.[0].id) {
+                acc.push([r.stage, []]);
+              }
+              acc.at(-1)?.[1].push(r);
+              return acc;
+            },
+            [] as [Stage, PopulatedReview[]][],
+          ),
         );
       })
       .catch(addAlert);

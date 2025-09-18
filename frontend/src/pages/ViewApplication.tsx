@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import api, { PopulatedReview } from "../api";
+import api from "../api";
 import ApplicationHeader from "../components/ApplicationHeader";
 import ScoreCard from "../components/ScoreCard";
 import StageNotes from "../components/StageNotes";
 import { useAlerts } from "../hooks/alerts";
 import { makeComparator } from "../util";
+
+import type { PopulatedReview } from "../api";
 
 export default function ViewApplication() {
   const { applicationId } = useParams();
@@ -29,16 +31,19 @@ export default function ViewApplication() {
         r.stage.pipelineIdentifier,
         r.stage.pipelineIndex,
         r.reviewerEmail || "",
-      ])
+      ]),
     );
 
   // Group reviews by stage
-  const groupedReviews = sortedReviews.reduce((acc, review) => {
-    const key = review.stage.name;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(review);
-    return acc;
-  }, {} as Record<string, PopulatedReview[]>);
+  const groupedReviews = sortedReviews.reduce(
+    (acc, review) => {
+      const key = review.stage.name;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(review);
+      return acc;
+    },
+    {} as Record<string, PopulatedReview[]>,
+  );
 
   // Get unique stage names
   const stages = Array.from(new Set(sortedReviews.map((r) => r.stage.name)));

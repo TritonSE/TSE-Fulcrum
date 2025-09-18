@@ -3,7 +3,7 @@
  * @param keyFunc Map each object to an array of values to sort by.
  */
 function makeComparator<T, K extends (number | string)[]>(
-  keyFunc: (v: T) => K
+  keyFunc: (v: T) => K,
 ): (v1: T, v2: T) => number {
   return (value1, value2) => {
     const key1 = keyFunc(value1);
@@ -29,4 +29,4 @@ function countWords(text: string): number {
   return trimmed.split(/\s+/).length;
 }
 
-export { makeComparator, formatQuarter, countWords };
+export { countWords, formatQuarter, makeComparator };

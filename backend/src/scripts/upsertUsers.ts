@@ -1,16 +1,19 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
-import { Infer, array } from "caketype";
+import { array } from "caketype";
 import mongoose from "mongoose";
 
 import { CreateUserRequest } from "../cakes";
 import env from "../env";
 import { UserModel } from "../models";
 
+import type { Infer } from "caketype";
+
 // ConfigUser has the exact same shape as CreateUserRequest for now
 // But keeping this alias in case they need to be decoupled in the future.
 const ConfigUser = CreateUserRequest;
+// eslint-disable-next-line ts/no-redeclare
 type ConfigUser = Infer<typeof ConfigUser>;
 
 const loadConfig = (filePath: string): ConfigUser[] => {
@@ -53,16 +56,16 @@ const upsertUser = async (user: ConfigUser) => {
 
   // updatedUser should never be null
   if (updatedUser?.lastErrorObject?.upserted) {
-    console.log(`Created new user: ${user.email}`);
+    console.info(`Created new user: ${user.email}`);
   } else {
-    console.log(`Updated user: ${user.email}`);
+    console.info(`Updated user: ${user.email}`);
   }
 };
 
 const main = async () => {
   await mongoose.connect(env.MONGODB_URL);
 
-  console.log("Connected to MongoDB");
+  console.info("Connected to MongoDB");
 
   let configPath: string;
 
@@ -76,7 +79,7 @@ const main = async () => {
 
   await Promise.all(users.map(upsertUser))
     .then(() => {
-      console.log("All users upserted successfully.");
+      console.info("All users upserted successfully.");
       process.exit(0);
     })
     .catch((error) => {

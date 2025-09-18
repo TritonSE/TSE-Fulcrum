@@ -1,11 +1,11 @@
 export type Variant = "success" | "danger" | "warning" | "info";
 
-interface AlertProps {
+type AlertProps = {
   className?: string;
   variant: Variant;
   onClose?: () => void;
   children: React.ReactNode;
-}
+};
 
 export default function Alert({ variant, className, onClose, children }: AlertProps) {
   const getVariantClasses = () => {

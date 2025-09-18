@@ -1,17 +1,19 @@
 import { useState } from "react";
 
-import Alert, { Variant } from "../components/Alert";
+import Alert from "../components/Alert";
 
-interface UseAlertsResult {
+import type { Variant } from "../components/Alert";
+
+type UseAlertsResult = {
   alerts: React.ReactNode;
-  addAlert: (alert: unknown, variant?: Variant) => void;
+  addAlert: (alert: string, variant?: Variant) => void;
   clearAlerts: () => void;
-}
+};
 
-interface AlertData {
+type AlertData = {
   message: string;
   variant: Variant;
-}
+};
 
 function useAlerts(): UseAlertsResult {
   const [alertList, setAlertList] = useState<AlertData[]>([]);
@@ -32,20 +34,20 @@ function useAlerts(): UseAlertsResult {
         ))}
       </div>
     ),
-    addAlert: (message: unknown, variant = "danger") =>
+    addAlert: (message: string, variant = "danger") =>
       setAlertList((prev) => [
         // Show a maximum of 1000 alerts.
         ...prev.slice(-999),
-        { message: "" + message, variant },
+        { message: `${message}`, variant },
       ]),
     clearAlerts: () => setAlertList([]),
   };
 }
 
-interface UseAlertResult {
+type UseAlertResult = {
   alert: React.ReactNode;
-  setAlert: (alert: unknown, variant?: Variant) => void;
-}
+  setAlert: (alert: string, variant?: Variant) => void;
+};
 
 function useAlert(): UseAlertResult {
   const { alerts, addAlert, clearAlerts } = useAlerts();
@@ -67,7 +69,7 @@ type UseStateHelperResult<T extends object> = [
   {
     getField: <K extends keyof T>(key: K) => T[K] | null;
     setField: <K extends keyof T>(key: K, value: T[K]) => void;
-  }
+  },
 ];
 
 function useStateHelper<T extends object>(initialState: T | null = null): UseStateHelperResult<T> {

@@ -1,6 +1,6 @@
-import { PopulatedReview } from "../api";
-
 import { toTitleCase } from "./application";
+
+import type { PopulatedReview } from "../api";
 
 export enum ReviewStatus {
   NotStarted = "notStarted",

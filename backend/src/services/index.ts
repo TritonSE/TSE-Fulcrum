@@ -12,8 +12,8 @@ export {
   InterviewService,
   PipelineService,
   ProgressService,
-  StageService,
   ResumeService,
   ReviewService,
+  StageService,
   UserService,
 };

@@ -1,12 +1,13 @@
-import { Types } from "mongoose";
-
-import { PipelineIdentifier } from "../config";
-import { ApplicationModel, ProgressDocument, ProgressModel } from "../models";
+import { ApplicationModel, ProgressModel } from "../models";
 
 import EmailService from "./EmailService";
 import PipelineService from "./PipelineService";
 import ReviewService from "./ReviewService";
 import StageService from "./StageService";
+
+import type { PipelineIdentifier } from "../config";
+import type { ProgressDocument } from "../models";
+import type { Types } from "mongoose";
 
 class ProgressService {
   async create(

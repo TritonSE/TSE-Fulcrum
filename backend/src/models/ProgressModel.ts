@@ -1,8 +1,8 @@
-import { HydratedDocument, Schema, Types, model } from "mongoose";
+import { model, Schema } from "mongoose";
 
-import { PipelineIdentifier } from "../config";
-
-import { ObjectIdsToStrings } from "./helpers";
+import type { PipelineIdentifier } from "../config";
+import type { ObjectIdsToStrings } from "./helpers";
+import type { HydratedDocument, Types } from "mongoose";
 
 type Progress = {
   pipelineIdentifier: PipelineIdentifier;
@@ -37,4 +37,4 @@ const ProgressSchema = new Schema<Progress>({
 const ProgressModel = model("Progress", ProgressSchema);
 type ProgressDocument = HydratedDocument<Progress>;
 
-export { Progress, ProgressModel, ProgressDocument, RawProgress };
+export { Progress, ProgressDocument, ProgressModel, RawProgress };

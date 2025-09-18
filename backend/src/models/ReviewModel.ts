@@ -1,6 +1,7 @@
-import { HydratedDocument, Schema, Types, model } from "mongoose";
+import { model, Schema } from "mongoose";
 
-import { ObjectIdsToStrings } from "./helpers";
+import type { ObjectIdsToStrings } from "./helpers";
+import type { HydratedDocument, Types } from "mongoose";
 
 type Review = {
   _id: Types.ObjectId;
@@ -48,4 +49,4 @@ ReviewSchema.index({ reviewerEmail: 1, application: 1 });
 const ReviewModel = model("Review", ReviewSchema);
 type ReviewDocument = HydratedDocument<Review>;
 
-export { ReviewModel, ReviewDocument, Review, RawReview };
+export { RawReview, Review, ReviewDocument, ReviewModel };

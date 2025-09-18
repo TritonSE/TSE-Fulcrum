@@ -1,39 +1,39 @@
 type Method = "get" | "post" | "put";
 
-export interface User {
+export type User = {
   email: string;
   name: string;
   isAdmin: boolean;
-}
+};
 
-interface LogInRequest {
+type LogInRequest = {
   email: string;
   password: string;
-}
+};
 
-interface ResetPasswordRequest {
+type ResetPasswordRequest = {
   email: string;
   password: string;
   passwordResetToken: string;
-}
+};
 
-interface ResumeUploadResponse {
+type ResumeUploadResponse = {
   resumeUrl: string;
-}
+};
 
 export type PipelineIdentifier = "designer" | "test_designer" | "developer" | "test_developer";
 
-export interface Pipeline {
+export type Pipeline = {
   identifier: PipelineIdentifier;
   name: string;
-}
+};
 
 export type BulkAdvanceOrRejectResponse = Record<
   string,
   { success: true; value: Progress } | { success: false; value: string }
 >;
 
-interface FormField {
+type FormField = {
   type: "string" | "number";
   choices: (string | number | boolean)[];
   allowOther: boolean;
@@ -42,15 +42,15 @@ interface FormField {
   rubricLink?: string;
   maxValue?: number;
   weight?: number;
-}
+};
 
-export interface Review {
+export type Review = {
   _id: string;
   stageId: number;
   application: string;
   reviewerEmail?: string;
   fields: Record<string, string | number | boolean>;
-}
+};
 
 export type PopulatedReview = Omit<Review, "stage" | "application"> & {
   stage: Stage;
@@ -60,15 +60,15 @@ export type PopulatedReview = Omit<Review, "stage" | "application"> & {
   applicantYear: number;
 };
 
-export interface Progress {
+export type Progress = {
   _id: string;
   pipelineIdentifier: PipelineIdentifier;
   application: string;
   stageIndex: number;
   state: "pending" | "rejected" | "accepted";
-}
+};
 
-export interface Stage {
+export type Stage = {
   id: number;
   pipelineIdentifier: PipelineIdentifier;
   pipelineIndex: number;
@@ -79,9 +79,9 @@ export interface Stage {
   autoAssignReviewers: boolean;
   notifyReviewersWhenAssigned: boolean;
   hasTechnicalInterview?: boolean;
-}
+};
 
-export interface Application {
+export type Application = {
   _id: string;
   name: string;
   pronouns: string;
@@ -110,7 +110,7 @@ export interface Application {
 
   // Map role identifiers to the corresponding prompts.
   rolePrompts: Record<string, string>;
-}
+};
 
 type SubmitApplicationRequest = Omit<Application, "_id" | "applicantYear" | "yearApplied">;
 
@@ -121,7 +121,7 @@ class Api {
       return null;
     }
     await this.assertOk(response);
-    return response.json();
+    return response.json() as Promise<User>;
   }
 
   async logOut(): Promise<void> {
@@ -134,7 +134,7 @@ class Api {
       return null;
     }
     await this.assertOk(response);
-    return response.json();
+    return response.json() as Promise<User>;
   }
 
   async requestPasswordReset(email: string): Promise<void> {
@@ -146,17 +146,17 @@ class Api {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return (await this.get("/api/user")).json();
+    return (await this.get("/api/user")).json() as Promise<User[]>;
   }
 
   async uploadResume(resumeFile: File): Promise<ResumeUploadResponse> {
     const formData = new FormData();
     formData.append("resumeFile", resumeFile);
-    return (await this.post("/api/resume", formData)).json();
+    return (await this.post("/api/resume", formData)).json() as Promise<ResumeUploadResponse>;
   }
 
   async getAllPipelines(): Promise<Pipeline[]> {
-    return (await this.get("/api/pipeline")).json();
+    return (await this.get("/api/pipeline")).json() as Promise<Pipeline[]>;
   }
 
   async submitApplication(application: SubmitApplicationRequest): Promise<void> {
@@ -164,71 +164,75 @@ class Api {
   }
 
   async getApplicationById(applicationId: string): Promise<Application> {
-    return (await this.get(`/api/application/${applicationId}`)).json();
+    return (await this.get(`/api/application/${applicationId}`)).json() as Promise<Application>;
   }
 
   async getFilteredReviews(filter: Record<string, string>): Promise<PopulatedReview[]> {
-    return (await this.get(`/api/review?${new URLSearchParams(Object.entries(filter))}`)).json();
+    return (
+      await this.get(`/api/review?${new URLSearchParams(Object.entries(filter))}`)
+    ).json() as Promise<PopulatedReview[]>;
   }
 
   async getNextReview(): Promise<PopulatedReview | null> {
-    return (await this.get("/api/review/next")).json();
+    return (await this.get("/api/review/next")).json() as Promise<PopulatedReview | null>;
   }
 
   async autoAssignReview(id: string): Promise<Review> {
-    return (await this.post(`/api/review/${id}/auto-assign`, undefined)).json();
+    return (await this.post(`/api/review/${id}/auto-assign`, undefined)).json() as Promise<Review>;
   }
 
   async assignReview(id: string, reviewerEmail: string): Promise<Review> {
     return (
       await this.post(`/api/review/${id}/assign/${encodeURIComponent(reviewerEmail)}`, undefined)
-    ).json();
+    ).json() as Promise<Review>;
   }
 
   async reassignReview(id: string): Promise<Review> {
-    return (await this.post(`/api/review/${id}/reassign`, undefined)).json();
+    return (await this.post(`/api/review/${id}/reassign`, undefined)).json() as Promise<Review>;
   }
 
   async getReviewById(reviewId: string): Promise<Review> {
-    return (await this.get(`/api/review/${reviewId}`)).json();
+    return (await this.get(`/api/review/${reviewId}`)).json() as Promise<Review>;
   }
 
   async updateReview(request: Review): Promise<Review> {
-    return (await this.put(`/api/review/${request._id}`, request)).json();
+    return (await this.put(`/api/review/${request._id}`, request)).json() as Promise<Review>;
   }
 
   async getFilteredProgresses(filter: Record<string, string>): Promise<Progress[]> {
-    return (await this.get(`/api/progress?${new URLSearchParams(Object.entries(filter))}`)).json();
+    return (
+      await this.get(`/api/progress?${new URLSearchParams(Object.entries(filter))}`)
+    ).json() as Promise<Progress[]>;
   }
 
   async getStageById(stageId: number): Promise<Stage> {
-    return (await this.get(`/api/stage/${stageId}`)).json();
+    return (await this.get(`/api/stage/${stageId}`)).json() as Promise<Stage>;
   }
 
   async getStagesByPipeline(pipelineIdentifier: PipelineIdentifier): Promise<Stage[]> {
-    return (await this.get(`/api/stage?pipeline=${pipelineIdentifier}`)).json();
+    return (await this.get(`/api/stage?pipeline=${pipelineIdentifier}`)).json() as Promise<Stage[]>;
   }
 
   async getAllStages(): Promise<Stage[]> {
-    return (await this.get("/api/stage")).json();
+    return (await this.get("/api/stage")).json() as Promise<Stage[]>;
   }
 
   async bulkAdvanceApplications(
     pipelineIdentifier: PipelineIdentifier,
-    applicationIds: string[]
+    applicationIds: string[],
   ): Promise<BulkAdvanceOrRejectResponse> {
     return (
       await this.post("/api/progress/bulk_advance", { pipelineIdentifier, applicationIds })
-    ).json();
+    ).json() as Promise<BulkAdvanceOrRejectResponse>;
   }
 
   async bulkRejectApplications(
     pipelineIdentifier: PipelineIdentifier,
-    applicationIds: string[]
+    applicationIds: string[],
   ): Promise<BulkAdvanceOrRejectResponse> {
     return (
       await this.post("/api/progress/bulk_reject", { pipelineIdentifier, applicationIds })
-    ).json();
+    ).json() as Promise<BulkAdvanceOrRejectResponse>;
   }
 
   private async get(url: string, headers: Record<string, string> = {}): Promise<Response> {
@@ -240,7 +244,7 @@ class Api {
   private async post(
     url: string,
     body: unknown,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
   ): Promise<Response> {
     const response = await this.uncheckedPost(url, body, headers);
     await this.assertOk(response);
@@ -250,7 +254,7 @@ class Api {
   private async put(
     url: string,
     body: unknown,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
   ): Promise<Response> {
     const response = await this.fetch("put", url, body, headers);
     await this.assertOk(response);
@@ -264,7 +268,7 @@ class Api {
   private async uncheckedPost(
     url: string,
     body: unknown,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
   ): Promise<Response> {
     return this.fetch("post", url, body, headers);
   }
@@ -272,7 +276,7 @@ class Api {
   private async uncheckedPut(
     url: string,
     body: unknown,
-    headers: Record<string, string> = {}
+    headers: Record<string, string> = {},
   ): Promise<Response> {
     return this.fetch("put", url, body, headers);
   }
@@ -281,7 +285,7 @@ class Api {
     method: Method,
     url: string,
     body: unknown,
-    headers: Record<string, string>
+    headers: Record<string, string>,
   ): Promise<Response> {
     const isFormData = body instanceof FormData;
     const hasBody = body !== undefined;
@@ -310,9 +314,9 @@ class Api {
     try {
       const text = await response.text();
       if (text) {
-        message += ": " + text;
+        message += `: ${text}`;
       }
-    } catch (e) {
+    } catch (_e) {
       // Ignore.
     }
 

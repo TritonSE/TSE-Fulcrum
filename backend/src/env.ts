@@ -71,14 +71,14 @@ const env = {
     `This is an automated email, and replies will not be read. Please contact ${ADMIN_EMAIL} if you have any questions or concerns.`,
   ),
 
-  PASSWORD_RESET_EXPIRATION_MINS: getEnv("PASSWORD_RESET_EXPIRATION_MINS", 15, parseInt),
+  PASSWORD_RESET_EXPIRATION_MINS: getEnv("PASSWORD_RESET_EXPIRATION_MINS", 15, Number.parseInt),
 
-  SESSION_EXPIRATION_MINS: getEnv("SESSION_EXPIRATION_MINS", 12 * 60, parseInt),
+  SESSION_EXPIRATION_MINS: getEnv("SESSION_EXPIRATION_MINS", 12 * 60, Number.parseInt),
 
   /**
    * Debounce duration before saving a user's live code state into MongoDB.
    */
-  DB_UPDATE_INTERVAL: getEnv("DB_UPDATE_INTERVAL", 10 * 1000, parseInt),
+  DB_UPDATE_INTERVAL: getEnv("DB_UPDATE_INTERVAL", 10 * 1000, Number.parseInt),
 
   /**
    * URL of the interview instructions to be displayed to interviewees.
@@ -98,11 +98,11 @@ const env = {
    * How many hours before the deadline to start disabling reviewer assignment emails
    * Default to 1 day
    */
-  DISABLE_ASSIGNMENT_EMAILS_HOURS: parseInt(getEnv("DISABLE_ASSIGNMENT_EMAILS_HOURS", "24")),
+  DISABLE_ASSIGNMENT_EMAILS_HOURS: Number.parseInt(getEnv("DISABLE_ASSIGNMENT_EMAILS_HOURS", "24")),
 
   // Loaded from environment variables.
   NODE_ENV,
-  PORT: getEnv("PORT", 8000, parseInt),
+  PORT: getEnv("PORT", 8000, Number.parseInt),
 };
 
 if (env.EMAIL_ENABLED && !(env.EMAIL_USERNAME && env.EMAIL_PASSWORD && env.EMAIL_HOST)) {
@@ -114,7 +114,7 @@ if (!env.APPLICATION_DEADLINE) {
   console.error("APPLICATION_DEADLINE is missing!");
 }
 
-console.log(`env: ${JSON.stringify(env, null, 2)}`);
+console.info(`env: ${JSON.stringify(env, null, 2)}`);
 
 const isLocalDB = env.MONGODB_URL.includes("127.0.0.1") || env.MONGODB_URL.includes("localhost");
 if (!isLocalDB && env.NODE_ENV === "development") {
@@ -122,7 +122,7 @@ if (!isLocalDB && env.NODE_ENV === "development") {
     'WARNING: you are running Fulcrum locally, but connected to a remote DB. Please enter "y" to confirm: ',
   );
   if (response !== "y") {
-    console.log('No "y" received, exiting');
+    console.info('No "y" received, exiting');
     process.exit();
   }
 }

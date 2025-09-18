@@ -1,9 +1,8 @@
-import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
-import { Checkbox, LoadingSpinner, Modal, Table, Button } from "@tritonse/tse-constellation";
+import { Button, Checkbox, LoadingSpinner, Modal, Table } from "@tritonse/tse-constellation";
 import { useEffect, useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-import api, { Application, PopulatedReview, Progress, Stage } from "../api";
+import api from "../api";
 import { ApplicantInfoCell } from "../components/ApplicantInfoCell";
 import { StatusChip } from "../components/StatusChip";
 import {
@@ -24,8 +23,17 @@ import { useAlerts } from "../hooks/alerts";
 import { useUsers } from "../hooks/users";
 import { makeComparator } from "../util";
 
-const SCORE_REGEX = /^(.*_)?score$/;
-const RATING_REGEX = /^(.*_)?rating$/;
+import type {
+  Application,
+  BulkAdvanceOrRejectResponse,
+  PopulatedReview,
+  Progress,
+  Stage,
+} from "../api";
+import type { ColumnDef, RowSelectionState } from "@tanstack/react-table";
+
+const SCORE_REGEX = /^(?:.*_)?score$/;
+const RATING_REGEX = /^(?:.*_)?rating$/;
 
 export default function StageApplicationsView({ stageId }: { stageId: number }) {
   const [progresses, setProgresses] = useState<Progress[]>([]);
@@ -37,11 +45,11 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
   const [modalState, setModalState] = useState<"advance" | "reject" | null>(null);
   const [showingYearFilter, setShowingYearFilter] = useState(false);
   const [yearsAreSelected, setYearsAreSelected] = useState(
-    Object.fromEntries(APPLICANT_YEARS.map((year) => [year, false]))
+    Object.fromEntries(APPLICANT_YEARS.map((year) => [year, false])),
   );
   const selectedYears = useMemo(
     () => Object.keys(yearsAreSelected).filter((year) => yearsAreSelected[year]),
-    [yearsAreSelected]
+    [yearsAreSelected],
   );
 
   useEffect(() => {
@@ -54,8 +62,8 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         } else {
           setReviews(
             newReviews.filter((review) =>
-              selectedYears.includes(formatApplicantYear(review.applicantYear))
-            )
+              selectedYears.includes(formatApplicantYear(review.applicantYear)),
+            ),
           );
         }
 
@@ -108,8 +116,8 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
       // ^^^ crummy way of checking array equality
       addAlert(
         `Mismatched score fields - score calculation is probably incorrect! ${JSON.stringify(
-          scoreKeys
-        )}, ${JSON.stringify(currentScoreKeys)}`
+          scoreKeys,
+        )}, ${JSON.stringify(currentScoreKeys)}`,
       );
     }
   });
@@ -124,13 +132,13 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
               const score = review.fields[scoreKey];
               if (typeof score !== "number") {
                 addAlert(
-                  `Review ${review._id} field ${scoreKey}: expected number, got ${typeof score}`
+                  `Review ${review._id} field ${scoreKey}: expected number, got ${typeof score}`,
                 );
                 return 0;
               }
               return score * (stage?.fields[scoreKey]?.weight ?? 1);
             })
-            .reduce((a, b) => a + b, 0)
+            .reduce((a, b) => a + b, 0),
         )
         .reduce((a, b) => a + b, 0) / appReviews.length;
     return [app, appReviews, avgScore] as const;
@@ -142,9 +150,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
 
   const selectedApplicationIds = Object.keys(rowSelection).filter((row) => rowSelection[row]);
 
-  const titleText = stage
-    ? `${stage.name}${withScores ? " (" + withScores.length + ")" : null}`
-    : "";
+  const titleText = stage ? `${stage.name}${withScores ? ` (${withScores.length})` : null}` : "";
 
   const onCofirmAdvanceReject = async () => {
     try {
@@ -153,16 +159,16 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         return;
       }
 
-      let response;
+      let response: BulkAdvanceOrRejectResponse;
       if (modalState === "advance") {
         response = await api.bulkAdvanceApplications(
           stage.pipelineIdentifier,
-          selectedApplicationIds
+          selectedApplicationIds,
         );
       } else if (modalState === "reject") {
         response = await api.bulkRejectApplications(
           stage.pipelineIdentifier,
-          selectedApplicationIds
+          selectedApplicationIds,
         );
       } else {
         addAlert(`Unknown action: ${modalState}`);
@@ -176,14 +182,14 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
           successCount++;
         } else {
           addAlert(
-            `Failed to ${modalState} applicant ${grouped[applicationId][0].name}: ${response[applicationId].value}`
+            `Failed to ${modalState} applicant ${grouped[applicationId][0].name}: ${response[applicationId].value as string}`,
           );
         }
       });
       addAlert(`Successfully ${modalState}ed ${successCount} applicants!`, "success");
       loadProgresses();
     } catch (error) {
-      addAlert(error);
+      addAlert(error instanceof Error ? error.toString() : String(error));
     } finally {
       setRowSelection({});
       setModalState(null);
@@ -201,7 +207,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
             onClick={() => setModalState("advance")}
             className={twMerge(
               "tw:!px-3 tw:!rounded-lg tw:!bg-green-700",
-              selectedApplicationIds.length === 0 && "tw:opacity-60"
+              selectedApplicationIds.length === 0 && "tw:opacity-60",
             )}
           >
             Advance
@@ -211,7 +217,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
             onClick={() => setModalState("reject")}
             className={twMerge(
               "tw:!px-3 tw:!rounded-lg tw:!bg-red-600",
-              selectedApplicationIds.length === 0 && "tw:opacity-60"
+              selectedApplicationIds.length === 0 && "tw:opacity-60",
             )}
           >
             Reject
@@ -231,15 +237,15 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                       applicationStatusColors[
                         getApplicationStageStatus(
                           stage,
-                          progressesByApplication[cell.row.original[0]._id]
+                          progressesByApplication[cell.row.original[0]._id],
                         )
                       ]
                     }
                     text={toTitleCase(
                       getApplicationStageStatus(
                         stage,
-                        progressesByApplication[cell.row.original[0]._id]
-                      )
+                        progressesByApplication[cell.row.original[0]._id],
+                      ),
                     )}
                   />
                 ) : (
@@ -304,8 +310,10 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                         <LoadingSpinner key={review._id} />
                       )
                     ) : (
-                      <p className="tw:!m-0">(unassigned)</p>
-                    )
+                      <p className="tw:!m-0" key={review._id}>
+                        (unassigned)
+                      </p>
+                    ),
                   )}
                 </div>
               ),
@@ -321,7 +329,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                           {Object.entries(review.fields)
                             .filter(
                               ([fieldName]) =>
-                                SCORE_REGEX.test(fieldName) || RATING_REGEX.test(fieldName)
+                                SCORE_REGEX.test(fieldName) || RATING_REGEX.test(fieldName),
                             )
                             .sort(makeComparator(([k, _v]) => [k]))
                             .map(([fieldName, fieldValue]) => (
@@ -337,7 +345,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                           text={getReviewStatusHumanReadable(review)}
                         />
                       )
-                    ) : null
+                    ) : null,
                   )}
                 </div>
               ),
@@ -355,7 +363,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                   .reduce((a, b) => Math.max(a, b), 0),
               header: "Max Score Diff",
             },
-          ] as ColumnDef<typeof withScores[number]>[]
+          ] as ColumnDef<(typeof withScores)[number]>[]
         }
         data={withScores}
         enablePagination={false}
@@ -385,12 +393,14 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
               {modalState === "advance"
                 ? "This WILL NOT automatically email those candidates; we manually send emails to let them know they advanced & schedule the phone screen/technical interview"
                 : modalState === "reject"
-                ? "This WILL automatically send rejection emails to these candidates."
-                : ""}
+                  ? "This WILL automatically send rejection emails to these candidates."
+                  : ""}
             </p>
           </>
         }
-        primaryActionComponent={<Button onClick={onCofirmAdvanceReject}>Yes, {modalState}!</Button>}
+        primaryActionComponent={
+          <Button onClick={() => void onCofirmAdvanceReject()}>Yes, {modalState}!</Button>
+        }
         secondaryActionComponent={
           <Button onClick={() => setModalState(null)} variant="secondary">
             Cancel

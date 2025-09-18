@@ -1,4 +1,4 @@
-import { PipelineIdentifier } from "./pipelines";
+import type { PipelineIdentifier } from "./pipelines";
 
 const stageIdentifiers = [
   "designer_resume_review",
@@ -448,4 +448,4 @@ const stages: Stage[] = [
   },
 ];
 
-export { stageIdentifiers, StageIdentifier, FormField, Stage, stages };
+export { FormField, Stage, StageIdentifier, stageIdentifiers, stages };

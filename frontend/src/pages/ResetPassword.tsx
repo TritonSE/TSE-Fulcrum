@@ -28,7 +28,7 @@ export default function ResetPassword() {
     setData({ ...data, passwordResetToken });
   }, [location]);
 
-  const setField = <K extends keyof typeof data>(key: K, value: typeof data[K]) => {
+  const setField = <K extends keyof typeof data>(key: K, value: (typeof data)[K]) => {
     setData({ ...data, [key]: value });
   };
 
@@ -49,7 +49,7 @@ export default function ResetPassword() {
           return;
         }
         addAlert(
-          "Password reset failed. Ensure that the provided email address is linked to an account, and the password reset link isn't expired."
+          "Password reset failed. Ensure that the provided email address is linked to an account, and the password reset link isn't expired.",
         );
       })
       .catch(addAlert);

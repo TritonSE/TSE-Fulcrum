@@ -1,8 +1,7 @@
 import { RemoteSelectionManager } from "@convergencelabs/monaco-collab-ext";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import { Button } from "@tritonse/tse-constellation";
-import { type editor as MonacoEditor } from "monaco-editor";
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Dropdown } from "react-bootstrap";
 import Markdown from "react-markdown";
 import { useLocation } from "react-router-dom";
@@ -13,6 +12,8 @@ import { io, type Socket } from "socket.io-client";
 import { twMerge } from "tailwind-merge";
 
 import TSELogo from "../components/TSELogo";
+
+import type { editor as MonacoEditor } from "monaco-editor";
 
 SyntaxHighlighter.registerLanguage("cpp", cpp);
 
@@ -32,7 +33,7 @@ const css = `
   }
 `;
 
-interface InterviewState {
+type InterviewState = {
   room: string;
   question: string;
   code: string;
@@ -40,62 +41,61 @@ interface InterviewState {
   active: boolean;
   timerStart: number;
   lastUpdate: Date;
-}
+};
 
 type ValidKeys = "question" | "code" | "language" | "active" | "timerStart";
 
-interface Payload {
+type Payload = {
   userId: string;
   key: ValidKeys;
   value: string | boolean | number;
-}
+};
 
-interface SelectionPayload {
+type SelectionPayload = {
   role: number;
   from: number;
   to: number;
-}
+};
 
-interface Callbacks {
+type Callbacks = {
   [key: string]: (p: Payload) => void;
-}
+};
 
-interface EditorInstance {
+type EditorInstance = {
   editor: MonacoEditor.IStandaloneCodeEditor;
   monaco: Monaco;
-}
+};
 
-interface CodeProps {
+type CodeProps = {
   children?: ReactNode;
   className?: string;
-}
+};
 
-interface TimerProps {
+type TimerProps = {
   role: number;
   since: number;
   start: () => void;
-}
+};
 
-interface RemoteSelection {
+type RemoteSelection = {
   setOffsets: (start: number, end: number) => void;
   show: () => void;
   hide: () => void;
-}
+};
 
-function CodeBlock({ children, className, ...rest }: CodeProps) {
+// eslint-disable-next-line react/no-unstable-default-props
+function CodeBlock({ children = [], className = "", ...rest }: CodeProps) {
   const match = /language-(\w+)/.exec(className || "");
   return match ? (
     <SyntaxHighlighter {...rest} style={dark} language={match[1]} PreTag="div">
       {String(children).replace(/\n$/, "") ?? ""}
     </SyntaxHighlighter>
   ) : (
-    // eslint-disable-next-line react/jsx-props-no-spreading
     <code {...rest} className={className}>
       {children}
     </code>
   );
 }
-CodeBlock.defaultProps = { children: [], className: "" };
 
 function MarkdownImage({
   src,
@@ -226,7 +226,7 @@ export default function Interview() {
         const selMgr = new RemoteSelectionManager({ editor });
         remoteSelection.current = selMgr.addSelection(
           role === INTERVIEWER ? "Interviewee" : "Interviewer",
-          "blue"
+          "blue",
         );
 
         editor.onDidChangeCursorSelection((e) => {
@@ -381,7 +381,7 @@ export default function Interview() {
           <Button
             className={twMerge(
               "tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg",
-              active ? "tw:!bg-amber-400" : ""
+              active ? "tw:!bg-amber-400" : "",
             )}
             onClick={toggleInterview}
           >
@@ -391,12 +391,12 @@ export default function Interview() {
           <Button
             className={twMerge(
               "tw:!bg-accent tw:!px-3 tw:!py-2 tw:!rounded-lg tw:transition-all tw:duration-500",
-              blinking ? "tw:!bg-green-500" : ""
+              blinking ? "tw:!bg-green-500" : "",
             )}
             onClick={() => {
-              navigator.clipboard.writeText(
+              void navigator.clipboard.writeText(
                 window.location.origin +
-                  location.pathname.replace("/interview", "").replace("/review/", "/interview/")
+                  location.pathname.replace("/interview", "").replace("/review/", "/interview/"),
               );
               setBlinking(true);
               setTimeout(() => setBlinking(false), 250);
@@ -469,7 +469,7 @@ export default function Interview() {
             role="presentation"
             className="divider"
             style={{
-              width: separatorWidth + "px",
+              width: `${separatorWidth}px`,
               height: "100vh",
               cursor: "ew-resize",
               background: mouseDown ? "var(--bs-primary)" : "gray",

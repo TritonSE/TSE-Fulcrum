@@ -1,7 +1,7 @@
-import { Request, RequestHandler, Response } from "express";
-
-import { UserDocument } from "../models/UserModel";
 import { UserService } from "../services";
+
+import type { UserDocument } from "../models/UserModel";
+import type { Request, RequestHandler, Response } from "express";
 
 type AsyncHandlerResult = {
   status: number;
@@ -43,7 +43,7 @@ async function getUser(req: Request): Promise<UserDocument | null> {
     return UserService.getBySessionToken(cookies.session);
   }
 
-  console.log("No session token provided");
+  console.info("No session token provided");
   return null;
 }
 
@@ -66,7 +66,7 @@ function authWrapper(handler: AsyncAuthHandler): RequestHandler {
 
 // A wrapper to use around routes that require the user to be an admin
 function adminRequiredWrapper(handler: AsyncAuthHandler): RequestHandler {
-  return authWrapper((user, req, res) => {
+  return authWrapper(async (user, req, res) => {
     if (!user.isAdmin) {
       return { status: 403, text: "You must be an admin to perform this action" };
     }
@@ -74,4 +74,4 @@ function adminRequiredWrapper(handler: AsyncAuthHandler): RequestHandler {
   });
 }
 
-export { wrapper, getUser, authWrapper, adminRequiredWrapper };
+export { adminRequiredWrapper, authWrapper, getUser, wrapper };

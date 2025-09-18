@@ -1,9 +1,10 @@
 import { Router } from "express";
 
-import { RawReview } from "../models";
 import { ReviewService } from "../services";
 
 import { adminRequiredWrapper, authWrapper } from "./wrappers";
+
+import type { RawReview } from "../models";
 
 const router = Router();
 

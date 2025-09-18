@@ -24,14 +24,14 @@ class EmailService {
   }
 
   async send({ recipient, subject, body }: EmailMessage): Promise<boolean> {
-    body = body.trim() + "\n\n" + env.EMAIL_FOOTER;
+    body = `${body.trim()}\n\n${env.EMAIL_FOOTER}`;
 
-    console.log(`Email starts here, recipient: ${recipient}, subject: ${subject}`);
-    console.log(body.replace(/^/gm, "| "));
-    console.log(`Email ends here`);
+    console.info(`Email starts here, recipient: ${recipient}, subject: ${subject}`);
+    console.info(body.replace(/^/gm, "| "));
+    console.info(`Email ends here`);
 
     if (!env.EMAIL_ENABLED) {
-      console.log("Email not enabled; not actually sending");
+      console.info("Email not enabled; not actually sending");
       return true;
     }
 

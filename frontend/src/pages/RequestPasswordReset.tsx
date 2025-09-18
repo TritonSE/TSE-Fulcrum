@@ -1,5 +1,5 @@
 import { Button } from "@tritonse/tse-constellation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Form } from "react-bootstrap";
 
 import api from "../api";
@@ -29,7 +29,7 @@ export default function RequestPasswordReset() {
       .then(() => {
         addAlert(
           "If there is an active account linked to the email address you entered, you will receive an email with instructions to reset your password.",
-          "info"
+          "info",
         );
       })
       .catch(addAlert);

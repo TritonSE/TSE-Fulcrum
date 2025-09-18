@@ -1,10 +1,12 @@
 import { Button } from "@tritonse/tse-constellation";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 
-import api, { Pipeline, Stage } from "../api";
+import api from "../api";
 import { GlobalContext } from "../context/GlobalContext";
+
+import type { Pipeline, Stage } from "../api";
 
 function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
   const location = useLocation();
@@ -13,7 +15,7 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
     <Link
       className={twMerge(
         "tw:!text-cream-primary tw:!no-underline tw:px-2 tw:py-1 tw:hover:!bg-white/10 tw:rounded-md",
-        location.pathname === to ? "tw:!bg-white/10" : ""
+        location.pathname === to ? "tw:!bg-white/10" : "",
       )}
       to={to}
     >
@@ -23,14 +25,14 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
 }
 
 function Navbar() {
-  const { user, setUser } = useContext(GlobalContext);
+  const { user, setUser } = use(GlobalContext);
   const userInitials = useMemo(
     () =>
       user?.name
         .split(" ")
         .map((word) => word.charAt(0).toUpperCase())
         .join(""),
-    [user?.name]
+    [user?.name],
   );
 
   const navigate = useNavigate();
@@ -40,25 +42,28 @@ function Navbar() {
   const [stagesByPipeline, setStagesByPipeline] = useState<Record<string, Stage[]>>({});
 
   useEffect(() => {
-    api.getAllPipelines().then(async (data) => {
-      const stagePromises = data.map((pipeline) =>
+    void api.getAllPipelines().then(async (data) => {
+      const stagePromises = data.map(async (pipeline) =>
         api.getStagesByPipeline(pipeline.identifier).then((stages) => ({
           pipeline: pipeline.name,
           stages,
-        }))
+        })),
       );
 
       const stageResults = await Promise.all(stagePromises);
 
       // Map stages by pipeline name
-      const stagesMap = stageResults.reduce((acc, { pipeline, stages }) => {
-        acc[pipeline] = stages.map((stage) => ({
-          ...stage,
-          // Remove the pipeline name from the stage name to reduce repetition
-          name: stage.name.slice(stage.name.indexOf(pipeline) + pipeline.length + 1),
-        }));
-        return acc;
-      }, {} as Record<string, Stage[]>);
+      const stagesMap = stageResults.reduce(
+        (acc, { pipeline, stages }) => {
+          acc[pipeline] = stages.map((stage) => ({
+            ...stage,
+            // Remove the pipeline name from the stage name to reduce repetition
+            name: stage.name.slice(stage.name.indexOf(pipeline) + pipeline.length + 1),
+          }));
+          return acc;
+        },
+        {} as Record<string, Stage[]>,
+      );
 
       setPipelines(data.sort((a, b) => a.name.localeCompare(b.name)));
       setStagesByPipeline(stagesMap);
@@ -66,7 +71,7 @@ function Navbar() {
   }, []);
 
   const onLogOut = () => {
-    api.logOut().then(() => {
+    void api.logOut().then(() => {
       setUser(null);
       navigate("/login");
     });
