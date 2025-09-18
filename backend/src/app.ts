@@ -49,12 +49,14 @@ async function main() {
 
   app.use("/api", routes);
 
+  const staticRoot = path.join(__dirname, "../../public/");
+
   // Serve static files.
-  app.use(express.static(path.join(__dirname, "../public/")));
+  app.use(express.static(staticRoot));
 
   // Serve index.html for routes that don't match files, to enable client-side routing.
   app.get("*", (_, res) => {
-    res.sendFile("index.html", { root: path.join(__dirname, "../public/") });
+    res.sendFile("index.html", { root: staticRoot });
   });
 
   const server = http.createServer(app);
