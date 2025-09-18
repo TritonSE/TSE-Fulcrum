@@ -70,13 +70,22 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
       .getStageById(stageId)
       .then((newStage) => {
         setStage(newStage);
-        api
-          .getFilteredProgresses({ pipelineIdentifier: newStage.pipelineIdentifier })
-          .then(setProgresses)
-          .catch(addAlert);
       })
       .catch(addAlert);
   }, [stageId]);
+
+  const loadProgresses = () => {
+    if (!stage) {
+      return;
+    }
+
+    api
+      .getFilteredProgresses({ pipelineIdentifier: stage.pipelineIdentifier })
+      .then(setProgresses)
+      .catch(addAlert);
+  };
+
+  useEffect(loadProgresses, [stage]);
 
   const grouped: Record<string, [Application, PopulatedReview[]]> = {};
   reviews.forEach((review) => {
@@ -172,6 +181,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         }
       });
       addAlert(`Successfully ${modalState}ed ${successCount} applicants!`, "success");
+      loadProgresses();
     } catch (error) {
       addAlert(error);
     } finally {

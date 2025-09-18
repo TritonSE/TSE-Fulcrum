@@ -7,7 +7,14 @@ import EmailService from "./EmailService";
 import PipelineService from "./PipelineService";
 import ProgressService from "./ProgressService";
 
+export const QUARTERS = ["Winter", "Spring", "Fall"] as const;
+export type Quarter = (typeof QUARTERS)[number];
+
 class ApplicationService {
+  calculateQuarter(quarter: Quarter, year: number) {
+    return year * 4 + QUARTERS.indexOf(quarter);
+  }
+
   async create(application: Application): Promise<Application | string> {
     // TODO: disallow applications from being submitted past the deadline
 
@@ -55,21 +62,20 @@ class ApplicationService {
   }
 
   /* 1 - First year, 2 - Second year... */
-  public determineApplicantGradeLevel(startQuarter: number, gradQuarter: number): number {
+  public determineApplicantGradeLevel(
+    startQuarter: number,
+    gradQuarter: number,
+    currentYear: number,
+  ): number {
     const totalQuartersAtUCSD = this.calculateQuarterDiff(startQuarter, gradQuarter);
 
-    const now = new Date();
-
-    // If it's currently summer, year level is rounded up to next fall
-    // Shouldn't be relevant since we only receive applications in the fall
+    // Assume it's fall, since we do recruitment during fall and this makes it easier to test
+    // Fulcrum throughout other quarters
     const yearsSinceStart = Math.ceil(
-      this.calculateQuarterDiff(
-        startQuarter,
-        now.getFullYear() * 4 + Math.floor(now.getMonth() / 3),
-      ) / 3,
+      this.calculateQuarterDiff(startQuarter, currentYear * 4 + 2) / 3,
     );
 
-    return totalQuartersAtUCSD < 9 ? yearsSinceStart + 2 : yearsSinceStart;
+    return totalQuartersAtUCSD < 7 ? yearsSinceStart + 2 : yearsSinceStart;
   }
 
   /* Helper function to calculate academic quarters between two encoded quarter values */
@@ -85,6 +91,7 @@ class ApplicationService {
       applicantYear: this.determineApplicantGradeLevel(
         application.startQuarter,
         application.gradQuarter,
+        new Date().getFullYear(),
       ),
     };
   }

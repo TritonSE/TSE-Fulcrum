@@ -93,7 +93,7 @@ router.post(
       return { status: 403, text: "Unauthorized to reassign - not your review, and not an admin" };
     }
 
-    const result = await ReviewService.reassign(req.params.reviewId, user.email);
+    const result = await ReviewService.reassign(req.params.reviewId);
     if (typeof result === "string") {
       return { status: 400, text: result };
     }

@@ -1,11 +1,10 @@
+import { LoadingSpinner } from "@tritonse/tse-constellation";
 import { ChangeEvent, FormEventHandler, useState, WheelEventHandler } from "react";
-import { Alert, Button, Col, Form, Row, Spinner } from "react-bootstrap";
+import { Alert, Button, Col, Form, Row } from "react-bootstrap";
 
+import api from "../api";
+import { useAlerts } from "../hooks/alerts";
 import { countWords } from "../util";
-
-// Update these values each year before recruitment.
-const RESUME_UPLOAD_URL = "/api/resume";
-const SUBMIT_URL = "/api/application";
 
 if (!import.meta.env.VITE_APPLICATION_DEADLINE) {
   throw new Error("Missing VITE_APPLICATION_DEADLINE!");
@@ -76,9 +75,8 @@ function Apply() {
     test_developer: "",
   });
 
+  const { alerts, addAlert } = useAlerts();
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const getWordCountText = (promptKey: string): string =>
     `Max ${SHORT_ANSWER_MAX_WORDS} words: ${countWords(
@@ -111,45 +109,21 @@ function Apply() {
 
   const [resumeFile, setResumeFile] = useState<File | undefined>(undefined);
 
-  // Uploads resume to backend and returns a URL to view it with
-  const uploadResume = async (): Promise<string | null> => {
-    const formData = new FormData();
-
-    if (!resumeFile) {
-      return null;
-    }
-
-    formData.append("resumeFile", resumeFile);
-
-    const response = await fetch(RESUME_UPLOAD_URL, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.resumeUrl;
-    }
-    throw new Error(`HTTP ${response.status} (${response.statusText}`);
-  };
-
   const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setError("");
-    setSuccess("");
 
     const selectedRoles = Object.entries(roles)
       .filter(([_role, selected]) => selected)
       .map(([role, _selected]) => role);
     if (selectedRoles.length === 0) {
-      setError("You must select at least one role to apply to.");
+      addAlert("You must select at least one role to apply to.");
       setSubmitting(false);
       return;
     }
 
     if (!personalInfo.startQuarter || !personalInfo.gradQuarter) {
-      setError("Select your start quarter and graduation quarter.");
+      addAlert("Select your start quarter and graduation quarter.");
       setSubmitting(false);
       return;
     }
@@ -163,7 +137,7 @@ function Apply() {
       .map(([role, _selected]) => (role === "Other" ? personalInfo.otherHearAboutTSE : role));
 
     if (!resumeFile) {
-      setError("Please upload your resume.");
+      addAlert("Please upload your resume.");
       setSubmitting(false);
       return;
     }
@@ -172,16 +146,15 @@ function Apply() {
     /* eslint-disable no-restricted-syntax */
     for (const prompt of Object.keys(prompts)) {
       if (isPromptOverLimit(prompt)) {
-        setError(`One or more of your responses is over the word limit.`);
+        addAlert(`One or more of your responses is over the word limit.`);
         setSubmitting(false);
         return;
       }
     }
 
-    setSuccess("Submitting your application...");
-
-    uploadResume()
-      .then((resumeUrl) => {
+    api
+      .uploadResume(resumeFile)
+      .then(({ resumeUrl }) => {
         const application = {
           name: personalInfo.name,
           pronouns: personalInfo.pronouns,
@@ -206,36 +179,23 @@ function Apply() {
         const errorPrefix =
           "Could not submit your application. Please contact tse@ucsd.edu for support.";
 
-        fetch(SUBMIT_URL, {
-          method: "post",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(application),
-        })
-          .then((response) => {
-            setError("");
-            setSuccess("");
-            if (response.ok) {
-              setSuccess(
-                "Thank you for applying to Triton Software Engineering! You will receive a confirmation email shortly. Please monitor your UCSD email for updates on your application status. We promise to get back to you!"
-              );
-            } else {
-              const message = `${errorPrefix} HTTP ${response.status} (${response.statusText})`;
-              setError(message);
-              response.text().then((text) => setError(message + ": " + text));
-            }
+        api
+          .submitApplication(application)
+          .then(() => {
+            addAlert(
+              "Thank you for applying to Triton Software Engineering! You will receive a confirmation email shortly. Please monitor your UCSD email for updates on your application status. We promise to get back to you!",
+              "success"
+            );
           })
           .catch((err) => {
-            setSuccess("");
-            setError(`${errorPrefix} Details: ${err}`);
+            addAlert(`${errorPrefix} Details: ${err}`);
           })
           .finally(() => {
             setSubmitting(false);
           });
       })
       .catch((err) => {
-        setError(
+        addAlert(
           `Could not upload your resume. Please contact tse@ucsd.edu for support. Error: ${err}`
         );
         setSubmitting(false);
@@ -726,31 +686,16 @@ function Apply() {
             </Form.Group>
           </Row>
         )}
-        {error && (
-          <Row>
-            <Col>
-              <Alert variant="danger">{error}</Alert>
-            </Col>
-          </Row>
-        )}
-        {success && (
-          <Row>
-            <Col>
-              <Alert variant="success">{success}</Alert>
-            </Col>
-          </Row>
-        )}
         {
           /**
-           * Adding this submitting/loading state to prevent spam clicking the button and submitting
-           * duplicate applications. This bug has always been around but is more obvious now with resume
-           * uploads that take a few seconds.
+           * Disable button while loading to prevent spam clicking and submitting duplicate applications
            */
           <Button variant="primary" type="submit" className="mt-3" disabled={submitting}>
-            {submitting ? <Spinner animation="border" role="status" /> : "Submit"}
+            {submitting ? <LoadingSpinner /> : "Submit"}
           </Button>
         }
       </Form>
+      {alerts}
     </div>
   );
 }

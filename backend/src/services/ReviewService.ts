@@ -79,17 +79,20 @@ class ReviewService {
     return review;
   }
 
-  async reassign(id: string, currentReviewerEmail: string): Promise<ReviewDocument | string> {
+  async reassign(id: string): Promise<ReviewDocument | string> {
     const review = await ReviewModel.findById(id);
     if (review === null) {
       return "Review not found";
+    }
+    if (review.reviewerEmail === undefined) {
+      return "Review not assigned";
     }
 
     const applicationDoc = await ApplicationService.getById(review.application);
     if (!applicationDoc) {
       return "Application not found";
     }
-    applicationDoc.blockListedReviewerEmails.push(currentReviewerEmail);
+    applicationDoc.blockListedReviewerEmails.push(review.reviewerEmail);
     await applicationDoc.save();
 
     review.reviewerEmail = undefined;
@@ -225,6 +228,7 @@ class ReviewService {
     const gradeLevel = ApplicationService.determineApplicantGradeLevel(
       applicationDoc.startQuarter,
       applicationDoc.gradQuarter,
+      new Date().getFullYear(),
     );
 
     // Define filters for each stage
@@ -246,8 +250,14 @@ class ReviewService {
     const countsAndEmails = await Promise.all(
       reviewers.map((reviewer) =>
         ReviewModel.count({ reviewerEmail: reviewer.email, stageId: stage.id }).then(
-          // Double count for solo interviewers because interview buddies go to both people's interviews
-          (count) => [reviewer.isDoingInterviewAlone ? count * 2 : count, reviewer.email] as const,
+          // Double count for interview buddies because interview buddies go to both people's interviews
+          (count) =>
+            [
+              stage.identifier === "developer_technical" && !reviewer.isDoingInterviewAlone
+                ? count * 2
+                : count,
+              reviewer.email,
+            ] as const,
         ),
       ),
     );
@@ -302,12 +312,20 @@ class ReviewService {
   }
 
   getReviewStatus(review: ReviewDocument) {
-    if (Object.keys(review.fields).length === 0) {
-      return ReviewStatus.NotStarted;
-    }
     const stage = StageService.getById(review.stageId);
     if (!stage) {
       throw new Error(`Stage with ID ${review.stageId} not found`);
+    }
+
+    // If none of the stage's fields are present on the review, then it's not started
+    if (
+      Object.keys(stage.fields).every(
+        (fieldName) =>
+          (review.fields as unknown as Map<string, string | number | boolean>).get(fieldName) ===
+          undefined,
+      )
+    ) {
+      return ReviewStatus.NotStarted;
     }
 
     // If any of the stage's fields are not present on the review, then it's not complete
@@ -336,6 +354,7 @@ class ReviewService {
       applicantYear: ApplicationService.determineApplicantGradeLevel(
         application.startQuarter,
         application.gradQuarter,
+        new Date().getFullYear(),
       ),
     };
   }

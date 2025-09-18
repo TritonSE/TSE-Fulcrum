@@ -1,7 +1,4 @@
-// https://stackoverflow.com/questions/69746672/unable-to-resolve-path-to-module-firebase-admin-app-eslint
-// eslint-disable-next-line import/no-unresolved
 import * as firebase from "firebase-admin/app";
-// eslint-disable-next-line import/no-unresolved
 import { getDownloadURL, getStorage } from "firebase-admin/storage";
 import _ from "multer";
 
@@ -29,9 +26,12 @@ const firebaseBucket = firebaseStorage.bucket();
 
 class ResumeService {
   async upload(resumeFile: Express.Multer.File): Promise<ResumeUploadResult> {
-    // Put each resume in a randomly named folder, to avoid name collisions
+    // 1st level: folder by year (e.g. 2025_resumes)
+    // 2nd level: randomly named folder, to avoid collisions in applicant name or filename
     const randomToken = CryptoService.generateToken();
-    const filename = `${randomToken}/${resumeFile.originalname}`;
+    const filename = `${new Date().getFullYear()}_resumes/${randomToken}/${
+      resumeFile.originalname
+    }`;
 
     const file = firebaseBucket.file(filename);
     await file.save(resumeFile.buffer);
