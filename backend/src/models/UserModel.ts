@@ -2,6 +2,8 @@ import { HydratedDocument, Schema, model } from "mongoose";
 
 import CryptoService from "../services/CryptoService";
 
+import { StageIdentifier } from "src/config";
+
 type User = {
   email: string;
   name: string;
@@ -21,6 +23,14 @@ type User = {
   isDoingInterviewAlone: boolean;
 
   assignedStageIds: number[];
+
+  // Optionally set maximum number of reviews on certain stages. This way,
+  // volunteers/alumni can help with recruitment but with a lower time commitment
+  // For technical interviews, this field's value is the TOTAL number of interviews
+  // this reviewer would do among them and their interview buddy (if any); we don't
+  // actually store interview buddies in the database, so we would just give them half
+  // this many reviews (e.g. if their max is 4 and they're not interviewing alone, give them 2)
+  maxReviewsPerStageIdentifier: Map<StageIdentifier, number>;
 
   isAdmin: boolean;
 
@@ -106,6 +116,11 @@ const UserSchema = new Schema<User>({
     type: [Number],
     required: true,
     default: [],
+  },
+  maxReviewsPerStageIdentifier: {
+    type: Map,
+    required: true,
+    default: {},
   },
 
   isAdmin: {

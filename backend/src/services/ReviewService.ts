@@ -247,7 +247,7 @@ class ReviewService {
       reviewers = filteredReviewers.length > 0 ? filteredReviewers : reviewers;
     }
 
-    const countsAndEmails = await Promise.all(
+    const countsEmailsAndMaxReviews = await Promise.all(
       reviewers.map((reviewer) =>
         ReviewModel.count({ reviewerEmail: reviewer.email, stageId: stage.id }).then(
           // Double count for interview buddies because interview buddies go to both people's interviews
@@ -257,17 +257,23 @@ class ReviewService {
                 ? count * 2
                 : count,
               reviewer.email,
+              reviewer.maxReviewsPerStageIdentifier.get(stage.identifier),
             ] as const,
         ),
       ),
     );
 
     // Sort in ascending order by count.
-    countsAndEmails.sort((a, b) => a[0] - b[0]);
+    countsEmailsAndMaxReviews.sort((a, b) => a[0] - b[0]);
+
+    // Filter out reviewers who are at or above their maximum desired review count for this stage
+    const filteredCountsEmailsAndMaxReviews = countsEmailsAndMaxReviews.filter(
+      (pair) => pair[2] === undefined || pair[0] < pair[2],
+    );
 
     // Get all reviewers who are tied for the minimum count.
-    const reviewerEmails = countsAndEmails
-      .filter((pair) => pair[0] === countsAndEmails[0][0])
+    const reviewerEmails = filteredCountsEmailsAndMaxReviews
+      .filter((pair) => pair[0] === filteredCountsEmailsAndMaxReviews[0][0])
       .map((pair) => pair[1]);
 
     // Pick one of these reviewers at random.
@@ -319,23 +325,13 @@ class ReviewService {
 
     // If none of the stage's fields are present on the review, then it's not started
     if (
-      Object.keys(stage.fields).every(
-        (fieldName) =>
-          (review.fields as unknown as Map<string, string | number | boolean>).get(fieldName) ===
-          undefined,
-      )
+      Object.keys(stage.fields).every((fieldName) => review.fields.get(fieldName) === undefined)
     ) {
       return ReviewStatus.NotStarted;
     }
 
     // If any of the stage's fields are not present on the review, then it's not complete
-    if (
-      Object.keys(stage.fields).some(
-        (fieldName) =>
-          (review.fields as unknown as Map<string, string | number | boolean>).get(fieldName) ===
-          undefined,
-      )
-    ) {
+    if (Object.keys(stage.fields).some((fieldName) => review.fields.get(fieldName) === undefined)) {
       return ReviewStatus.InProgress;
     }
     return ReviewStatus.Completed;

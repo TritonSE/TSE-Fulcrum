@@ -27,6 +27,7 @@ class UserService {
     onlyFirstYearTechnical,
     isDoingInterviewAlone,
     assignedStageIds,
+    maxReviewsPerStageIdentifier,
     isAdmin,
   }: CreateUserRequest): Promise<UserDocument | null> {
     // TODO: To avoid race conditions, we should try to save, and catch the
@@ -43,6 +44,7 @@ class UserService {
       onlyFirstYearTechnical,
       isDoingInterviewAlone,
       assignedStageIds,
+      maxReviewsPerStageIdentifier: maxReviewsPerStageIdentifier as Record<string, number>,
       isAdmin,
     });
     return user.save();

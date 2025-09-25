@@ -1,4 +1,4 @@
-import { Infer, array, bake, boolean, number, optional, string, union } from "caketype";
+import { Infer, any, array, bake, boolean, number, optional, string, union } from "caketype";
 
 import { pipelineIdentifiers } from "./config";
 
@@ -16,6 +16,8 @@ const CreateUserRequest = bake({
   onlyFirstYearTechnical: optional(boolean),
   isDoingInterviewAlone: optional(boolean),
   assignedStageIds: optional(array(number)),
+  // TODO: add support for arbitrary-key record fields to caketype
+  maxReviewsPerStageIdentifier: optional(any),
   isAdmin: optional(boolean),
 });
 

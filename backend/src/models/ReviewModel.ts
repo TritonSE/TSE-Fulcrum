@@ -8,7 +8,7 @@ type Review = {
   application: Types.ObjectId;
   interview?: Types.ObjectId;
   reviewerEmail?: string;
-  fields: Record<string, string | number | boolean>;
+  fields: Map<string, string | number | boolean>;
 };
 
 type RawReview = ObjectIdsToStrings<Review>;
