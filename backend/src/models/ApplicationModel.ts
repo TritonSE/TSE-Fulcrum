@@ -28,7 +28,7 @@ type Application = {
   testBarriersPrompt: string;
 
   // Map role identifiers to the corresponding prompts.
-  rolePrompts: Record<string, string>;
+  rolePrompts: Map<string, string>;
 
   blockListedReviewerEmails: string[];
 };

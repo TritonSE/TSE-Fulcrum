@@ -16,6 +16,11 @@ describe("ReviewService tests", () => {
   let phoneScreens: Review[] = [];
   let technicalInterviews: Review[] = [];
 
+  const resumeStageId = stages.find((stage) => stage.identifier === "developer_resume_review")!.id;
+  const phoneStageId = stages.find((stage) => stage.identifier === "developer_phone_screen")!.id;
+  const technicalStageId = stages.find((stage) => stage.identifier === "developer_technical")!.id;
+  const devStageIds = [resumeStageId, phoneStageId, technicalStageId];
+
   const createTestApplication = async (year: number) => {
     const startYear = new Date().getFullYear() - year + 1;
     const application = await ApplicationModel.create({
@@ -41,7 +46,7 @@ describe("ReviewService tests", () => {
     resumeReviews.push([]);
     for (let i = 0; i < 2; i++) {
       const review = await ReviewModel.create({
-        stageId: stages.find((stage) => stage.identifier === "developer_resume_review")!.id,
+        stageId: resumeStageId,
         application: application._id,
         fields: {},
       });
@@ -65,15 +70,6 @@ describe("ReviewService tests", () => {
     await createTestApplication(2);
     await createTestApplication(3);
     await createTestApplication(4);
-
-    const devStageIds = stages
-      .filter((stage) =>
-        ["developer_resume_review", "developer_phone_screen", "developer_technical"].includes(
-          stage.identifier,
-        ),
-      )
-      .map((stage) => stage.id);
-
     users = [
       // 2 reviewers reviewing only 1st years, paired together
       await UserModel.create({
@@ -151,7 +147,7 @@ describe("ReviewService tests", () => {
   describe("getReviewStatus", () => {
     it("Not started", async () => {
       const review = await ReviewModel.create({
-        stageId: stages.find((stage) => stage.identifier === "developer_resume_review")!.id,
+        stageId: resumeStageId,
         application: new mongoose.Types.ObjectId("111111111111111111111111"),
         fields: {},
       });
@@ -160,7 +156,7 @@ describe("ReviewService tests", () => {
 
     it("In progress", async () => {
       const review = await ReviewModel.create({
-        stageId: stages.find((stage) => stage.identifier === "developer_resume_review")!.id,
+        stageId: resumeStageId,
         application: new mongoose.Types.ObjectId("111111111111111111111111"),
         fields: {
           resume_score: 2,
@@ -171,7 +167,7 @@ describe("ReviewService tests", () => {
 
     it("Completed", async () => {
       const review = await ReviewModel.create({
-        stageId: stages.find((stage) => stage.identifier === "developer_resume_review")!.id,
+        stageId: resumeStageId,
         application: new mongoose.Types.ObjectId("111111111111111111111111"),
         fields: {
           resume_score: 2,
@@ -220,7 +216,7 @@ describe("ReviewService tests", () => {
         expect(
           await ReviewModel.count({
             reviewerEmail: user.email,
-            stageId: stages.find((stage) => stage.identifier === "developer_resume_review")!.id,
+            stageId: resumeStageId,
           }),
         ).toBe(2);
       }
@@ -228,27 +224,24 @@ describe("ReviewService tests", () => {
 
     it("Dev phone screens", async () => {
       for (const application of applications) {
-        const review = await ReviewModel.create({
-          stageId: stages.find((stage) => stage.identifier === "developer_phone_screen")!.id,
+        const phoneScreen = await ReviewModel.create({
+          stageId: phoneStageId,
           application: application._id,
           fields: {},
         });
-        phoneScreens.push(review);
-        await ReviewService.assign(review._id.toString(), null);
+        phoneScreens.push(phoneScreen);
+        await ReviewService.assign(phoneScreen._id.toString(), null);
       }
 
       // Ensure 1st vs non-1st years were distributed correctly
-      const phoneScreenStageId = stages.find(
-        (stage) => stage.identifier === "developer_phone_screen",
-      )!.id;
       for (const user of users) {
         if (user.onlyFirstYearPhoneScreen) {
           expect(
-            await ReviewModel.count({ reviewerEmail: user.email, stageId: phoneScreenStageId }),
+            await ReviewModel.count({ reviewerEmail: user.email, stageId: phoneStageId }),
           ).toBe(3);
         } else {
           expect(
-            await ReviewModel.count({ reviewerEmail: user.email, stageId: phoneScreenStageId }),
+            await ReviewModel.count({ reviewerEmail: user.email, stageId: phoneStageId }),
           ).toBe(1);
         }
       }
@@ -283,19 +276,16 @@ describe("ReviewService tests", () => {
 
     it("Dev technical interviews", async () => {
       for (const application of applications) {
-        const review = await ReviewModel.create({
-          stageId: stages.find((stage) => stage.identifier === "developer_technical")!.id,
+        const technicalInterview = await ReviewModel.create({
+          stageId: technicalStageId,
           application: application._id,
           fields: {},
         });
-        technicalInterviews.push(review);
-        await ReviewService.assign(review._id.toString(), null);
+        technicalInterviews.push(technicalInterview);
+        await ReviewService.assign(technicalInterview._id.toString(), null);
       }
 
       // Ensure 1st vs non-1st years were distributed correctly
-      const technicalStageId = stages.find(
-        (stage) => stage.identifier === "developer_technical",
-      )!.id;
       for (const user of users) {
         if (user.onlyFirstYearTechnical) {
           expect([2, 3]).toContain(
@@ -350,6 +340,153 @@ describe("ReviewService tests", () => {
       expect((await ReviewModel.findById(technicalInterviews[11]._id))!.reviewerEmail).not.toBe(
         originalReviewerEmail,
       );
+    });
+
+    describe("Respects maxReviewsPerStageIdentifier", () => {
+      // We would run this as a "beforeEach" hook except we already have one in the
+      // top-level suite and idk how to ensure this runs after that so the users are correct
+      const createUsers = async () => {
+        await UserModel.deleteMany({});
+
+        await UserModel.create({
+          email: "reviewer1@ucsd.edu",
+          name: "Reviewer 1",
+          assignedStageIds: devStageIds,
+          onlyFirstYearPhoneScreen: true,
+          onlyFirstYearTechnical: true,
+        });
+        await UserModel.create({
+          email: "reviewer2@ucsd.edu",
+          name: "Reviewer 2",
+          assignedStageIds: devStageIds,
+          maxReviewsPerStageIdentifier: {
+            developer_resume_review: 1,
+            developer_technical: 4,
+          },
+          onlyFirstYearPhoneScreen: true,
+          onlyFirstYearTechnical: true,
+        });
+      };
+
+      it("Resume reviews - stop assigning to Reviewer 2 after 1 review", async () => {
+        await createUsers();
+
+        await ReviewService.assign(resumeReviews[0][0]._id.toString(), "reviewer1@ucsd.edu");
+        await ReviewService.assign(resumeReviews[1][0]._id.toString(), null);
+        expect((await ReviewModel.findById(resumeReviews[1][0]._id))?.reviewerEmail).toBe(
+          "reviewer2@ucsd.edu",
+        );
+
+        await ReviewService.assign(resumeReviews[2][0]._id.toString(), null);
+        expect((await ReviewModel.findById(resumeReviews[2][0]._id))?.reviewerEmail).toBe(
+          "reviewer1@ucsd.edu",
+        );
+        await ReviewService.assign(resumeReviews[3][0]._id.toString(), null);
+        expect((await ReviewModel.findById(resumeReviews[3][0]._id))?.reviewerEmail).toBe(
+          "reviewer1@ucsd.edu",
+        );
+      });
+
+      it("Phone screens - should be perfectly balanced", async () => {
+        await createUsers();
+
+        for (const application of applications) {
+          const phoneScreen = await ReviewModel.create({
+            stageId: phoneStageId,
+            application: application._id,
+            fields: {},
+          });
+          phoneScreens.push(phoneScreen);
+        }
+
+        await ReviewService.assign(phoneScreens[0]._id.toString(), null);
+        await ReviewService.assign(phoneScreens[1]._id.toString(), null);
+        expect(
+          await ReviewModel.count({
+            reviewerEmail: "reviewer1@ucsd.edu",
+            stageId: phoneStageId,
+          }),
+        ).toBe(1);
+        expect(
+          await ReviewModel.count({
+            reviewerEmail: "reviewer2@ucsd.edu",
+            stageId: phoneStageId,
+          }),
+        ).toBe(1);
+
+        await ReviewService.assign(phoneScreens[2]._id.toString(), null);
+        await ReviewService.assign(phoneScreens[3]._id.toString(), null);
+        expect(
+          await ReviewModel.count({
+            reviewerEmail: "reviewer1@ucsd.edu",
+            stageId: phoneStageId,
+          }),
+        ).toBe(2);
+        expect(
+          await ReviewModel.count({
+            reviewerEmail: "reviewer2@ucsd.edu",
+            stageId: phoneStageId,
+          }),
+        ).toBe(2);
+
+        await ReviewService.assign(phoneScreens[4]._id.toString(), null);
+        await ReviewService.assign(phoneScreens[5]._id.toString(), null);
+        expect(
+          await ReviewModel.count({
+            reviewerEmail: "reviewer1@ucsd.edu",
+            stageId: phoneStageId,
+          }),
+        ).toBe(3);
+        expect(
+          await ReviewModel.count({
+            reviewerEmail: "reviewer2@ucsd.edu",
+            stageId: phoneStageId,
+          }),
+        ).toBe(3);
+      });
+
+      it("Technical interviews - stop assigning to Reviewer 2 after 2 reviews", async () => {
+        await createUsers();
+
+        for (const application of applications) {
+          const technicalInterview = await ReviewModel.create({
+            stageId: technicalStageId,
+            application: application._id,
+            fields: {},
+          });
+          technicalInterviews.push(technicalInterview);
+        }
+
+        await ReviewService.assign(technicalInterviews[0]._id.toString(), "reviewer1@ucsd.edu");
+        await ReviewService.assign(technicalInterviews[1]._id.toString(), null);
+        expect((await ReviewModel.findById(technicalInterviews[1]._id))?.reviewerEmail).toBe(
+          "reviewer2@ucsd.edu",
+        );
+
+        await ReviewService.assign(technicalInterviews[2]._id.toString(), null);
+        await ReviewService.assign(technicalInterviews[3]._id.toString(), null);
+        expect(
+          await ReviewModel.count({
+            reviewerEmail: "reviewer1@ucsd.edu",
+            stageId: technicalStageId,
+          }),
+        ).toBe(2);
+        expect(
+          await ReviewModel.count({
+            reviewerEmail: "reviewer2@ucsd.edu",
+            stageId: technicalStageId,
+          }),
+        ).toBe(2);
+
+        await ReviewService.assign(technicalInterviews[4]._id.toString(), null);
+        expect((await ReviewModel.findById(technicalInterviews[4]._id))?.reviewerEmail).toBe(
+          "reviewer1@ucsd.edu",
+        );
+        await ReviewService.assign(technicalInterviews[5]._id.toString(), null);
+        expect((await ReviewModel.findById(technicalInterviews[5]._id))?.reviewerEmail).toBe(
+          "reviewer1@ucsd.edu",
+        );
+      });
     });
   });
 
