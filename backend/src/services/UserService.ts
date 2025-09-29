@@ -1,12 +1,14 @@
 import { DateTime } from "luxon";
 
-import { CreateUserRequest, LogInRequest, ResetPasswordRequest } from "../cakes";
 import env from "../env";
-import { UserDocument, UserModel } from "../models";
+import { UserModel } from "../models";
 import { retrieveDeploymentUrl } from "../storage";
 
 import CryptoService from "./CryptoService";
 import EmailService from "./EmailService";
+
+import type { CreateUserRequest, LogInRequest, ResetPasswordRequest } from "../cakes";
+import type { UserDocument } from "../models";
 
 type PublicUser = {
   email: string;

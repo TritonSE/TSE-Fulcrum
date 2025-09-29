@@ -1,9 +1,10 @@
 import { Router } from "express";
 
-import { PipelineIdentifier } from "../config";
 import { StageService } from "../services";
 
 import { authWrapper } from "./wrappers";
+
+import type { PipelineIdentifier } from "../config";
 
 const router = Router();
 
@@ -37,7 +38,7 @@ router.get(
 router.get(
   "/:stageId",
   authWrapper((_user, req) => {
-    const result = StageService.getById(parseInt(req.params.stageId));
+    const result = StageService.getById(Number.parseInt(req.params.stageId));
     if (result === null) {
       return { status: 404 };
     }

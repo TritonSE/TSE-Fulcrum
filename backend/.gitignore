@@ -1,7 +1,2 @@
-dist/
-node_modules/
 public/
-.env
-.eslintcache
-
 src/config/users.json

@@ -1,4 +1,6 @@
-import { Pipeline, pipelines } from "../config";
+import { pipelines } from "../config";
+
+import type { Pipeline } from "../config";
 
 class PipelineService {
   getAll(): Pipeline[] {

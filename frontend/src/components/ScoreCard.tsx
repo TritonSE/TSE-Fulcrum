@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 
-import { PopulatedReview } from "../api";
 import { formatFieldNameHumanReadable } from "../helpers/review";
 import { useUsers } from "../hooks/users";
 
-interface ScoreCardProps {
+import type { PopulatedReview } from "../api";
+
+type ScoreCardProps = {
   review: PopulatedReview;
-}
+};
 
 export default function ScoreCard({ review }: ScoreCardProps) {
   const { emailsToUsers } = useUsers();
@@ -26,7 +27,7 @@ export default function ScoreCard({ review }: ScoreCardProps) {
       <div className="tw:bg-accent tw:p-2.5 tw:text-white tw:flex tw:justify-between tw:items-center">
         <span>
           {review.reviewerEmail
-            ? emailsToUsers[review.reviewerEmail]?.name ?? "(unknown user)"
+            ? (emailsToUsers[review.reviewerEmail]?.name ?? "(unknown user)")
             : "(unassigned)"}
         </span>
         <Link to={`/review/${review._id}/edit`} className="tw:!text-white tw:underline">

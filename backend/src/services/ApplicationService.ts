@@ -1,11 +1,12 @@
-import { Types } from "mongoose";
-
-import { Pipeline } from "../config";
-import { Application, ApplicationDocument, ApplicationModel } from "../models";
+import { ApplicationModel } from "../models";
 
 import EmailService from "./EmailService";
 import PipelineService from "./PipelineService";
 import ProgressService from "./ProgressService";
+
+import type { Pipeline } from "../config";
+import type { Application, ApplicationDocument } from "../models";
+import type { Types } from "mongoose";
 
 export const QUARTERS = ["Winter", "Spring", "Fall"] as const;
 export type Quarter = (typeof QUARTERS)[number];
@@ -42,7 +43,7 @@ class ApplicationService {
 
     // Create application progress indicators for each role.
     await Promise.all(
-      pipelines.map((pipeline) => ProgressService.create(pipeline.identifier, result._id)),
+      pipelines.map(async (pipeline) => ProgressService.create(pipeline.identifier, result._id)),
     );
 
     await EmailService.send({

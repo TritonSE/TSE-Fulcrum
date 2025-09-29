@@ -1,9 +1,10 @@
 import { Router } from "express";
 
-import { Application } from "../models";
 import { ApplicationService } from "../services";
 
 import { authWrapper, wrapper } from "./wrappers";
+
+import type { Application } from "../models";
 
 const router = Router();
 

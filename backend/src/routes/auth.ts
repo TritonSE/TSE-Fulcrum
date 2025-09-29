@@ -50,7 +50,7 @@ router.post(
 
 router.get(
   "/me",
-  authWrapper((user) =>
+  authWrapper(async (user) =>
     Promise.resolve({
       status: 200,
       json: UserService.serialize(user),

@@ -1,8 +1,9 @@
-import { HydratedDocument, Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
 
 import CryptoService from "../services/CryptoService";
 
-import { StageIdentifier } from "src/config";
+import type { HydratedDocument } from "mongoose";
+import type { StageIdentifier } from "src/config";
 
 type User = {
   email: string;
@@ -133,4 +134,4 @@ const UserSchema = new Schema<User>({
 const UserModel = model("User", UserSchema);
 type UserDocument = HydratedDocument<User>;
 
-export { UserModel, UserDocument };
+export { UserDocument, UserModel };

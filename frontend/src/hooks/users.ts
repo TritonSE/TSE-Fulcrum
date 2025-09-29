@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
-import api, { User } from "../api";
+import api from "../api";
+
+import type { User } from "../api";
 
 /**
  * A hook that gets a list of all users, and a map of emails to users, to easily display
@@ -11,7 +13,7 @@ export const useUsers = () => {
   const [emailsToUsers, setEmailsToUsers] = useState<Record<string, User>>({});
 
   useEffect(() => {
-    api.getAllUsers().then((newUsers) => {
+    void api.getAllUsers().then((newUsers) => {
       setUsers(newUsers);
       setEmailsToUsers(
         newUsers.reduce(
@@ -19,8 +21,8 @@ export const useUsers = () => {
             ...prev,
             [cur.email]: cur,
           }),
-          {}
-        )
+          {},
+        ),
       );
     });
   }, []);

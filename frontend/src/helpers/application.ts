@@ -1,4 +1,4 @@
-import { Progress, Stage } from "../api";
+import type { Progress, Stage } from "../api";
 
 export const APPLICANT_YEARS = [
   "1st",
@@ -8,7 +8,7 @@ export const APPLICANT_YEARS = [
   "unknown",
 ] as const;
 
-export type ApplicantYear = typeof APPLICANT_YEARS[number];
+export type ApplicantYear = (typeof APPLICANT_YEARS)[number];
 
 export const formatApplicantYear = (year: number): ApplicantYear => {
   switch (year) {
@@ -44,8 +44,8 @@ export const toTitleCase = (text: string) => text[0].toUpperCase() + text.slice(
 
 // Format phone number to (123) 456-7890
 export const formatPhoneNumber = (phone: string) => {
-  const cleaned = ("" + phone).replace(/\D/g, "");
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+  const cleaned = `${phone}`.replace(/\D/g, "");
+  const match = /^(\d{3})(\d{3})(\d{4})$/.exec(cleaned);
 
   if (match) {
     return `(${match[1]}) ${match[2]}-${match[3]}`;

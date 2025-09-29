@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 
-import { Application } from "../api";
+import type { Application } from "../api";
 
-interface ApplicantInfoCellProps {
+type ApplicantInfoCellProps = {
   application: Application;
   linkDestination: string;
-}
+};
 
 /**
  * A table cell that renders an applicant's name, with a link to the given destination,

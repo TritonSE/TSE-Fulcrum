@@ -1,13 +1,15 @@
 import { Button, Modal } from "@tritonse/tse-constellation";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { use, useEffect, useMemo, useState } from "react";
 import { Form } from "react-bootstrap";
-import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
-import api, { Application, Review, Stage } from "../api";
+import api from "../api";
 import ApplicationHeader from "../components/ApplicationHeader";
 import { GlobalContext } from "../context/GlobalContext";
 import { getReviewStatus, ReviewStatus } from "../helpers/review";
 import { useAlerts, useStateHelper } from "../hooks/alerts";
+
+import type { Application, Review, Stage } from "../api";
 
 export function ReviewView({ id, showApplication }: { id: string; showApplication: boolean }) {
   const [review, setReview, { getField, setField }] = useStateHelper<Review>();
@@ -15,7 +17,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   const { alerts, addAlert } = useAlerts();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useContext(GlobalContext);
+  const { user } = use(GlobalContext);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [nextReviewId, setNextReviewId] = useState<string | null>(null);
   const [showReassignSuccessModal, setShowReassignSuccessModal] = useState(false);
@@ -23,7 +25,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
 
   const editable = useMemo(
     () => !!(user && review && (user.isAdmin || user.email === review.reviewerEmail)),
-    [user, review]
+    [user, review],
   );
 
   const getReviewField = (fieldName: string) => review?.fields[fieldName];
@@ -80,7 +82,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
             applicantYear: 0,
           }) === ReviewStatus.Completed
         ) {
-          api.getNextReview().then((nextReview) => {
+          void api.getNextReview().then((nextReview) => {
             setNextReviewId(nextReview?._id ?? null);
             setShowSuccessModal(true);
           });
@@ -138,16 +140,16 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
                   control = (
                     <Form.Control
                       type="number"
-                      value={"" + getReviewField(fieldName)}
+                      value={`${getReviewField(fieldName)}`}
                       onChange={(e) => {
                         if (e.target.value === "") {
                           clearReviewField(fieldName);
                         } else {
-                          setReviewField(fieldName, parseFloat(e.target.value));
+                          setReviewField(fieldName, Number.parseFloat(e.target.value));
                         }
                       }}
                       onWheel={
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        // eslint-disable-next-line ts/no-unsafe-return, ts/no-unsafe-call, ts/no-unsafe-member-access
                         (e) => (e.target as any).blur() /* https://stackoverflow.com/a/67432053 */
                       }
                       disabled={!editable}
@@ -162,7 +164,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
                       value={
                         typeof getReviewField(fieldName) === "undefined"
                           ? ""
-                          : getReviewField(fieldName) + ""
+                          : `${getReviewField(fieldName)}`
                       }
                       onChange={(e) => {
                         if (e.target.value === "") {
@@ -176,7 +178,7 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
                     <div style={{ whiteSpace: "pre-line" }}>
                       {typeof getReviewField(fieldName) === "undefined"
                         ? ""
-                        : getReviewField(fieldName) + ""}
+                        : `${getReviewField(fieldName)}`}
                     </div>
                   );
                   break;
