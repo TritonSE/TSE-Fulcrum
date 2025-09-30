@@ -4,6 +4,7 @@ import { Form } from "react-bootstrap";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import api from "../api";
+import Alert from "../components/Alert";
 import ApplicationHeader from "../components/ApplicationHeader";
 import { GlobalContext } from "../context/GlobalContext";
 import { getReviewStatus, ReviewStatus } from "../helpers/review";
@@ -22,6 +23,11 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
   const [nextReviewId, setNextReviewId] = useState<string | null>(null);
   const [showReassignSuccessModal, setShowReassignSuccessModal] = useState(false);
   const [showConfirmReassignModal, setShowConfirmReassignModal] = useState(false);
+
+  const ownsReview = useMemo(
+    () => user && review && user.email === review.reviewerEmail,
+    [user, review],
+  );
 
   const editable = useMemo(
     () => !!(user && review && (user.isAdmin || user.email === review.reviewerEmail)),
@@ -107,6 +113,11 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
 
   return (
     <div className="tw:flex tw:flex-col tw:gap-8">
+      {!ownsReview && editable && (
+        <Alert variant="danger" className="tw:w-full">
+          CAREFUL: You are editing a review NOT assigned to you.
+        </Alert>
+      )}
       {showApplication && review && (
         <ApplicationHeader
           applicationId={review.application}
