@@ -1,4 +1,6 @@
-import { HydratedDocument, Schema, model } from "mongoose";
+import { model, Schema } from "mongoose";
+
+import type { HydratedDocument } from "mongoose";
 
 type Application = {
   name: string;
@@ -109,4 +111,4 @@ const ApplicationSchema = new Schema<Application>({
 const ApplicationModel = model("Application", ApplicationSchema);
 type ApplicationDocument = HydratedDocument<Application>;
 
-export { Application, ApplicationModel, ApplicationDocument };
+export { Application, ApplicationDocument, ApplicationModel };

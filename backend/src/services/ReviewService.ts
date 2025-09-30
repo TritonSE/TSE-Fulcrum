@@ -1,21 +1,15 @@
-import { Types } from "mongoose";
-
-import { Stage, StageIdentifier } from "../config";
 import env from "../env";
-import {
-  ApplicationDocument,
-  ApplicationModel,
-  RawReview,
-  ReviewDocument,
-  ReviewModel,
-  UserDocument,
-} from "../models";
+import { ApplicationModel, ReviewModel } from "../models";
 import { retrieveDeploymentUrl } from "../storage";
 
 import ApplicationService from "./ApplicationService";
 import EmailService from "./EmailService";
 import StageService from "./StageService";
 import UserService from "./UserService";
+
+import type { Stage, StageIdentifier } from "../config";
+import type { ApplicationDocument, RawReview, ReviewDocument, UserDocument } from "../models";
+import type { Types } from "mongoose";
 
 export enum ReviewStatus {
   NotStarted = "notStarted",
@@ -157,14 +151,14 @@ class ReviewService {
     // Convert hours to milliseconds
     const disableAssignmentEmailsMs = env.DISABLE_ASSIGNMENT_EMAILS_HOURS * 1000 * 60 * 60;
     return (
-      !isNaN(env.DISABLE_ASSIGNMENT_EMAILS_HOURS) &&
+      !Number.isNaN(env.DISABLE_ASSIGNMENT_EMAILS_HOURS) &&
       timeUntilDeadlineMs <= disableAssignmentEmailsMs
     );
   }
 
   private async sendAssignEmail(review: ReviewDocument): Promise<void> {
     if (typeof review.reviewerEmail !== "string") {
-      throw new Error(`No reviewer assigned to review: ${review._id.toHexString()}`);
+      throw new TypeError(`No reviewer assigned to review: ${review._id.toHexString()}`);
     }
 
     // Disable review assignment emails when it gets close to the application deadline because we receive a LOT
@@ -172,7 +166,7 @@ class ReviewService {
     // emails and reviewer assignment emails. We want to prioritize confirmation emails and avoid spamming reviewers with
     // assignment emails
     if (this.shouldDisableAssignmentEmails()) {
-      console.log("Too close to application deadline, not sending assignment email");
+      console.info("Too close to application deadline, not sending assignment email");
       return;
     }
 
@@ -248,7 +242,7 @@ class ReviewService {
     }
 
     const countsEmailsAndMaxReviews = await Promise.all(
-      reviewers.map((reviewer) =>
+      reviewers.map(async (reviewer) =>
         ReviewModel.count({ reviewerEmail: reviewer.email, stageId: stage.id }).then(
           // Double count for interview buddies because interview buddies go to both people's interviews
           (count) =>

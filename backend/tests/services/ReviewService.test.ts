@@ -1,15 +1,18 @@
-/* eslint-disable no-await-in-loop, @typescript-eslint/no-non-null-assertion */
-
+/* eslint-disable test/prefer-hooks-in-order */
+/* eslint-disable no-await-in-loop */
 import mongoose from "mongoose";
-
 import { stages } from "src/config/stages";
-import { ApplicationDocument, ApplicationModel } from "src/models/ApplicationModel";
-import { Review, ReviewModel } from "src/models/ReviewModel";
-import { UserDocument, UserModel } from "src/models/UserModel";
+import { ApplicationModel } from "src/models/ApplicationModel";
+import { ReviewModel } from "src/models/ReviewModel";
+import { UserModel } from "src/models/UserModel";
 import ApplicationService from "src/services/ApplicationService";
 import ReviewService, { ReviewStatus } from "src/services/ReviewService";
 
-describe("ReviewService tests", () => {
+import type { ApplicationDocument } from "src/models/ApplicationModel";
+import type { Review } from "src/models/ReviewModel";
+import type { UserDocument } from "src/models/UserModel";
+
+describe("reviewService tests", () => {
   let users: UserDocument[] = [];
   let applications: ApplicationDocument[] = [];
   let resumeReviews: Review[][] = [];
@@ -145,7 +148,7 @@ describe("ReviewService tests", () => {
   });
 
   describe("getReviewStatus", () => {
-    it("Not started", async () => {
+    it("not started", async () => {
       const review = await ReviewModel.create({
         stageId: resumeStageId,
         application: new mongoose.Types.ObjectId("111111111111111111111111"),
@@ -154,7 +157,7 @@ describe("ReviewService tests", () => {
       expect(ReviewService.getReviewStatus(review)).toBe(ReviewStatus.NotStarted);
     });
 
-    it("In progress", async () => {
+    it("in progress", async () => {
       const review = await ReviewModel.create({
         stageId: resumeStageId,
         application: new mongoose.Types.ObjectId("111111111111111111111111"),
@@ -165,7 +168,7 @@ describe("ReviewService tests", () => {
       expect(ReviewService.getReviewStatus(review)).toBe(ReviewStatus.InProgress);
     });
 
-    it("Completed", async () => {
+    it("completed", async () => {
       const review = await ReviewModel.create({
         stageId: resumeStageId,
         application: new mongoose.Types.ObjectId("111111111111111111111111"),
@@ -179,7 +182,7 @@ describe("ReviewService tests", () => {
   });
 
   describe("assign/reassign", () => {
-    it("Dev resume reviewers", async () => {
+    it("dev resume reviewers", async () => {
       await ReviewService.assign(resumeReviews[0][0]._id.toString(), "reviewer7@ucsd.edu");
       await ReviewService.assign(resumeReviews[0][1]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[1][0]._id.toString(), "reviewer3@ucsd.edu");
@@ -222,7 +225,7 @@ describe("ReviewService tests", () => {
       }
     });
 
-    it("Dev phone screens", async () => {
+    it("dev phone screens", async () => {
       for (const application of applications) {
         const phoneScreen = await ReviewModel.create({
           stageId: phoneStageId,
@@ -274,7 +277,7 @@ describe("ReviewService tests", () => {
       );
     });
 
-    it("Dev technical interviews", async () => {
+    it("dev technical interviews", async () => {
       for (const application of applications) {
         const technicalInterview = await ReviewModel.create({
           stageId: technicalStageId,
@@ -342,7 +345,7 @@ describe("ReviewService tests", () => {
       );
     });
 
-    describe("Respects maxReviewsPerStageIdentifier", () => {
+    describe("respects maxReviewsPerStageIdentifier", () => {
       // We would run this as a "beforeEach" hook except we already have one in the
       // top-level suite and idk how to ensure this runs after that so the users are correct
       const createUsers = async () => {
@@ -368,7 +371,7 @@ describe("ReviewService tests", () => {
         });
       };
 
-      it("Resume reviews - stop assigning to Reviewer 2 after 1 review", async () => {
+      it("resume reviews - stop assigning to Reviewer 2 after 1 review", async () => {
         await createUsers();
 
         await ReviewService.assign(resumeReviews[0][0]._id.toString(), "reviewer1@ucsd.edu");
@@ -387,7 +390,7 @@ describe("ReviewService tests", () => {
         );
       });
 
-      it("Phone screens - should be perfectly balanced", async () => {
+      it("phone screens - should be perfectly balanced", async () => {
         await createUsers();
 
         for (const application of applications) {
@@ -445,7 +448,7 @@ describe("ReviewService tests", () => {
         ).toBe(3);
       });
 
-      it("Technical interviews - stop assigning to Reviewer 2 after 2 reviews", async () => {
+      it("technical interviews - stop assigning to Reviewer 2 after 2 reviews", async () => {
         await createUsers();
 
         for (const application of applications) {
@@ -491,14 +494,14 @@ describe("ReviewService tests", () => {
   });
 
   describe("getNextReviewForUser", () => {
-    it("No reviews assigned to user", async () => {
+    it("no reviews assigned to user", async () => {
       await ReviewService.assign(resumeReviews[0][0]._id.toString(), "reviewer6@ucsd.edu");
 
       const nextReview = await ReviewService.getNextReviewForUser("reviewer1@ucsd.edu");
       expect(nextReview).toBe(null);
     });
 
-    it("All reviews are not started", async () => {
+    it("all reviews are not started", async () => {
       await ReviewService.assign(resumeReviews[0][0]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[1][0]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[2][0]._id.toString(), "reviewer1@ucsd.edu");
@@ -511,7 +514,7 @@ describe("ReviewService tests", () => {
       ]).toContain(nextReview!._id.toString());
     });
 
-    it("Mix of not started, in progress, and completed reviews", async () => {
+    it("mix of not started, in progress, and completed reviews", async () => {
       await ReviewService.assign(resumeReviews[0][0]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[1][0]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[2][0]._id.toString(), "reviewer1@ucsd.edu");
@@ -532,7 +535,7 @@ describe("ReviewService tests", () => {
       expect(nextReview!._id.toString()).toBe(resumeReviews[2][0]._id.toString());
     });
 
-    it("Only in progress and completed reviews", async () => {
+    it("only in progress and completed reviews", async () => {
       await ReviewService.assign(resumeReviews[0][0]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[1][0]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[2][0]._id.toString(), "reviewer1@ucsd.edu");
@@ -559,7 +562,7 @@ describe("ReviewService tests", () => {
       expect(nextReview!._id.toString()).toBe(resumeReviews[1][0]._id.toString());
     });
 
-    it("All reviews are completed", async () => {
+    it("all reviews are completed", async () => {
       await ReviewService.assign(resumeReviews[0][0]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[1][0]._id.toString(), "reviewer1@ucsd.edu");
       await ReviewService.assign(resumeReviews[2][0]._id.toString(), "reviewer1@ucsd.edu");

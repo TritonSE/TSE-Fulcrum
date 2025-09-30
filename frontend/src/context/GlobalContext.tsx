@@ -1,19 +1,20 @@
-import { Context, createContext, useMemo, useState } from "react";
+import { createContext, useMemo, useState } from "react";
 
-import { User } from "../api";
+import type { User } from "../api";
+import type { Context } from "react";
 
 type Setter<T> = (value: T) => void;
 
-interface AuthContextFields {
+type AuthContextFields = {
   user: User | null;
   setUser: Setter<User | null>;
   redirectAfterLogin: string;
   setRedirectAfterLogin: Setter<string>;
-}
+};
 
 const GlobalContext: Context<AuthContextFields> = createContext(
   // GlobalContextProvider will set the context value properly.
-  null as unknown as AuthContextFields
+  null as unknown as AuthContextFields,
 );
 
 function GlobalContextProvider({ children }: { children: React.ReactNode }) {
@@ -21,9 +22,9 @@ function GlobalContextProvider({ children }: { children: React.ReactNode }) {
   const [redirectAfterLogin, setRedirectAfterLogin] = useState("");
   const context = useMemo<AuthContextFields>(
     () => ({ user, setUser, redirectAfterLogin, setRedirectAfterLogin }),
-    [user, setUser, redirectAfterLogin, setRedirectAfterLogin]
+    [user, setUser, redirectAfterLogin, setRedirectAfterLogin],
   );
-  return <GlobalContext.Provider value={context}>{children}</GlobalContext.Provider>;
+  return <GlobalContext value={context}>{children}</GlobalContext>;
 }
 
 export { GlobalContext, GlobalContextProvider };

@@ -1,9 +1,7 @@
-import { ColumnDef } from "@tanstack/react-table";
 import { Button, LoadingSpinner, Table, TextField } from "@tritonse/tse-constellation";
 import { useEffect, useState } from "react";
 
-import api, { PopulatedReview } from "../api";
-import { Variant } from "../components/Alert";
+import api from "../api";
 import { ApplicantInfoCell } from "../components/ApplicantInfoCell";
 import { StatusChip } from "../components/StatusChip";
 import { formatApplicantYear } from "../helpers/application";
@@ -15,6 +13,10 @@ import {
 import { useAlerts } from "../hooks/alerts";
 import { useUsers } from "../hooks/users";
 import { makeComparator } from "../util";
+
+import type { PopulatedReview } from "../api";
+import type { Variant } from "../components/Alert";
+import type { ColumnDef } from "@tanstack/react-table";
 
 function AutoAssignButton({
   id,
@@ -102,9 +104,9 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                 r.application.name,
                 r.reviewerEmail || "",
                 r._id,
-              ])
-            )
-        )
+              ]),
+            ),
+        ),
       )
       .catch(addAlert);
   };
@@ -149,7 +151,7 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                       .map((r) => [
                         r.stage.name,
                         r.reviewerEmail
-                          ? emailsToUsers[r.reviewerEmail]?.name ?? "(unknown user)"
+                          ? (emailsToUsers[r.reviewerEmail]?.name ?? "(unknown user)")
                           : "(unassigned)",
                       ])
                       .reduce(
@@ -157,8 +159,8 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                           ...o,
                           [stage]: [...(o[stage] || []), reviewer],
                         }),
-                        {} as Record<string, string[]>
-                      )
+                        {} as Record<string, string[]>,
+                      ),
                   ).sort();
                   return pastReviewers.length === 0
                     ? "(none)"
@@ -173,7 +175,7 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
               {
                 cell: (cell) =>
                   cell.row.original.reviewerEmail ? (
-                    emailsToUsers[cell.row.original.reviewerEmail]?.name ?? "(unknown user)"
+                    (emailsToUsers[cell.row.original.reviewerEmail]?.name ?? "(unknown user)")
                   ) : (
                     <AutoAssignButton
                       id={cell.row.original._id}

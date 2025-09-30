@@ -1,10 +1,11 @@
-import { PopulatedReview } from "../api";
 import { formatFieldNameHumanReadable } from "../helpers/review";
 import { useUsers } from "../hooks/users";
 
-interface StageNotesProps {
+import type { PopulatedReview } from "../api";
+
+type StageNotesProps = {
   reviewsInStage: PopulatedReview[];
-}
+};
 
 /* Lists notes from all reviewers */
 export default function StageNotes({ reviewsInStage: reviews }: StageNotesProps) {
@@ -13,7 +14,7 @@ export default function StageNotes({ reviewsInStage: reviews }: StageNotesProps)
   const notesFields = reviews.flatMap((r) =>
     Object.entries(r.fields)
       .filter(([key, _]) => key.includes("notes"))
-      .map(([key, value]) => [key, value, r.reviewerEmail] as [string, string, string])
+      .map(([key, value]) => [key, value, r.reviewerEmail] as [string, string, string]),
   );
 
   if (notesFields.length === 0) return null;

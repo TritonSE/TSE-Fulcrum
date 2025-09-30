@@ -1,14 +1,14 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
-interface TSELogoProps {
+type TSELogoProps = {
   msg: string;
   children?: ReactNode;
-}
+};
 
 /**
  * Displays the TSE lightbulb logo along with text and content below it
  */
-function TSELogo({ msg, children }: TSELogoProps) {
+function TSELogo({ msg, children = undefined }: TSELogoProps) {
   return (
     <div className="tw:flex tw:items-center tw:justify-center tw:min-h-screen tw:bg-teal-primary tw:text-cream-primary">
       <div className="tw:min-w-[320px] tw:flex tw:flex-col tw:gap-2">
@@ -21,9 +21,5 @@ function TSELogo({ msg, children }: TSELogoProps) {
     </div>
   );
 }
-
-TSELogo.defaultProps = {
-  children: undefined,
-};
 
 export default TSELogo;

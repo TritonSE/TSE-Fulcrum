@@ -1,5 +1,5 @@
 import { Button } from "@tritonse/tse-constellation";
-import { useContext, useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
@@ -9,7 +9,7 @@ import { GlobalContext } from "../context/GlobalContext";
 import { useAlerts } from "../hooks/alerts";
 
 export default function Login() {
-  const { user, setUser, redirectAfterLogin } = useContext(GlobalContext);
+  const { user, setUser, redirectAfterLogin } = use(GlobalContext);
   const [data, setData] = useState({ email: "", password: "" });
   const { alerts, addAlert, clearAlerts } = useAlerts();
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function Login() {
     }
   }, [user]);
 
-  const setField = <K extends keyof typeof data>(key: K, value: typeof data[K]) => {
+  const setField = <K extends keyof typeof data>(key: K, value: (typeof data)[K]) => {
     setData({ ...data, [key]: value });
   };
 

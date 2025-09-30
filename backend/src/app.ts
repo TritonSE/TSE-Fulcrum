@@ -1,5 +1,5 @@
-import http from "http";
-import path from "path";
+import http from "node:http";
+import path from "node:path";
 
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
@@ -11,7 +11,9 @@ import morgan from "morgan";
 import env from "./env";
 import routes from "./routes";
 import { InterviewService, UserService } from "./services";
-import { ApplicationLocalStorage, asyncLocalStorage } from "./storage";
+import { asyncLocalStorage } from "./storage";
+
+import type { ApplicationLocalStorage } from "./storage";
 
 async function onStartup() {
   // Create the admin account if necessary.
@@ -21,13 +23,13 @@ async function onStartup() {
     isAdmin: true,
   });
   if (admin !== null) {
-    console.log("Created admin user");
+    console.info("Created admin user");
   }
 }
 
 async function main() {
   await mongoose.connect(env.MONGODB_URL);
-  console.log("Connected to database");
+  console.info("Connected to database");
 
   await onStartup();
 
@@ -62,7 +64,7 @@ async function main() {
   const server = http.createServer(app);
   InterviewService.create(server);
   server.listen(env.PORT, () => {
-    console.log(`Listening on port ${env.PORT}`);
+    console.info(`Listening on port ${env.PORT}`);
   });
 }
 

@@ -7,7 +7,7 @@ import { InterviewModel } from "../models/InterviewModel";
 import { ReviewModel } from "../models/ReviewModel";
 
 import type { InterviewState } from "../models/InterviewModel";
-import type { Server as HTTPServer } from "http";
+import type { Server as HTTPServer } from "node:http";
 
 type ValidKeys = "question" | "code" | "language" | "active" | "timerStart";
 
@@ -37,13 +37,13 @@ class InterviewService {
     }, console.error);
   }
 
-  fetchReadme(): Promise<string | null> {
+  async fetchReadme(): Promise<string | null> {
     // Built-in HTTP/S is not natively Promisified
     return new Promise((resolve) => {
       let out = "";
       https
         .get(env.README_URL, (res) => {
-          console.log("Interview README request responded with code " + res.statusCode);
+          console.info(`Interview README request responded with code ${res.statusCode}`);
           res.on("data", (data) => {
             out += data;
           });
@@ -117,7 +117,7 @@ class InterviewService {
         if (!obj.active && payload.key !== "active") return;
 
         // TypeScript is being weird about this dynamic property access
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line ts/no-unsafe-member-access
         (obj as any)[payload.key] = payload.value;
         io.to(room).emit("message", payload);
         await this.upsert(obj);

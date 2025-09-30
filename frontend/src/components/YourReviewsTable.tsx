@@ -1,8 +1,7 @@
-import { ColumnDef } from "@tanstack/react-table";
 import { Button, Modal, Table } from "@tritonse/tse-constellation";
 import { useMemo, useState } from "react";
 
-import api, { PopulatedReview, Stage } from "../api";
+import api from "../api";
 import { formatApplicantYear } from "../helpers/application";
 import {
   getReviewStatus,
@@ -17,11 +16,14 @@ import { formatQuarter } from "../util";
 import { ApplicantInfoCell } from "./ApplicantInfoCell";
 import { StatusChip } from "./StatusChip";
 
-interface YourReviewsTableProps {
+import type { PopulatedReview, Stage } from "../api";
+import type { ColumnDef } from "@tanstack/react-table";
+
+type YourReviewsTableProps = {
   stage: Stage;
   reviews: PopulatedReview[];
   reloadReviews: () => unknown;
-}
+};
 
 /**
  * Displays your assigned reviews for a given stage
@@ -56,7 +58,7 @@ function YourReviewsTable({ stage, reviews, reloadReviews }: YourReviewsTablePro
         statusCounts.push(
           `${reviewsOfStatus.length} ${reviewStatusHumanReadableNames[
             status as ReviewStatus
-          ].toLowerCase()}`
+          ].toLowerCase()}`,
         );
       }
     });
