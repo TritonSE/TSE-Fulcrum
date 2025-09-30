@@ -78,26 +78,29 @@ function Navbar() {
   };
 
   return (
-    <nav className="tw:bg-teal-primary tw:h-full tw:min-w-64 tw:flex tw:flex-col tw:gap-5 tw:px-6 tw:pt-5 tw:pb-10 tw:text-cream-primary">
+    <nav className="tw:bg-teal-primary tw:h-full tw:min-w-64 tw:flex tw:flex-col tw:gap-3 tw:px-6 tw:pt-5 tw:pb-10 tw:text-cream-primary">
       {/* Logo */}
       <Link
         className="tw:flex tw:gap-3 tw:items-center tw:justify-center tw:!no-underline tw:!text-cream-primary"
         to="/"
       >
-        <img src="/logo.svg" alt="Logo" className="tw:h-12 tw:w-4" />
-        <h1 className="tw:!text-xl tw:font-bold tw:uppercase tw:!m-0">Fulcrum</h1>
+        <img src="/logo.svg" alt="Logo" className="tw:h-10 tw:w-4" />
+        <h1 className="tw:!text-lg tw:font-bold tw:uppercase tw:!m-0">Fulcrum</h1>
       </Link>
 
       {/* Navigation links by pipeline and stage */}
       {user?.isAdmin && (
         <div className="tw:flex-1 tw:flex tw:flex-col tw:!text-sm tw:font-light">
-          <NavLink to="/reviews">
-            <span className="tw:uppercase">All Applicants</span>
-          </NavLink>
+          <div className="tw:flex tw:flex-col tw:gap-1">
+            <NavLink to="/">My Reviews</NavLink>
+            <NavLink to="/reviews">
+              <span>All Applicants</span>
+            </NavLink>
+          </div>
           {pipelines.map((pipeline) => (
             <div key={pipeline.identifier} className="tw:flex tw:flex-col">
               {/* Separator */}
-              <div className="tw:w-[90%] tw:h-[1px] tw:bg-cream-primary/30 tw:mx-auto tw:my-3" />
+              <div className="tw:w-[90%] tw:h-[1px] tw:bg-cream-primary/30 tw:mx-auto tw:my-2" />
               <h2 className="tw:text-cream-primary tw:!text-sm tw:font-bold tw:uppercase tw:!m-0 tw:px-2 tw:py-1">
                 {pipeline.name}
               </h2>
