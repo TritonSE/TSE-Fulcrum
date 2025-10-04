@@ -289,5 +289,5 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
 
 export default function EditReview() {
   const { reviewId } = useParams();
-  return <ReviewView id={reviewId || ""} showApplication />;
+  return <ReviewView key={reviewId} id={reviewId || ""} showApplication />;
 }
