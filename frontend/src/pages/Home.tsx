@@ -27,6 +27,8 @@ export default function Home() {
           makeComparator((r) => [
             // Sort from latest to earliest pipelineIndex so we get most recent stage first
             -r.stage.pipelineIndex,
+            // Then by pipeline because some users review multiple pipelines (e.g. designer & TEST designer)
+            r.stage.pipelineIdentifier,
             reviewStatusNumericValues[getReviewStatus(r)],
             r.application.gradQuarter,
             r.application.name,
