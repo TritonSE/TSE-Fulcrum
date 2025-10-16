@@ -191,7 +191,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
   };
 
   return (
-    <div>
+    <>
       <div className="tw:flex tw:flex-row tw:justify-between tw:mb-8">
         <h2>{titleText}</h2>
         <div className="tw:flex tw:flex-row tw:gap-x-5 tw:align-center">
@@ -223,6 +223,10 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         className="reviews-table"
         columns={
           [
+            {
+              cell: (cell) => cell.row.index + 1,
+              header: "#",
+            },
             {
               cell: (cell) =>
                 progressesByApplication[cell.row.original[0]._id] && stage ? (
@@ -403,6 +407,6 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         withDividers={false}
       />
       {alerts}
-    </div>
+    </>
   );
 }
