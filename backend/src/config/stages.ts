@@ -405,8 +405,8 @@ const stages: Stage[] = [
         choices: [],
         allowOther: true,
         label: "Testing question score",
-        maxValue: 3,
-        description: "Out of 3",
+        maxValue: 4,
+        description: "Out of 4",
       },
       problem_solving_question: {
         type: "number",
