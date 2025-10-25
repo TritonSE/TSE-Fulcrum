@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap");
 @import "tailwindcss" prefix(tw);
 
 @theme {
@@ -8,6 +9,8 @@
   --color-accent: #697b82;
   --color-accent-light: #cedcdc;
   --color-link: #3680ff;
+
+  --font-code: "Source Code Pro", monospace;
 }
 
 @layer utilities {
@@ -15,7 +18,6 @@
     margin: 0;
     padding: 0;
 
-    font-family: "Rubik", sans-serif;
     @apply tw:tracking-wide;
   }
 

@@ -86,12 +86,36 @@ type RemoteSelection = {
 // eslint-disable-next-line react/no-unstable-default-props
 function CodeBlock({ children = [], className = "", ...rest }: CodeProps) {
   const match = /language-(\w+)/.exec(className || "");
+  const monospacedDark = {
+    ...dark,
+    'code[class*="language-"]': {
+      ...dark['code[class*="language-"]'],
+      fontFamily: "Source Code Pro, monospace",
+    },
+    'pre[class*="language-"]': {
+      ...dark['pre[class*="language-"]'],
+      fontFamily: "Source Code Pro, monospace",
+    },
+    'span[class="token"]': {
+      fontFamily: "Source Code Pro, monospace",
+    },
+  };
+
   return match ? (
-    <SyntaxHighlighter {...rest} style={dark} language={match[1]} PreTag="div">
+    <SyntaxHighlighter
+      {...rest}
+      style={monospacedDark}
+      language={match[1]}
+      PreTag="div"
+      customStyle={{
+        fontSize: "14px",
+        lineHeight: "1.5",
+      }}
+    >
       {String(children).replace(/\n$/, "") ?? ""}
     </SyntaxHighlighter>
   ) : (
-    <code {...rest} className={className}>
+    <code {...rest} className={twMerge(className, "tw:font-mono")}>
       {children}
     </code>
   );
