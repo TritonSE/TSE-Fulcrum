@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import { ApplicationModel, ProgressModel } from "../models";
 
 import EmailService from "./EmailService";
@@ -93,6 +95,22 @@ class ProgressService {
     }
 
     return progress.save();
+  }
+
+  async bulkAdvanceApplications(applicationIds: string[], pipelineIdentifier: PipelineIdentifier) {
+    const results = [];
+
+    // Synchronously advance each application
+    for (const applicationId of applicationIds) {
+      // eslint-disable-next-line no-await-in-loop
+      const result = await this.advanceApplication(
+        new mongoose.Types.ObjectId(applicationId),
+        pipelineIdentifier,
+      );
+      results.push({ applicationId, result });
+    }
+
+    return results;
   }
 
   async rejectApplication(

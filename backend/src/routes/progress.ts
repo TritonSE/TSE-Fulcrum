@@ -32,15 +32,9 @@ router.post(
       };
     }
 
-    // Concurrently advance each application asynchronously and save the results
-    const results = await Promise.all(
-      bodyResult.value.applicationIds.map(async (applicationId) => {
-        const result = await ProgressService.advanceApplication(
-          new mongoose.Types.ObjectId(applicationId),
-          bodyResult.value.pipelineIdentifier,
-        );
-        return { applicationId, result };
-      }),
+    const results = await ProgressService.bulkAdvanceApplications(
+      bodyResult.value.applicationIds,
+      bodyResult.value.pipelineIdentifier,
     );
 
     return {

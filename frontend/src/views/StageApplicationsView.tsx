@@ -45,6 +45,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
     () => Object.keys(yearsAreSelected).filter((year) => yearsAreSelected[year]),
     [yearsAreSelected],
   );
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     api
@@ -147,6 +148,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
   const titleText = stage ? `${stage.name}${withScores ? ` (${withScores.length})` : null}` : "";
 
   const onConfirmAdvanceReject = async () => {
+    setLoading(true);
     try {
       if (!stage) {
         addAlert("Stage not loaded");
@@ -187,6 +189,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
     } finally {
       setRowSelection({});
       setModalState(null);
+      setLoading(false);
     }
   };
 
@@ -197,7 +200,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         <div className="tw:flex tw:flex-row tw:gap-x-5 tw:align-center">
           <p className="tw:!m-auto">{selectedApplicationIds.length} selected</p>
           <Button
-            disabled={selectedApplicationIds.length === 0}
+            disabled={loading || selectedApplicationIds.length === 0}
             onClick={() => setModalState("advance")}
             className={twMerge(
               "tw:!px-3 tw:!rounded-lg tw:!bg-green-700",
@@ -207,7 +210,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
             Advance
           </Button>
           <Button
-            disabled={selectedApplicationIds.length === 0}
+            disabled={loading || selectedApplicationIds.length === 0}
             onClick={() => setModalState("reject")}
             className={twMerge(
               "tw:!px-3 tw:!rounded-lg tw:!bg-red-600",
