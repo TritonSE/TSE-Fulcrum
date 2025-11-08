@@ -1,5 +1,5 @@
 import { LoadingSpinner } from "@tritonse/tse-constellation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
 
 import api from "../api";
@@ -110,6 +110,17 @@ function Apply() {
   };
 
   const [resumeFile, setResumeFile] = useState<File | undefined>(undefined);
+
+  const graduatesThisSchoolYear = useMemo(() => {
+    const gradQuarter =
+      Number.parseInt(personalInfo.gradQuarter, 10) +
+      4 * Number.parseInt(personalInfo.gradYear, 10);
+    // Do they graduate before fall of next year?
+    // 2 = fall
+    // IMPORTANT: update this if we ever change the numeric correspondences of each quarter
+    const nextFallQuarter = 2 + 4 * (new Date().getFullYear() + 1);
+    return gradQuarter < nextFallQuarter;
+  }, [personalInfo.gradQuarter, personalInfo.gradYear]);
 
   const onSubmit: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -491,10 +502,12 @@ function Apply() {
             </Form.Group>
             {(roles.test_developer || roles.test_designer) && (
               <Form.Label>
-                <Alert variant="warning">
-                  You are applying to a TEST role. Please read the information below carefully
+                <Alert variant={graduatesThisSchoolYear ? "danger" : "warning"}>
+                  {graduatesThisSchoolYear
+                    ? `You are inelligible to apply for TEST because you are graduating this school year.`
+                    : `You are applying to a TEST role. Please read the information below carefully
                   before continuing. Your application will not be considered if you do not meet the
-                  qualifications for the TEST program.
+                  qualifications for the TEST program.`}
                 </Alert>
               </Form.Label>
             )}
@@ -508,7 +521,14 @@ function Apply() {
               software engineering. TEST designers and developers will learn the fundamentals of
               their domain while working on beginner-level projects. TEST is a one-year program
               provided by TSE. After completing the program, if TEST designers and developers wish
-              to join TSE as general members, they must apply during the next recruitment cycle.
+              to join TSE as general members, they can either be directly accepted by evaluation of
+              their work and commitment to TSE during the TEST program, or if they are not directly
+              accepted, they can apply to TSE during the next recruitment cycle.
+            </p>
+            <p>
+              Students who are graduating this school year (i.e. before Fall quarter of next school
+              year) are <strong>inelligible</strong> for the TEST program because the purpose of
+              TEST is to prepare students to join and contribute to the general TSE program.
             </p>
             <p>
               You may apply to either TSE or the TEST program, but not both. Please apply to the
