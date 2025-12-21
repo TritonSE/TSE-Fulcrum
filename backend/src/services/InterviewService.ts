@@ -74,19 +74,51 @@ class InterviewService {
     }
 
     interview.lastUpdate = new Date();
-    const res = await InterviewModel.findOneAndUpdate({ room: interview.room }, interview, {
-      new: true,
-      upsert: true,
-      rawResult: true,
-    });
+    const res = await InterviewModel.findOneAndUpdate(
+      { room: interview.room },
+      { $set: interview },
+      {
+        new: true,
+        upsert: true,
+        rawResult: true,
+      },
+    );
 
     if (res?.lastErrorObject?.updatedExisting === false) {
       // Add Interview to Review only if newly created
-      await ReviewModel.update(
+      await ReviewModel.findOneAndUpdate(
         { _id: interview.room },
         { interview: res.lastErrorObject.upserted },
       );
     }
+  }
+
+  /* Fetch room state, no database writes  */
+  async getRoomState(room: string): Promise<InterviewState> {
+    const roomInMem = this.interviews.get(room);
+
+    if (roomInMem) return roomInMem;
+
+    const roomFromDB = await InterviewModel.findOne({ room }).lean();
+
+    if (roomFromDB) {
+      this.interviews.set(room, roomFromDB);
+      return roomFromDB as InterviewState;
+    }
+
+    const defaultRoom: InterviewState = {
+      room,
+      question: (await this.fetchReadme()) ?? this.questionPlaceholder,
+      code: "# Write your code here",
+      language: "python",
+      active: false,
+      timerStart: 0,
+      lastUpdate: new Date(),
+    };
+
+    this.interviews.set(room, defaultRoom);
+
+    return defaultRoom;
   }
 
   create(server: HTTPServer): void {
@@ -94,41 +126,38 @@ class InterviewService {
     io.on("connection", async (socket) => {
       const url = socket.handshake.headers.referer ?? "";
       const room = url.split("/")[4];
+
       if (!room) {
         socket.disconnect();
         return;
       }
 
-      const obj = this.interviews.get(room) ??
-        (await InterviewModel.findOne({ room })) ?? {
-          room,
-          question: (await this.fetchReadme()) ?? this.questionPlaceholder,
-          code: "# Write your code here",
-          language: "python",
-          active: false,
-          timerStart: 0,
-          lastUpdate: new Date(),
-        };
-      if (!this.interviews.has(room)) await this.upsert(obj);
-
       // Join room based on review ID
       await socket.join(room);
+
+      console.info(`Socket connected to room: ${room}`);
+
       socket.on("message", async (payload: Payload) => {
+        const obj = await this.getRoomState(room);
+
         if (!obj.active && payload.key !== "active") return;
 
         // TypeScript is being weird about this dynamic property access
         // eslint-disable-next-line ts/no-unsafe-member-access
         (obj as any)[payload.key] = payload.value;
         io.to(room).emit("message", payload);
+
         await this.upsert(obj);
       });
       socket.on("select", (payload: SelectionPayload) => {
         io.to(room).emit("select", payload);
       });
       socket.on("save", async () => {
-        await this.upsert(obj, true);
+        await this.upsert(await this.getRoomState(room), true);
       });
-      socket.on("getState", () => socket.emit("state", obj));
+      socket.on("getState", async () => {
+        socket.emit("state", await this.getRoomState(room));
+      });
     });
   }
 }
