@@ -135,8 +135,6 @@ class InterviewService {
       // Join room based on review ID
       await socket.join(room);
 
-      console.info(`Socket connected to room: ${room}`);
-
       socket.on("message", async (payload: Payload) => {
         const obj = await this.getRoomState(room);
 
