@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
-import readlineSync from "readline-sync";
+
+import { promptConfirmation } from "./utils";
 
 dotenv.config();
 
@@ -118,10 +119,11 @@ console.info(`env: ${JSON.stringify(env, null, 2)}`);
 
 const isLocalDB = env.MONGODB_URL.includes("127.0.0.1") || env.MONGODB_URL.includes("localhost");
 if (!isLocalDB && env.NODE_ENV === "development") {
-  const response = readlineSync.question(
+  const confirmed = promptConfirmation(
     'WARNING: you are running Fulcrum locally, but connected to a remote DB. Please enter "y" to confirm: ',
   );
-  if (response !== "y") {
+
+  if (!confirmed) {
     console.info('No "y" received, exiting');
     process.exit();
   }
