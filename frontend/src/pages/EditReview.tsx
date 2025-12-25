@@ -118,6 +118,11 @@ export function ReviewView({ id, showApplication }: { id: string; showApplicatio
           CAREFUL: You are editing a review NOT assigned to you.
         </Alert>
       )}
+      {!ownsReview && !editable && (
+        <Alert variant="info" className="tw:w-full">
+          READ ONLY: You are viewing a review assigned to {review?.reviewerEmail}.
+        </Alert>
+      )}
       {showApplication && review && (
         <ApplicationHeader
           applicationId={review.application}

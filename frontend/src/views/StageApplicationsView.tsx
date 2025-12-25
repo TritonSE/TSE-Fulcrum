@@ -1,10 +1,12 @@
 import { Button, Checkbox, LoadingSpinner, Modal, Table } from "@tritonse/tse-constellation";
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 import api from "../api";
+import Alert from "../components/Alert";
 import { ApplicantInfoCell } from "../components/ApplicantInfoCell";
 import { StatusChip } from "../components/StatusChip";
+import { GlobalContext } from "../context/GlobalContext";
 import {
   APPLICANT_YEARS,
   applicationStatusColors,
@@ -30,6 +32,7 @@ const SCORE_REGEX = /^(?:.*_)?score$/;
 const RATING_REGEX = /^(?:.*_)?rating$/;
 
 export default function StageApplicationsView({ stageId }: { stageId: number }) {
+  const { user } = use(GlobalContext);
   const [progresses, setProgresses] = useState<Progress[]>([]);
   const [reviews, setReviews] = useState<PopulatedReview[]>([]);
   const [stage, setStage] = useState<Stage | null>(null);
@@ -193,28 +196,35 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
     }
   };
 
+  const actionsDisabled = loading || !user?.isAdmin || selectedApplicationIds.length === 0;
+
   return (
     <>
+      {!user?.isAdmin && (
+        <Alert className="tw:w-full" variant="info">
+          Only admins can advance or reject applicants.
+        </Alert>
+      )}
       <div className="tw:flex tw:flex-row tw:justify-between tw:mb-8">
         <h2>{titleText}</h2>
         <div className="tw:flex tw:flex-row tw:gap-x-5 tw:align-center">
           <p className="tw:!m-auto">{selectedApplicationIds.length} selected</p>
           <Button
-            disabled={loading || selectedApplicationIds.length === 0}
+            disabled={actionsDisabled}
             onClick={() => setModalState("advance")}
             className={twMerge(
               "tw:!px-3 tw:!rounded-lg tw:!bg-green-700",
-              selectedApplicationIds.length === 0 && "tw:opacity-60",
+              actionsDisabled && "tw:opacity-60",
             )}
           >
             Advance
           </Button>
           <Button
-            disabled={loading || selectedApplicationIds.length === 0}
+            disabled={actionsDisabled}
             onClick={() => setModalState("reject")}
             className={twMerge(
               "tw:!px-3 tw:!rounded-lg tw:!bg-red-600",
-              selectedApplicationIds.length === 0 && "tw:opacity-60",
+              actionsDisabled && "tw:opacity-60",
             )}
           >
             Reject
@@ -371,6 +381,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         enableGlobalFiltering={false}
         enableSorting={false}
         enableRowSelection={(row) =>
+          user!.isAdmin &&
           !!stage &&
           !!progressesByApplication[row.original[0]._id] &&
           getApplicationStageStatus(stage, progressesByApplication[row.original[0]._id]) ===

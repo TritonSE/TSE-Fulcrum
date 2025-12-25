@@ -89,32 +89,30 @@ function Navbar() {
       </Link>
 
       {/* Navigation links by pipeline and stage */}
-      {user?.isAdmin && (
-        <div className="tw:flex-1 tw:flex tw:flex-col tw:!text-sm tw:font-light">
-          <div className="tw:flex tw:flex-col tw:gap-1">
-            <NavLink to="/">My Reviews</NavLink>
-            <NavLink to="/reviews">
-              <span>All Applicants</span>
-            </NavLink>
-          </div>
-          {pipelines.map((pipeline) => (
-            <div key={pipeline.identifier} className="tw:flex tw:flex-col">
-              {/* Separator */}
-              <div className="tw:w-[90%] tw:h-[1px] tw:bg-cream-primary/30 tw:mx-auto tw:my-2" />
-              <h2 className="tw:text-cream-primary tw:!text-sm tw:font-bold tw:uppercase tw:!m-0 tw:px-2 tw:py-1">
-                {pipeline.name}
-              </h2>
-              <div className="tw:flex tw:flex-col tw:gap-1 tw:ml-2">
-                {stagesByPipeline[pipeline.name]?.map((stage) => (
-                  <NavLink key={stage.id} to={`/stage/${stage.id}/applications`}>
-                    {stage.name}
-                  </NavLink>
-                ))}
-              </div>
-            </div>
-          ))}
+      <div className="tw:flex-1 tw:flex tw:flex-col tw:!text-sm tw:font-light">
+        <div className="tw:flex tw:flex-col tw:gap-1">
+          <NavLink to="/">My Reviews</NavLink>
+          <NavLink to="/reviews">
+            <span>All Applicants</span>
+          </NavLink>
         </div>
-      )}
+        {pipelines.map((pipeline) => (
+          <div key={pipeline.identifier} className="tw:flex tw:flex-col">
+            {/* Separator */}
+            <div className="tw:w-[90%] tw:h-[1px] tw:bg-cream-primary/30 tw:mx-auto tw:my-2" />
+            <h2 className="tw:text-cream-primary tw:!text-sm tw:font-bold tw:uppercase tw:!m-0 tw:px-2 tw:py-1">
+              {pipeline.name}
+            </h2>
+            <div className="tw:flex tw:flex-col tw:gap-1 tw:ml-2">
+              {stagesByPipeline[pipeline.name]?.map((stage) => (
+                <NavLink key={stage.id} to={`/stage/${stage.id}/applications`}>
+                  {stage.name}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* Profile */}
       <div className="tw:flex tw:flex-col tw:items-center tw:gap-3 tw:mt-auto">
