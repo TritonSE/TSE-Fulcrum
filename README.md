@@ -34,7 +34,7 @@ To build and run a dockerized deployment locally, run the following commands:
 
 ```bash
 docker build --build-arg VITE_APPLICATION_DEADLINE="<application deadline>" -t fulcrum .
-docker run -p 3000:8000 –env-file <path/to/.env> fulcrum
+docker run -p 3000:8000 --env-file <path/to/.env> fulcrum
 ```
 
 Note that the build argument `VITE_APPLICATION_DEADLINE` is needed because vite environment variables are statically injected at build time.
