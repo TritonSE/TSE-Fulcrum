@@ -265,7 +265,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
               header: "Status",
             },
             {
-              accessorFn: ([_, __, score]) => score,
+              accessorFn: ([_, __, score]) => Number.parseFloat(score.toFixed(2)),
               header: "Avg Score",
             },
             {

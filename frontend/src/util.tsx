@@ -29,4 +29,17 @@ function countWords(text: string): number {
   return trimmed.split(/\s+/).length;
 }
 
-export { countWords, formatQuarter, makeComparator };
+function isNotesField(fieldName: string): boolean {
+  const NOTES_REGEX = /^(?:.*_)?notes$/;
+
+  return NOTES_REGEX.test(fieldName.toLowerCase());
+}
+
+function isScoreOrRatingField(fieldName: string): boolean {
+  const SCORE_REGEX = /^(?:.*_)?score$/;
+  const RATING_REGEX = /^(?:.*_)?rating$/;
+
+  return SCORE_REGEX.test(fieldName.toLowerCase()) || RATING_REGEX.test(fieldName.toLowerCase());
+}
+
+export { countWords, formatQuarter, isNotesField, isScoreOrRatingField, makeComparator };

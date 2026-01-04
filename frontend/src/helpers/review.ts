@@ -1,3 +1,5 @@
+import { isNotesField } from "../util";
+
 import { toTitleCase } from "./application";
 
 import type { PopulatedReview } from "../api";
@@ -31,9 +33,12 @@ export const getReviewStatus = (review: PopulatedReview) => {
   if (Object.keys(review.fields).length === 0) {
     return ReviewStatus.NotStarted;
   }
-  // If any of the stage's fields are not present on the review, then it's not complete
+
+  // If any of the stage's fields (except notes fields) are not present on the review, then it's not complete
   if (
-    Object.keys(review.stage.fields).some((fieldName) => review.fields[fieldName] === undefined)
+    Object.keys(review.stage.fields).some(
+      (fieldName) => !isNotesField(fieldName) && review.fields[fieldName] === undefined,
+    )
   ) {
     return ReviewStatus.InProgress;
   }
