@@ -378,7 +378,6 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         }
         data={withScores}
         enablePagination={false}
-        enableGlobalFiltering={false}
         enableSorting={false}
         enableRowSelection={(row) =>
           user!.isAdmin &&
@@ -391,6 +390,17 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         rowSelection={rowSelection}
         onRowSelectionChange={setRowSelection}
         getRowId={([application]) => application._id}
+        globalFilterFn={(row, _columnId, value, _addMeta) => {
+          const app = row.original[0];
+
+          return (
+            app.name.toLowerCase().includes((value as string).toLowerCase()) ||
+            app.email.toLowerCase().includes((value as string).toLowerCase())
+          );
+        }}
+        searchFieldProps={{
+          placeholder: "Search by name or email",
+        }}
       />
       <Modal
         isOpen={modalState !== null}
