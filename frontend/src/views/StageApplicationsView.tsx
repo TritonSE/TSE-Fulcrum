@@ -283,7 +283,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
                 formatApplicantYear(appReviews[0].applicantYear),
               header: () => (
                 <div className="tw:flex tw:flex-col tw:gap-y-1">
-                  <div className="tw:flex tw:flex-row tw:gap-x-3 tw:align-center">
+                  <div className="tw:flex tw:flex-row tw:gap-x-3 tw:items-center">
                     <p className="tw:!m-auto">Year</p>
                     <Button
                       onClick={() => setShowingYearFilter(!showingYearFilter)}

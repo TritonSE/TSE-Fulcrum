@@ -81,7 +81,31 @@ function YourReviewsTable({ stage, reviews, reloadReviews }: YourReviewsTablePro
                   linkDestination={`/review/${cell.row.original._id}/edit`}
                 />
               ),
-              header: "Applicant",
+              header: () => (
+                <div className="tw:flex tw:items-center tw:gap-2 tw:justify-center">
+                  <p className="tw:!m-auto">Applicant</p>
+                  <Button
+                    className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:!bg-blue-600"
+                    onClick={() => {
+                      const emails = reviews
+                        .map((review) => review.application.email.toLowerCase())
+                        .join(", ");
+
+                      navigator.clipboard
+                        .writeText(emails)
+                        .then(() => {
+                          addAlert("Copied application emails to clipboard", "success");
+                        })
+                        .catch(() => {
+                          addAlert("Failed to copy emails to clipboard", "danger");
+                        });
+                    }}
+                  >
+                    Copy emails
+                  </Button>
+                </div>
+              ),
+              id: "applicant",
             },
             {
               accessorFn: (review) => formatApplicantYear(review.applicantYear),
