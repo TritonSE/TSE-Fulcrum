@@ -192,7 +192,7 @@ function Apply() {
         };
 
         const errorPrefix =
-          "Could not submit your application. Please contact tse@ucsd.edu for support.";
+          "Could not submit your application. Please contact triton.software.engineering@gmail.com for support.";
 
         api
           .submitApplication(application)
@@ -211,7 +211,7 @@ function Apply() {
       })
       .catch((err) => {
         addAlert(
-          `Could not upload your resume. Please contact tse@ucsd.edu for support. Error: ${err}`,
+          `Could not upload your resume. Please contact triton.software.engineering@gmail.com for support. Error: ${err}`,
         );
         setSubmitting(false);
       });
@@ -535,7 +535,7 @@ function Apply() {
               TEST program if you believe it would be a good fit for you. Once you apply to the TEST
               program, we will not be able to consider you for general admission, and vice versa. If
               you are unsure about which program is right for you, please contact us at{" "}
-              <a href="mailto:tse@ucsd.edu">tse@ucsd.edu</a>.
+              <a href="mailto:triton.software.engineering@gmail.com">triton.software.engineering@gmail.com</a>.
             </p>
           </Form.Text>
         </Row>

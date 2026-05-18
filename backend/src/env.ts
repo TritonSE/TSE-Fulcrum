@@ -21,7 +21,7 @@ function getEnv<T>(key: string, defaultValue: T, parser?: (fromEnv: string) => T
 }
 
 const NODE_ENV = getEnv("NODE_ENV", "development");
-const ADMIN_EMAIL = getEnv("ADMIN_EMAIL", "tse@ucsd.edu");
+const ADMIN_EMAIL = getEnv("ADMIN_EMAIL", "triton.software.engineering@gmail.com");
 const applicationDeadlineString = getEnv("APPLICATION_DEADLINE", "");
 const APPLICATION_DEADLINE = applicationDeadlineString ? new Date(applicationDeadlineString) : null;
 
