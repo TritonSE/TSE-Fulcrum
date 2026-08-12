@@ -98,7 +98,10 @@ export default function ApplicationHeader({
       <div className="tw:grid tw:grid-rows-5 tw:grid-flow-col tw:w-fit tw:gap-x-30 tw:gap-y-2 tw:!text-lg">
         {field("ID", application?._id || "")}
         {field("Major", `${application?.major} (${application?.majorDept})`)}
-        {field("Year", formatApplicantYear(application?.applicantYear || 0))}
+        {field(
+          "Year",
+          formatApplicantYear(application?.applicantYear || 0, application?.isTransfer || false),
+        )}
         {field("Start Date", formatQuarter(application?.startQuarter || 0))}
         {field("Grad Date", formatQuarter(application?.gradQuarter || 0))}
         {field("Phone", formatPhoneNumber(application?.phone || ""))}

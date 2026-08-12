@@ -60,7 +60,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
         } else {
           setReviews(
             newReviews.filter((review) =>
-              selectedYears.includes(formatApplicantYear(review.applicantYear)),
+              selectedYears.includes(formatApplicantYear(review.applicantYear, review.application.isTransfer)),
             ),
           );
         }
@@ -280,7 +280,7 @@ export default function StageApplicationsView({ stageId }: { stageId: number }) 
             {
               accessorFn: ([_, appReviews]) =>
                 // Guaranteed at least 1 review per applicant (otherwise they wouldn't show up in table)
-                formatApplicantYear(appReviews[0].applicantYear),
+                formatApplicantYear(appReviews[0].applicantYear, appReviews[0].application.isTransfer),
               header: () => (
                 <div className="tw:flex tw:flex-col tw:gap-y-1">
                   <div className="tw:flex tw:flex-row tw:gap-x-3 tw:align-center">

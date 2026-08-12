@@ -139,7 +139,7 @@ export default function ReviewsView({ filter }: { filter: Record<string, string>
                 header: "Applicant",
               },
               {
-                accessorFn: (review) => formatApplicantYear(review.applicantYear),
+                accessorFn: (review) => formatApplicantYear(review.applicantYear, review.application.isTransfer),
                 header: "Year",
               },
               {

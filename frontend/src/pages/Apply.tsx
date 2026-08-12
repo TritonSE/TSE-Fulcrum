@@ -6,6 +6,7 @@ import api from "../api";
 import { useAlerts } from "../hooks/alerts";
 import { countWords } from "../util";
 
+import type { SubmitApplicationRequest } from "../api";
 import type { ChangeEvent, FormEventHandler, WheelEventHandler } from "react";
 
 if (!import.meta.env.VITE_APPLICATION_DEADLINE) {
@@ -37,6 +38,7 @@ function Apply() {
     startYear: "",
     gradQuarter: "",
     gradYear: "",
+    isTransfer: false,
     name: "",
     pronouns: "",
     email: "",
@@ -170,13 +172,14 @@ function Apply() {
     api
       .uploadResume(resumeFile)
       .then(({ resumeUrl }) => {
-        const application = {
+        const application: SubmitApplicationRequest = {
           name: personalInfo.name,
           pronouns: personalInfo.pronouns,
           email: personalInfo.email,
           phone: personalInfo.phone,
           startQuarter,
           gradQuarter,
+          isTransfer: personalInfo.isTransfer,
           major: personalInfo.major,
           majorDept: personalInfo.majorDept,
           hearAboutTSE: selectedHearAboutTSE,
@@ -363,6 +366,19 @@ function Apply() {
           </Form.Text>
         </Row>
         <Row>
+          <Col>
+            <Form.Check
+              label="I am a Transfer Student"
+              type="switch"
+              id="isTransfer"
+              checked={personalInfo.isTransfer}
+              onChange={(e) => {
+                setPersonalInfo({ ...personalInfo, isTransfer: e.target.checked });
+              }}
+            />
+          </Col>
+        </Row>
+        <Row>
           <Col xs={12} md={6}>
             <Form.Group>
               <Form.Label>Major Department</Form.Label>
@@ -535,7 +551,10 @@ function Apply() {
               TEST program if you believe it would be a good fit for you. Once you apply to the TEST
               program, we will not be able to consider you for general admission, and vice versa. If
               you are unsure about which program is right for you, please contact us at{" "}
-              <a href="mailto:triton.software.engineering@gmail.com">triton.software.engineering@gmail.com</a>.
+              <a href="mailto:triton.software.engineering@gmail.com">
+                triton.software.engineering@gmail.com
+              </a>
+              .
             </p>
           </Form.Text>
         </Row>
