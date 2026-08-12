@@ -1,4 +1,5 @@
 import { Button, Modal, Table } from "@tritonse/tse-constellation";
+import { Copy } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import api from "../api";
@@ -49,6 +50,19 @@ function YourReviewsTable({ stage, reviews, reloadReviews }: YourReviewsTablePro
       .finally(() => setReassigningReview(null));
   };
 
+  const handleCopyEmails = async () => {
+    const emails = new Set<string>(reviews.map((review) => review.application.email));
+    const emailListString = Array.from(emails).join(", ");
+    await navigator.clipboard
+      .writeText(emailListString)
+      .then(() => {
+        addAlert("Emails copied successfully!", "success");
+      })
+      .catch((e) => {
+        addAlert(`Failed to copy emails: ${e}`, "danger");
+      });
+  };
+
   const countsText = useMemo(() => {
     const statusCounts: string[] = [];
 
@@ -68,8 +82,17 @@ function YourReviewsTable({ stage, reviews, reloadReviews }: YourReviewsTablePro
 
   return (
     <div className="tw:flex tw:flex-col tw:gap-y-0">
-      <h3 className="tw:!font-bold">{stage.name}</h3>
-      <p>{countsText}</p>
+      <div className="tw:flex">
+        <div className="tw:flex-1">
+          <span className="tw:!font-bold">{stage.name}</span>
+          <p>{countsText}</p>
+        </div>
+        {/* table actions*/}
+        <Button className="my-2" onClick={() => void handleCopyEmails()}>
+          <Copy />
+          Copy Emails
+        </Button>
+      </div>
       <Table
         className="reviews-table"
         columns={
