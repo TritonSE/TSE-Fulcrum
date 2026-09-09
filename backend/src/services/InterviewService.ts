@@ -9,7 +9,7 @@ import { ReviewModel } from "../models/ReviewModel";
 import type { InterviewState } from "../models/InterviewModel";
 import type { Server as HTTPServer } from "node:http";
 
-type ValidKeys = "question" | "code" | "language" | "active" | "timerStart";
+type ValidKeys = "question" | "code" | "language" | "active" | "timerStart" | "stage";
 
 type Payload = {
   userId: string;
@@ -22,6 +22,33 @@ type SelectionPayload = {
   from: number;
   to: number;
 };
+
+type Role = "interviewer" | "interviewee";
+
+// Marks a boundary between parts in the question markdown, e.g. `<!-- PART 1 -->`.
+// The number is purely a human-readable label - part order is determined by where
+// the markers fall in the document, not by the number written in them.
+const PART_MARKER = /<!--\s*PART\s+\d+\s*-->/;
+
+function splitQuestionParts(question: string): string[] {
+  return question.split(PART_MARKER).map((part) => part.trim());
+}
+
+function clampStage(stage: number, partCount: number): number {
+  if (partCount <= 0) return 0;
+  return Math.min(Math.max(stage, 0), partCount - 1);
+}
+
+function getVisibleQuestion(question: string, stage: number): string {
+  const parts = splitQuestionParts(question);
+  const visibleThrough = clampStage(stage, parts.length);
+
+  return parts.slice(0, visibleThrough + 1).join("\n\n");
+}
+
+function roomForRole(room: string, role: Role): string {
+  return `${room}:${role}`;
+}
 
 class InterviewService {
   interviews: Map<string, InterviewState>;
@@ -114,11 +141,21 @@ class InterviewService {
       active: false,
       timerStart: 0,
       lastUpdate: new Date(),
+      stage: 0,
     };
 
     this.interviews.set(room, defaultRoom);
 
     return defaultRoom;
+  }
+
+  // State as seen by a given role:
+  // Interviewers will receive full question.
+  // Interviewees will only receive the question up to a certain stage
+  stateForRole(obj: InterviewState, role: Role): InterviewState {
+    if (role === "interviewer") return obj;
+
+    return { ...obj, question: getVisibleQuestion(obj.question, obj.stage) };
   }
 
   create(server: HTTPServer): void {
@@ -132,8 +169,12 @@ class InterviewService {
         return;
       }
 
-      // Join room based on review ID
+      const role: Role = url.includes("/review/") ? "interviewer" : "interviewee";
+
+      // Join room based on review ID, plus a role-specific room so question
+      // content can be gated: interviewees only ever get parts 0..stage.
       await socket.join(room);
+      await socket.join(roomForRole(room, role));
 
       socket.on("message", async (payload: Payload) => {
         const obj = await this.getRoomState(room);
@@ -143,7 +184,21 @@ class InterviewService {
         // TypeScript is being weird about this dynamic property access
         // eslint-disable-next-line ts/no-unsafe-member-access
         (obj as any)[payload.key] = payload.value;
-        io.to(room).emit("message", payload);
+
+        if (payload.key === "question" || payload.key === "stage") {
+          // Role-specific handling. Interviewer gets full question,
+          // interviewee gets gated question.
+          // Only for question/stage payloads
+          io.to(roomForRole(room, "interviewer")).emit("message", payload);
+          io.to(roomForRole(room, "interviewee")).emit("message", {
+            userId: payload.userId,
+            key: "question",
+            value: getVisibleQuestion(obj.question, obj.stage),
+          });
+        } else {
+          // All other payloads can pass through
+          io.to(room).emit("message", payload);
+        }
 
         await this.upsert(obj);
       });
@@ -154,7 +209,8 @@ class InterviewService {
         await this.upsert(await this.getRoomState(room), true);
       });
       socket.on("getState", async () => {
-        socket.emit("state", await this.getRoomState(room));
+        const obj = await this.getRoomState(room);
+        socket.emit("state", this.stateForRole(obj, role));
       });
     });
   }

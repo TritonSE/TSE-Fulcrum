@@ -24,12 +24,34 @@ const INTERVIEW_DURATION = 50 * 60 * SECOND; // 50 minutes
 const INTERVIEWEE = 0;
 const INTERVIEWER = 1;
 
+// Marks a boundary between parts in the question markdown, e.g. `<!-- PART 1 -->`.
+// Kept in sync with backend/src/services/InterviewService.ts.
+const PART_MARKER = /<!--\s*PART\s+\d+\s*-->/;
+const countParts = (question: string) => question.split(PART_MARKER).length;
+
+// Character offset where each part (after part 0) begins, in document order.
+const getPartStartOffsets = (question: string): number[] => {
+  const regex = /<!--\s*PART\s+\d+\s*-->/g;
+  const offsets: number[] = [];
+  let match = regex.exec(question);
+
+  while (match !== null) {
+    offsets.push(match.index + match[0].length);
+    match = regex.exec(question);
+  }
+
+  return offsets;
+};
+
 const css = `
   .divider:hover {
     background: var(--bs-primary) !important;
   }
   .timer:hover {
     opacity: 1 !important;
+  }
+  .interview-inactive-part-bg {
+    background-color: rgba(255, 0, 0, 0.12);
   }
 `;
 
@@ -41,9 +63,10 @@ type InterviewState = {
   active: boolean;
   timerStart: number;
   lastUpdate: Date;
+  stage: number;
 };
 
-type ValidKeys = "question" | "code" | "language" | "active" | "timerStart";
+type ValidKeys = "question" | "code" | "language" | "active" | "timerStart" | "stage";
 
 type Payload = {
   userId: string;
@@ -217,10 +240,14 @@ export default function Interview() {
   const [blinking, setBlinking] = useState<boolean>(false);
   const [selectFrom, setSelectFrom] = useState<number>(-1);
   const [selectTo, setSelectTo] = useState<number>(-1);
+  const [stage, setStage] = useState<number>(0);
+  const [partCount, setPartCount] = useState<number>(1);
 
   const questionEditor = useRef<EditorInstance | null>(null);
   const codeEditor = useRef<EditorInstance | null>(null);
   const remoteSelection = useRef<RemoteSelection | null>(null);
+  const inactivePartDecorations = useRef<MonacoEditor.IEditorDecorationsCollection | null>(null);
+  const stageRef = useRef<number>(0); // exclusively for keeping the editor decorations up-to-date
 
   const role = location.pathname.includes("/review/") ? INTERVIEWER : INTERVIEWEE;
   const editorOptions = {
@@ -241,6 +268,40 @@ export default function Interview() {
       key,
       value,
     });
+  };
+  const refreshInactivePartDecorations = (text: string, currentStage: number) => {
+    if (role !== INTERVIEWER || !questionEditor.current) return;
+
+    const { editor, monaco } = questionEditor.current;
+    const mod = editor.getModel();
+    if (!mod) return;
+
+    const partStartOffsets = getPartStartOffsets(text);
+    const dimFromOffset = partStartOffsets[currentStage];
+
+    const decorations =
+      dimFromOffset === undefined
+        ? []
+        : [
+            {
+              range: new monaco.Range(
+                mod.getPositionAt(dimFromOffset).lineNumber,
+                1,
+                mod.getLineCount(),
+                mod.getLineMaxColumn(mod.getLineCount()),
+              ),
+              options: {
+                isWholeLine: true,
+                className: "interview-inactive-part-bg",
+              },
+            },
+          ];
+
+    if (inactivePartDecorations.current) {
+      inactivePartDecorations.current.set(decorations);
+    } else {
+      inactivePartDecorations.current = editor.createDecorationsCollection(decorations);
+    }
   };
   const onMount =
     (isCode: boolean) => (editor: MonacoEditor.IStandaloneCodeEditor, monaco: Monaco) => {
@@ -284,7 +345,12 @@ export default function Interview() {
       editor.onDidChangeModelContent((e) => {
         if (e.isFlush) return;
 
-        sendMessage(isCode ? "code" : "question", editor.getValue());
+        const val = editor.getValue();
+        sendMessage(isCode ? "code" : "question", val);
+        if (!isCode) {
+          setPartCount(countParts(val));
+          refreshInactivePartDecorations(val, stageRef.current);
+        }
       });
 
       if (socket) {
@@ -319,6 +385,8 @@ export default function Interview() {
         if (!mod) return;
 
         mod.setValue(val);
+        setPartCount(countParts(val));
+        refreshInactivePartDecorations(val, stage);
       }
     },
     code: (payload: Payload) => {
@@ -333,7 +401,25 @@ export default function Interview() {
     language: (payload: Payload) => updateEditorLanguage(payload.value as string),
     active: (payload: Payload) => setActive(payload.value as boolean),
     timerStart: (payload: Payload) => setTimerStart(payload.value as number),
+    stage: (payload: Payload) => {
+      const newStage = payload.value as number;
+      setStage(newStage);
+      const text = questionEditor.current?.editor.getModel()?.getValue();
+      if (text !== undefined) refreshInactivePartDecorations(text, newStage);
+    },
   };
+  const changeStage = (delta: number) => {
+    const newStage = Math.max(0, Math.min(stage + delta, partCount - 1));
+    setStage(newStage);
+    sendMessage("stage", newStage);
+
+    const text = questionEditor.current?.editor.getModel()?.getValue();
+    if (text !== undefined) refreshInactivePartDecorations(text, newStage);
+  };
+
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
 
   useEffect(() => {
     document.title = "TSE Fulcrum - Technical Interview";
@@ -394,51 +480,70 @@ export default function Interview() {
     <>
       <style>{css}</style>
       {role === INTERVIEWER && (
-        <div className="tw:flex tw:items-center tw:justify-center tw:h-12 tw:mb-3">
-          <Button
-            className="tw:!bg-blue-600 tw:!px-2 tw:!py-2 tw:!rounded-lg"
-            onClick={() => window.close()}
-          >
-            ← Back to Review
-          </Button>
-          <div className="tw:flex-1">&nbsp;</div>
-          <Button
-            className={twMerge(
-              "tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg",
-              active ? "tw:!bg-amber-400" : "",
-            )}
-            onClick={toggleInterview}
-          >
-            {active ? "End" : "Begin"} Interview
-          </Button>
-          <div>&nbsp;&nbsp;&nbsp;</div>
-          <Button
-            className={twMerge(
-              "tw:!bg-accent tw:!px-3 tw:!py-2 tw:!rounded-lg tw:transition-all tw:duration-500",
-              blinking ? "tw:!bg-green-500" : "",
-            )}
-            onClick={() => {
-              void navigator.clipboard.writeText(
-                window.location.origin +
-                  location.pathname.replace("/interview", "").replace("/review/", "/interview/"),
-              );
-              setBlinking(true);
-              setTimeout(() => setBlinking(false), 250);
-            }}
-          >
-            Copy Link for Interviewee
-          </Button>
-          <div style={{ flex: 1 }}>&nbsp;</div>
-          <Dropdown>
-            <Dropdown.Toggle>Set Language</Dropdown.Toggle>
-            <Dropdown.Menu>
-              {LANGS.map((lang) => (
-                <Dropdown.Item key={lang} onClick={() => updateEditorLanguage(lang, true)}>
-                  {lang[0].toUpperCase() + lang.slice(1)}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
+        <div className="tw:flex tw:flex-col tw:justify-center tw:w-full tw:gap-3 tw:p-3">
+          <div className="tw:flex tw:items-center tw:justify-center tw:h-12">
+            <Button
+              className="tw:!bg-blue-600 tw:!px-2 tw:!py-2 tw:!rounded-lg"
+              onClick={() => window.close()}
+            >
+              ← Back to Review
+            </Button>
+            <div className="tw:flex-1">&nbsp;</div>
+            <Button
+              className={twMerge(
+                "tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg",
+                active ? "tw:!bg-amber-400" : "",
+              )}
+              onClick={toggleInterview}
+            >
+              {active ? "End" : "Begin"} Interview
+            </Button>
+            <div>&nbsp;&nbsp;&nbsp;</div>
+            <Button
+              className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+              disabled={!active || stage <= 0}
+              onClick={() => changeStage(-1)}
+            >
+              ← Prev Part
+            </Button>
+            <div>&nbsp;</div>
+            <Button
+              className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+              disabled={!active || stage >= partCount - 1}
+              onClick={() => changeStage(1)}
+            >
+              Next Part →
+            </Button>
+            <div>&nbsp;&nbsp;&nbsp;</div>
+            <Button
+              className={twMerge(
+                "tw:!bg-accent tw:!px-3 tw:!py-2 tw:!rounded-lg tw:transition-all tw:duration-500",
+                blinking ? "tw:!bg-green-500" : "",
+              )}
+              onClick={() => {
+                void navigator.clipboard.writeText(
+                  window.location.origin +
+                    location.pathname.replace("/interview", "").replace("/review/", "/interview/"),
+                );
+                setBlinking(true);
+                setTimeout(() => setBlinking(false), 250);
+              }}
+            >
+              Copy Link for Interviewee
+            </Button>
+            <div style={{ flex: 1 }}>&nbsp;</div>
+            <Dropdown>
+              <Dropdown.Toggle>Set Language</Dropdown.Toggle>
+              <Dropdown.Menu>
+                {LANGS.map((lang) => (
+                  <Dropdown.Item key={lang} onClick={() => updateEditorLanguage(lang, true)}>
+                    {lang[0].toUpperCase() + lang.slice(1)}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+          <div className="tw:w-full tw:text-center"> Currently rendering Part {stage}</div>
         </div>
       )}
       {(role === INTERVIEWER || (role === INTERVIEWEE && active)) && (
