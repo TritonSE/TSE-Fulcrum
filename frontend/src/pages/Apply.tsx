@@ -13,7 +13,12 @@ if (!import.meta.env.VITE_APPLICATION_DEADLINE) {
   throw new Error("Missing VITE_APPLICATION_DEADLINE!");
 }
 
+if (!import.meta.env.VITE_APPLICATION_STARTDATE) {
+  throw new Error("Missing VITE_APPLICATION_STARTDATE!");
+}
+
 const DEADLINE = new Date(import.meta.env.VITE_APPLICATION_DEADLINE);
+const STARTDATE = new Date(import.meta.env.VITE_APPLICATION_STARTDATE);
 const HEAR_ABOUT_TSE_OPTIONS = [
   "Word of mouth",
   "Tabling on Library Walk",
@@ -30,6 +35,7 @@ const HEAR_ABOUT_TSE_OPTIONS = [
 const SHORT_ANSWER_MAX_WORDS = 150; // Maximum number of words for short answer questions
 
 const deadlineStr = DEADLINE.toLocaleString("en-US");
+const startdateStr = STARTDATE.toLocaleString("en-US");
 
 function Apply() {
   // initialize state below this line
@@ -222,6 +228,10 @@ function Apply() {
 
   if (new Date() > DEADLINE) {
     return <p>Applications for the current school year closed at {deadlineStr}.</p>;
+  }
+
+  if (new Date() < STARTDATE) {
+    return <p>Applications for the current school year will open at {startdateStr}.</p>;
   }
 
   // By default, mouse wheel events on a number input will change the numeric

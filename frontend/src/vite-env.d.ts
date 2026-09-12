@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_APPLICATION_DEADLINE: string;
+  readonly VITE_APPLICATION_STARTDATE: string;
   // add more env variables here as needed
 }
 
