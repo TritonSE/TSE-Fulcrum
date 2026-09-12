@@ -1,13 +1,9 @@
-import { DateTime } from "luxon";
-
 import env from "../env";
 import { UserModel } from "../models";
-import { retrieveDeploymentUrl } from "../storage";
 
-import CryptoService from "./CryptoService";
-import EmailService from "./EmailService";
+import AuthService from "./AuthService";
 
-import type { CreateUserRequest, LogInRequest, ResetPasswordRequest } from "../cakes";
+import type { CreateUserRequest, LogInRequest } from "../cakes";
 import type { UserDocument } from "../models";
 
 type PublicUser = {
@@ -18,7 +14,7 @@ type PublicUser = {
 
 type LogInResponse = {
   user: UserDocument;
-  sessionToken: string;
+  sessionCookie: string;
 };
 
 class UserService {
@@ -64,103 +60,30 @@ class UserService {
     return UserModel.find({ assignedStageIds: stageId });
   }
 
-  async getBySessionToken(sessionToken: string): Promise<UserDocument | null> {
-    const sessionTokenHash = CryptoService.hashToken(sessionToken);
-    const user = await UserModel.findOne({ sessionTokenHash });
-    if (user === null) {
-      console.error("Session token invalid");
+  async logIn({ idToken }: LogInRequest): Promise<LogInResponse | null> {
+    const decoded = await AuthService.verifyIdToken(idToken);
+    if (!decoded || !decoded.email_verified || !decoded.email) {
+      console.error("Invalid ID Token");
       return null;
     }
-    if (user.sessionExpiration < new Date()) {
-      console.error("Session expired");
-      return null;
-    }
-    return user;
-  }
+    const email = decoded.email;
 
-  async logIn({ email, password }: LogInRequest): Promise<LogInResponse | null> {
     const user = await this.getByEmail(email);
     if (user === null) {
       console.error(`No user with email address: ${email}`);
       return null;
     }
 
-    if (!CryptoService.verifyPassword(password, user.passwordHash)) {
-      console.error("Incorrect password");
-      return null;
-    }
-
-    // Generate a new session token.
-    const sessionToken = CryptoService.generateToken();
-    user.sessionTokenHash = CryptoService.hashToken(sessionToken);
-    user.sessionExpiration = DateTime.now()
-      .plus({ minutes: env.SESSION_EXPIRATION_MINS })
-      .toJSDate();
-    await user.save();
+    // Generate a new cookie
+    const sessionCookie = await AuthService.createSessionCookie(
+      idToken,
+      env.SESSION_EXPIRATION_MINS * 60 * 1000,
+    );
 
     return {
       user,
-      sessionToken,
+      sessionCookie,
     };
-  }
-
-  async logOut(user: UserDocument): Promise<void> {
-    user.sessionExpiration = this.expiredDate();
-    await user.save();
-  }
-
-  async requestPasswordReset(email: string): Promise<void> {
-    const user = await this.getByEmail(email);
-    if (user === null) {
-      console.error(`No user with email address: ${email}`);
-      return;
-    }
-
-    const passwordResetToken = CryptoService.generateToken();
-    user.passwordResetTokenHash = CryptoService.hashToken(passwordResetToken);
-    user.passwordResetExpiration = DateTime.now()
-      .plus({ minutes: env.PASSWORD_RESET_EXPIRATION_MINS })
-      .toJSDate();
-    await user.save();
-
-    await EmailService.send({
-      recipient: email,
-      subject: `Password reset for ${env.DEPLOYMENT_NAME}`,
-      body: [
-        `Use this link to reset your password: ${retrieveDeploymentUrl()}/reset-password?token=${passwordResetToken}`,
-        `This link will expire in ${env.PASSWORD_RESET_EXPIRATION_MINS} minutes. If you did not request a password reset, you can safely ignore this email.`,
-      ].join("\n\n"),
-    });
-  }
-
-  async resetPassword({
-    email,
-    passwordResetToken,
-    password,
-  }: ResetPasswordRequest): Promise<boolean> {
-    const user = await this.getByEmail(email);
-    if (user === null) {
-      console.error(`No user with email address: ${email}`);
-      return false;
-    }
-
-    if (!CryptoService.verifyToken(passwordResetToken, user.passwordResetTokenHash)) {
-      console.error("Password reset token invalid");
-      return false;
-    }
-
-    if (user.passwordResetExpiration < new Date()) {
-      console.error("Password reset token expired");
-      return false;
-    }
-
-    user.passwordHash = CryptoService.hashPassword(password);
-
-    // Prevent password reset tokens from being reused.
-    user.passwordResetExpiration = this.expiredDate();
-
-    await user.save();
-    return true;
   }
 
   serialize(user: UserDocument): PublicUser {

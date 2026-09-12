@@ -7,14 +7,7 @@ export type User = {
 };
 
 type LogInRequest = {
-  email: string;
-  password: string;
-};
-
-type ResetPasswordRequest = {
-  email: string;
-  password: string;
-  passwordResetToken: string;
+  idToken: string;
 };
 
 type ResumeUploadResponse = {
@@ -119,7 +112,7 @@ export type SubmitApplicationRequest = Omit<Application, "_id" | "applicantYear"
 class Api {
   async logIn(request: LogInRequest): Promise<User | null> {
     const response = await this.uncheckedPost("/api/auth/log-in", request);
-    if (response.status === 401) {
+    if (response.status === 401 || response.status === 403) {
       return null;
     }
     await this.assertOk(response);
@@ -137,14 +130,6 @@ class Api {
     }
     await this.assertOk(response);
     return response.json() as Promise<User>;
-  }
-
-  async requestPasswordReset(email: string): Promise<void> {
-    await this.post("/api/auth/request-password-reset", { email });
-  }
-
-  async resetPassword(request: ResetPasswordRequest): Promise<boolean> {
-    return (await this.post("/api/auth/reset-password", request)).ok;
   }
 
   async getAllUsers(): Promise<User[]> {

@@ -1,7 +1,8 @@
-import { UserService } from "../services";
+import { AuthService, UserService } from "../services";
 
 import type { UserDocument } from "../models/UserModel";
 import type { Request, RequestHandler, Response } from "express";
+import type { DecodedIdToken } from "firebase-admin/auth";
 
 type AsyncHandlerResult = {
   status: number;
@@ -35,16 +36,24 @@ function wrapper(handler: AsyncHandler): RequestHandler {
 async function getUser(req: Request): Promise<UserDocument | null> {
   const cookies: unknown = req.cookies;
   if (
-    typeof cookies === "object" &&
-    cookies !== null &&
-    "session" in cookies &&
-    typeof cookies.session === "string"
+    !(
+      typeof cookies === "object" &&
+      cookies !== null &&
+      "session" in cookies &&
+      typeof cookies.session === "string"
+    )
   ) {
-    return UserService.getBySessionToken(cookies.session);
+    console.info("No session token provided");
+    return null;
   }
 
-  console.info("No session token provided");
-  return null;
+  const decoded: DecodedIdToken | null = await AuthService.verifySessionCookie(cookies.session);
+  if (decoded === null || !decoded.email_verified || !decoded.email) {
+    console.info("Invalid session token provided");
+    return null;
+  }
+
+  return UserService.getByEmail(decoded.email);
 }
 
 type AsyncAuthHandler = (

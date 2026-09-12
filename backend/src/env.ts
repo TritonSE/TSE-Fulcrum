@@ -50,7 +50,9 @@ const env = {
    */
   EMAIL_HOST: getEnv("EMAIL_HOST", "smtp.gmail.com"),
 
+  // Firebase Details
   FIREBASE_SERVICE_ACCOUNT_KEY: getEnv("FIREBASE_SERVICE_ACCOUNT_KEY", undefined),
+  FIREBASE_STORAGE_BUCKET: getEnv("FIREBASE_STORAGE_BUCKET", "tse-fulcrum.appspot.com"),
 
   // Only necessary if you need to override the default values.
 
