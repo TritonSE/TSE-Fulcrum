@@ -12,6 +12,7 @@ import { io, type Socket } from "socket.io-client";
 import { twMerge } from "tailwind-merge";
 
 import TSELogo from "../components/TSELogo";
+import { useIsTabFocused } from "../hooks/focus";
 
 import type { editor as MonacoEditor } from "monaco-editor";
 
@@ -249,7 +250,17 @@ export default function Interview() {
   const inactivePartDecorations = useRef<MonacoEditor.IEditorDecorationsCollection | null>(null);
   const stageRef = useRef<number>(0); // exclusively for keeping the editor decorations up-to-date
 
+  const [intervieweeFocused, setIntervieweeFocused] = useState<boolean>(true);
+
+  const isFocused = useIsTabFocused();
+
   const role = location.pathname.includes("/review/") ? INTERVIEWER : INTERVIEWEE;
+
+  useEffect(() => {
+    if (!socket || role !== INTERVIEWEE || !active) return;
+    socket.emit("focus", { role, focused: isFocused });
+  }, [isFocused, active, socket, role]);
+
   const editorOptions = {
     quickSuggestions: false,
     suggest: {
@@ -373,6 +384,8 @@ export default function Interview() {
 
     setTimerStart(0);
     sendMessage("timerStart", 0);
+
+    setIntervieweeFocused(true);
   };
   const callbacks: Callbacks = {
     question: (payload: Payload) => {
@@ -399,7 +412,10 @@ export default function Interview() {
       mod.setValue(val);
     },
     language: (payload: Payload) => updateEditorLanguage(payload.value as string),
-    active: (payload: Payload) => setActive(payload.value as boolean),
+    active: (payload: Payload) => {
+      setActive(payload.value as boolean);
+      setIntervieweeFocused(true);
+    },
     timerStart: (payload: Payload) => setTimerStart(payload.value as number),
     stage: (payload: Payload) => {
       const newStage = payload.value as number;
@@ -446,6 +462,15 @@ export default function Interview() {
         return;
 
       remoteSelection.current.setOffsets(select.from, select.to);
+    });
+    sock.on("focus", (payload: { role: number; focused: boolean }) => {
+      if (payload.role === role) return;
+
+      // listens to all focus messages indiscriminately, meaning if two 
+      // socket clients connect to the interviewee room, may cause issues
+      // when clients send independent 'focus' messages. just means we cant have
+      // two interviewees at the same time, which is already the case
+      setIntervieweeFocused(payload.focused);
     });
     sock.on("state", (state: InterviewState) => {
       Object.entries(callbacks).forEach(([event, callback]) => {
@@ -544,6 +569,11 @@ export default function Interview() {
             </Dropdown>
           </div>
           <div className="tw:w-full tw:text-center"> Currently rendering Part {stage}</div>
+          {active && !intervieweeFocused && (
+            <div className="tw:w-full tw:text-center tw:bg-red-500 tw:text-white tw:py-1 tw:rounded">
+              Interviewee is currently unfocused (tab switched or window not focused)
+            </div>
+          )}
         </div>
       )}
       {(role === INTERVIEWER || (role === INTERVIEWEE && active)) && (

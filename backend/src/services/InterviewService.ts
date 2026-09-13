@@ -23,6 +23,11 @@ type SelectionPayload = {
   to: number;
 };
 
+type FocusPayload = {
+  role: number;
+  focused: boolean;
+};
+
 type Role = "interviewer" | "interviewee";
 
 // Marks a boundary between parts in the question markdown, e.g. `<!-- PART 1 -->`.
@@ -204,6 +209,9 @@ class InterviewService {
       });
       socket.on("select", (payload: SelectionPayload) => {
         io.to(room).emit("select", payload);
+      });
+      socket.on("focus", (payload: FocusPayload) => {
+        io.to(room).emit("focus", payload);
       });
       socket.on("save", async () => {
         await this.upsert(await this.getRoomState(room), true);
