@@ -44,6 +44,26 @@ const getPartStartOffsets = (question: string): number[] => {
   return offsets;
 };
 
+// Mirrors InterviewService.ts so the interviewer's preview
+// shows exactly what the interviewee is currently gated to see.
+//
+// These are only invoked on the Interviewer's side. Interviewee question
+// visibility is handled server-side.
+const splitQuestionParts = (question: string): string[] =>
+  question.split(PART_MARKER).map((part) => part.trim());
+
+const clampStage = (stg: number, partCount: number): number => {
+  if (partCount <= 0) return 0;
+  return Math.min(Math.max(stg, 0), partCount - 1);
+};
+
+const getVisibleQuestion = (question: string, stg: number): string => {
+  const parts = splitQuestionParts(question);
+  const visibleThrough = clampStage(stg, parts.length);
+
+  return parts.slice(0, visibleThrough + 1).join("\n\n");
+};
+
 const css = `
   .divider:hover {
     background: var(--bs-primary) !important;
@@ -53,6 +73,39 @@ const css = `
   }
   .interview-inactive-part-bg {
     background-color: rgba(255, 0, 0, 0.12);
+  }
+  .mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    user-select: none;
+  }
+  .mode-toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: #555;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .mode-toggle-switch.active {
+    background: var(--bs-primary, #0d6efd);
+  }
+  .mode-toggle-switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.2s;
+  }
+  .mode-toggle-switch.active .mode-toggle-switch-knob {
+    transform: translateX(20px);
   }
 `;
 
@@ -241,7 +294,7 @@ export default function Interview() {
   const [blinking, setBlinking] = useState<boolean>(false);
   const [selectFrom, setSelectFrom] = useState<number>(-1);
   const [selectTo, setSelectTo] = useState<number>(-1);
-  const [stage, setStage] = useState<number>(0);
+  const [stage, setStage] = useState<number>(0); // prefer changeStage over setStage
   const [partCount, setPartCount] = useState<number>(1);
 
   const questionEditor = useRef<EditorInstance | null>(null);
@@ -251,6 +304,7 @@ export default function Interview() {
   const stageRef = useRef<number>(0); // exclusively for keeping the editor decorations up-to-date
 
   const [intervieweeFocused, setIntervieweeFocused] = useState<boolean>(true);
+  const [mode, setMode] = useState<"editor" | "preview">("preview");
 
   const isFocused = useIsTabFocused();
 
@@ -359,6 +413,7 @@ export default function Interview() {
         const val = editor.getValue();
         sendMessage(isCode ? "code" : "question", val);
         if (!isCode) {
+          setQuestionContent(val);
           setPartCount(countParts(val));
           refreshInactivePartDecorations(val, stageRef.current);
         }
@@ -368,6 +423,14 @@ export default function Interview() {
         socket.emit("getState");
       }
     };
+  const changeStage = (delta: number) => {
+    const newStage = Math.max(0, Math.min(stage + delta, partCount - 1));
+    setStage(newStage);
+    sendMessage("stage", newStage);
+
+    const text = questionEditor.current?.editor.getModel()?.getValue();
+    if (text !== undefined) refreshInactivePartDecorations(text, newStage);
+  };
   const updateEditorLanguage = (lang: string, send = false) => {
     setLanguage(lang);
     if (send) sendMessage("language", lang);
@@ -385,15 +448,18 @@ export default function Interview() {
     setTimerStart(0);
     sendMessage("timerStart", 0);
 
+    changeStage(-999);
+    sendMessage("stage", 0);
+
     setIntervieweeFocused(true);
   };
   const callbacks: Callbacks = {
     question: (payload: Payload) => {
       const val = payload.value as string;
 
-      if (role === INTERVIEWEE) {
-        setQuestionContent(val);
-      } else if (questionEditor.current) {
+      setQuestionContent(val);
+
+      if (role !== INTERVIEWEE && questionEditor.current) {
         const mod = questionEditor.current.editor.getModel();
         if (!mod) return;
 
@@ -423,14 +489,6 @@ export default function Interview() {
       const text = questionEditor.current?.editor.getModel()?.getValue();
       if (text !== undefined) refreshInactivePartDecorations(text, newStage);
     },
-  };
-  const changeStage = (delta: number) => {
-    const newStage = Math.max(0, Math.min(stage + delta, partCount - 1));
-    setStage(newStage);
-    sendMessage("stage", newStage);
-
-    const text = questionEditor.current?.editor.getModel()?.getValue();
-    if (text !== undefined) refreshInactivePartDecorations(text, newStage);
   };
 
   useEffect(() => {
@@ -466,7 +524,7 @@ export default function Interview() {
     sock.on("focus", (payload: { role: number; focused: boolean }) => {
       if (payload.role === role) return;
 
-      // listens to all focus messages indiscriminately, meaning if two 
+      // listens to all focus messages indiscriminately, meaning if two
       // socket clients connect to the interviewee room, may cause issues
       // when clients send independent 'focus' messages. just means we cant have
       // two interviewees at the same time, which is already the case
@@ -557,6 +615,26 @@ export default function Interview() {
               Copy Link for Interviewee
             </Button>
             <div style={{ flex: 1 }}>&nbsp;</div>
+            <div className="mode-toggle">
+              <span>Preview</span>
+              <div
+                role="switch"
+                aria-checked={mode === "editor"}
+                tabIndex={0}
+                className={twMerge("mode-toggle-switch", mode === "editor" ? "active" : "")}
+                onClick={() => setMode(mode === "editor" ? "preview" : "editor")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setMode(mode === "editor" ? "preview" : "editor");
+                  }
+                }}
+              >
+                <div className="mode-toggle-switch-knob" />
+              </div>
+              <span>Editor</span>
+            </div>
+            <div>&nbsp;&nbsp;&nbsp;</div>
             <Dropdown>
               <Dropdown.Toggle>Set Language</Dropdown.Toggle>
               <Dropdown.Menu>
@@ -589,7 +667,7 @@ export default function Interview() {
           }}
           onMouseUp={() => setMouseDown(false)}
         >
-          {role === INTERVIEWER ? (
+          {role === INTERVIEWER && mode === "editor" ? (
             <Editor
               width={`calc(${editorWidth}vw - ${separatorWidth / 2}px)`}
               height="100vh"
@@ -620,7 +698,7 @@ export default function Interview() {
                   img: MarkdownImage,
                 }}
               >
-                {questionContent}
+                {getVisibleQuestion(questionContent ?? "", stage)}
               </Markdown>
             </div>
           )}
