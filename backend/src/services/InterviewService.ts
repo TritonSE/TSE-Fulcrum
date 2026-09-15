@@ -11,6 +11,8 @@ import type { Server as HTTPServer } from "node:http";
 
 type ValidKeys = "question" | "code" | "language" | "active" | "timerStart" | "stage";
 
+type InterviewVersion = "firstYear" | "secondYear";
+
 type Payload = {
   userId: string;
   key: ValidKeys;
@@ -28,12 +30,31 @@ type FocusPayload = {
   focused: boolean;
 };
 
+type FetchPayload = {
+  userId: string;
+  version: InterviewVersion;
+};
+
 type Role = "interviewer" | "interviewee";
 
-// Marks a boundary between parts in the question markdown, e.g. `<!-- PART 1 -->`.
-// The number is purely a human-readable label - part order is determined by where
-// the markers fall in the document, not by the number written in them.
-const PART_MARKER = /<!--\s*PART\s+\d+\s*-->/;
+function readmeFetchOptions(url: string): https.RequestOptions {
+  const parsed = new URL(url);
+
+  return {
+    protocol: parsed.protocol,
+    hostname: parsed.hostname,
+    path: parsed.pathname + parsed.search,
+    headers: { authorization: `token ${env.GITHUB_PAT}` },
+  };
+}
+
+const INTERVIEW_README_FETCH_OPTIONS: Record<InterviewVersion, https.RequestOptions> = {
+  firstYear: readmeFetchOptions(env.README_URL_FIRSTYEAR),
+  secondYear: readmeFetchOptions(env.README_URL_SECONDYEAR),
+};
+
+// Marks a boundary between parts in the question markdown, e.g. `<!-- PART -->`.
+const PART_MARKER = /<!--\s*PART\s*-->/;
 
 function splitQuestionParts(question: string): string[] {
   return question.split(PART_MARKER).map((part) => part.trim());
@@ -64,17 +85,17 @@ class InterviewService {
     this.interviews = new Map();
     this.questionPlaceholder = "";
 
-    this.fetchReadme().then((readme) => {
+    this.fetchReadme(env.README_URL).then((readme) => {
       this.questionPlaceholder = readme ?? "";
     }, console.error);
   }
 
-  async fetchReadme(): Promise<string | null> {
+  async fetchReadme(options: string | https.RequestOptions | URL): Promise<string | null> {
     // Built-in HTTP/S is not natively Promisified
     return new Promise((resolve) => {
       let out = "";
       https
-        .get(env.README_URL, (res) => {
+        .get(options, (res) => {
           console.info(`Interview README request responded with code ${res.statusCode}`);
           res.on("data", (data) => {
             out += data;
@@ -140,7 +161,7 @@ class InterviewService {
 
     const defaultRoom: InterviewState = {
       room,
-      question: (await this.fetchReadme()) ?? this.questionPlaceholder,
+      question: (await this.fetchReadme(env.README_URL)) ?? this.questionPlaceholder,
       code: "# Write your code here",
       language: "python",
       active: false,
@@ -210,9 +231,6 @@ class InterviewService {
       socket.on("select", (payload: SelectionPayload) => {
         io.to(room).emit("select", payload);
       });
-      socket.on("focus", (payload: FocusPayload) => {
-        io.to(room).emit("focus", payload);
-      });
       socket.on("save", async () => {
         await this.upsert(await this.getRoomState(room), true);
       });
@@ -220,6 +238,47 @@ class InterviewService {
         const obj = await this.getRoomState(room);
         socket.emit("state", this.stateForRole(obj, role));
       });
+      socket.on("focus", (payload: FocusPayload) => {
+        io.to(room).emit("focus", payload);
+      });
+      socket.on(
+        "fetch",
+        async (payload: FetchPayload, ack?: (question: string | null) => void) => {
+          const obj = await this.getRoomState(room);
+          const { userId, version } = payload;
+          const question = await this.fetchReadme(INTERVIEW_README_FETCH_OPTIONS[version]);
+          if (!question) {
+            ack?.(null);
+            return;
+          }
+
+          obj.question = question;
+          obj.stage = 0;
+
+          // Broadcast to any other connected sockets for this role (e.g. a second
+          // interviewer tab). The requesting socket applies the result itself via ack,
+          // since "message" events matching its own userId are ignored on the client.
+          socket.to(roomForRole(room, "interviewer")).emit("message", {
+            userId,
+            key: "question",
+            value: question,
+          } as Payload);
+          socket.to(roomForRole(room, "interviewer")).emit("message", {
+            userId,
+            key: "stage",
+            value: 0,
+          } as Payload);
+          io.to(roomForRole(room, "interviewee")).emit("message", {
+            userId,
+            key: "question",
+            value: getVisibleQuestion(question, 0),
+          } as Payload);
+
+          await this.upsert(obj);
+
+          ack?.(question);
+        },
+      );
     });
   }
 }

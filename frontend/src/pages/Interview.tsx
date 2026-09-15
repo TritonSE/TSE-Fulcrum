@@ -25,14 +25,14 @@ const INTERVIEW_DURATION = 50 * 60 * SECOND; // 50 minutes
 const INTERVIEWEE = 0;
 const INTERVIEWER = 1;
 
-// Marks a boundary between parts in the question markdown, e.g. `<!-- PART 1 -->`.
+// Marks a boundary between parts in the question markdown, e.g. `<!-- PART -->`.
 // Kept in sync with backend/src/services/InterviewService.ts.
-const PART_MARKER = /<!--\s*PART\s+\d+\s*-->/;
+const PART_MARKER = /<!--\s*PART\s*-->/;
 const countParts = (question: string) => question.split(PART_MARKER).length;
 
 // Character offset where each part (after part 0) begins, in document order.
 const getPartStartOffsets = (question: string): number[] => {
-  const regex = /<!--\s*PART\s+\d+\s*-->/g;
+  const regex = /<!--\s*PART\s*-->/g;
   const offsets: number[] = [];
   let match = regex.exec(question);
 
@@ -490,6 +490,16 @@ export default function Interview() {
       if (text !== undefined) refreshInactivePartDecorations(text, newStage);
     },
   };
+  const fetchReadmeQuestion = (version: "firstYear" | "secondYear") => {
+    if (!socket || !socket.connected) return;
+
+    socket.emit("fetch", { userId, version }, (question: string | null) => {
+      if (question === null) return;
+
+      callbacks.question({ userId, key: "question", value: question });
+      callbacks.stage({ userId, key: "stage", value: 0 });
+    });
+  };
 
   useEffect(() => {
     stageRef.current = stage;
@@ -613,6 +623,20 @@ export default function Interview() {
               }}
             >
               Copy Link for Interviewee
+            </Button>
+            <div>&nbsp;&nbsp;&nbsp;</div>
+            <Button
+              className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg"
+              onClick={() => fetchReadmeQuestion("firstYear")}
+            >
+              Fetch First Year
+            </Button>
+            <div>&nbsp;</div>
+            <Button
+              className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg"
+              onClick={() => fetchReadmeQuestion("secondYear")}
+            >
+              Fetch Second Year
             </Button>
             <div style={{ flex: 1 }}>&nbsp;</div>
             <div className="mode-toggle">

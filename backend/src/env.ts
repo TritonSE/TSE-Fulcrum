@@ -90,6 +90,15 @@ const env = {
     "README_URL",
     "https://raw.githubusercontent.com/TritonSE/TSE-Technical-Interview-Template/main/README.md",
   ),
+  README_URL_FIRSTYEAR: getEnv(
+    "README_URL_FIRSTYEAR",
+    "https://raw.githubusercontent.com/TritonSE/TSE-Technical-Interview-Template/main/README.md",
+  ),
+  README_URL_SECONDYEAR: getEnv(
+    "README_URL_SECONDYEAR",
+    "https://raw.githubusercontent.com/TritonSE/TSE-Technical-Interview-Template/main/README.md",
+  ),
+  GITHUB_PAT: getEnv("GITHUB_PAT", undefined),
 
   /**
    * Deadline to submit applications.
