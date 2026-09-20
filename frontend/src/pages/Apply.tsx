@@ -1,3 +1,4 @@
+import { Label } from "@radix-ui/react-select";
 import { LoadingSpinner } from "@tritonse/tse-constellation";
 import { FileText, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -51,18 +52,20 @@ const HEAR_ABOUT_TSE_OPTIONS = [
 ];
 
 const QUARTER_OPTIONS = [
+  { value: "2", label: "Fall" },
   { value: "0", label: "Winter" },
   { value: "1", label: "Spring" },
   // Hide summer because people often select summer when they mean spring.
   // { value: "2", label: "Summer" },
-  { value: "2", label: "Fall" },
 ];
 
 const PREV_TEST_OPTIONS = [
   { value: "none", label: "I was not a part of the TEST program" },
-  { value: "test_designer", label: "TEST Designer" },
-  { value: "test_developer", label: "TEST Developer" },
+  { value: "test_designer", label: "Yes, I was a part of the TEST Program as a TEST Designer." },
+  { value: "test_developer", label: "Yes, I was a part of the TEST Program as a TEST Developer." },
 ];
+
+const PREV_TEST_VALUES = PREV_TEST_OPTIONS.map((option) => option.value);
 
 const SHORT_ANSWER_MAX_WORDS = 150; // Maximum number of words for short answer questions
 
@@ -88,6 +91,8 @@ type ApplicationField =
   | "gradYear"
   | "majorDept"
   | "major"
+  | "isTransfer"
+  | "prevTest"
   | "hearAboutTse"
   | "otherHearAboutTSE"
   | "roles"
@@ -117,10 +122,14 @@ const applicationSchema = z
     gradYear: z.string().min(1, ERROR_MESSAGES.REQUIRED),
     majorDept: z.string().min(1, ERROR_MESSAGES.REQUIRED),
     major: z.string().min(1, ERROR_MESSAGES.REQUIRED),
+    prevTest: z.string().refine((value) => PREV_TEST_VALUES.includes(value), {
+      message: ERROR_MESSAGES.REQUIRED,
+    }),
     otherHearAboutTSE: z.string(),
     hasHearAboutTSESelection: z.boolean(),
     hasOtherHearAboutTSESelected: z.boolean(),
     hasResume: z.boolean(),
+    hasTransferSelection: z.boolean(),
     roles: z.object({
       designer: z.boolean(),
       developer: z.boolean(),
@@ -161,6 +170,14 @@ const applicationSchema = z
       });
     }
 
+    if (!data.hasTransferSelection) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["isTransfer"],
+        message: ERROR_MESSAGES.REQUIRED_SELECTION,
+      });
+    }
+
     const validatePrompt = (key: string, required: boolean) => {
       const value = data.prompts[key] ?? "";
       if (required && !value) {
@@ -193,14 +210,14 @@ function Apply() {
     startYear: "",
     gradQuarter: "",
     gradYear: "",
-    isTransfer: false,
+    isTransfer: undefined as boolean | undefined,
     name: "",
     pronouns: "",
     email: "",
     phone: "",
     major: "",
     majorDept: "",
-    prevTest: "none", // default to not having been in TEST
+    prevTest: "", // default to not having been in TEST
     otherHearAboutTSE: "",
   });
 
@@ -259,10 +276,12 @@ function Apply() {
       gradYear: personalInfo.gradYear,
       majorDept: personalInfo.majorDept,
       major: personalInfo.major,
+      prevTest: personalInfo.prevTest,
       otherHearAboutTSE: personalInfo.otherHearAboutTSE,
       hasHearAboutTSESelection: Object.values(hearAboutTse).some(Boolean),
       hasOtherHearAboutTSESelected: hearAboutTse.Other,
       hasResume: !!resumeFile,
+      hasTransferSelection: personalInfo.isTransfer !== undefined,
       roles,
       prompts,
     });
@@ -274,6 +293,13 @@ function Apply() {
 
   const hasFieldError = (field: ApplicationField): boolean => !!errors[field]?.length;
   const getFieldError = (field: ApplicationField): string => errors[field]?.[0] ?? "";
+  const errorCount = Object.values(errors).filter((fieldErrors) => fieldErrors?.length).length;
+
+  const isPromptInvalid = (promptKey: ApplicationField): boolean =>
+    isPromptOverLimit(promptKey) || hasFieldError(promptKey);
+
+  const getPromptInvalidHint = (promptKey: ApplicationField): string =>
+    isPromptOverLimit(promptKey) ? getWordCountText(promptKey) : getFieldError(promptKey);
 
   // create any event handler functions below this line
 
@@ -336,10 +362,11 @@ function Apply() {
       .filter(([_role, selected]) => selected)
       .map(([role, _selected]) => (role === "Other" ? personalInfo.otherHearAboutTSE : role));
 
-    if (!resumeFile) {
+    if (!resumeFile || personalInfo.isTransfer === undefined) {
       setSubmitting(false);
       return;
     }
+    const isTransfer = personalInfo.isTransfer;
 
     api
       .uploadResume(resumeFile)
@@ -351,7 +378,7 @@ function Apply() {
           phone: personalInfo.phone,
           startQuarter,
           gradQuarter,
-          isTransfer: personalInfo.isTransfer,
+          isTransfer,
           major: personalInfo.major,
           majorDept: personalInfo.majorDept,
           hearAboutTSE: selectedHearAboutTSE,
@@ -484,8 +511,13 @@ function Apply() {
                       updatePersonalInfo("startQuarter", value);
                     }}
                     options={QUARTER_OPTIONS}
+                    invalid={hasFieldError("startQuarter")}
                   />
-                  <HelpText className="tw:invisible">.</HelpText>
+                  {hasFieldError("startQuarter") ? (
+                    <HelpText invalid>{getFieldError("startQuarter")}</HelpText>
+                  ) : (
+                    <HelpText className="tw:invisible">.</HelpText>
+                  )}
                 </FieldGroup>
                 <TextInput
                   type="number"
@@ -517,7 +549,11 @@ function Apply() {
                       updatePersonalInfo("gradQuarter", value);
                     }}
                     options={QUARTER_OPTIONS}
+                    invalid={hasFieldError("gradQuarter")}
                   />
+                  {hasFieldError("gradQuarter") && (
+                    <HelpText invalid>{getFieldError("gradQuarter")}</HelpText>
+                  )}
                 </FieldGroup>
                 <FieldGroup>
                   <TextInput
@@ -546,10 +582,12 @@ function Apply() {
               </div>
               <FieldCol widthClass="tw:w-1/3">
                 <FieldGroup>
-                  <FieldLabel>Are you a transfer student?</FieldLabel>
+                  <FieldLabel invalid={hasFieldError("isTransfer")}>
+                    Are you a transfer student?
+                  </FieldLabel>
                   <div className="tw:flex tw:gap-4">
                     <Button
-                      active={personalInfo.isTransfer}
+                      active={personalInfo.isTransfer === true}
                       onClick={() => {
                         setPersonalInfo({ ...personalInfo, isTransfer: true });
                       }}
@@ -557,7 +595,7 @@ function Apply() {
                       Yes
                     </Button>
                     <Button
-                      active={!personalInfo.isTransfer}
+                      active={personalInfo.isTransfer === false}
                       onClick={() => {
                         setPersonalInfo({ ...personalInfo, isTransfer: false });
                       }}
@@ -565,6 +603,9 @@ function Apply() {
                       No
                     </Button>
                   </div>
+                  {hasFieldError("isTransfer") && (
+                    <HelpText invalid>{getFieldError("isTransfer")}</HelpText>
+                  )}
                 </FieldGroup>
               </FieldCol>
             </FormBlock>
@@ -628,16 +669,15 @@ function Apply() {
           </FormSection>
           <FormSectionLabel>Section 02: Your Application</FormSectionLabel>
           <FormSection>
-            <FieldRow>
-              <FieldCol widthClass="tw:w-full">
-                <FieldGroup>
+            <FieldRow className="tw:w-4/5">
+                <FieldGroup className="tw:mb-[20px]">
                   <FieldLabel invalid={hasFieldError("resume")}>Resume</FieldLabel>
                   <HelpText invalid={hasFieldError("resume")}>
                     Your resume must be a single page PDF. If your resume does not meet this
                     requirement, your application will not be considered.
                   </HelpText>
                   {resumeFile ? (
-                    <div className="tw:flex tw:items-center tw:justify-between tw:font-sometype-mono tw:text-[20px] tw:uppercase tw:text-gray-60">
+                    <div className="tw:flex tw:items-center tw:justify-between tw:transition-all tw:font-sometype-mono tw:text-[20px] tw:uppercase tw:text-gray-60">
                       <div className="tw:flex tw:items-center tw:gap-3">
                         <span>Uploaded File:</span>
                         <FileText className="tw:h-5 tw:w-5" />
@@ -648,7 +688,7 @@ function Apply() {
                         onClick={() => {
                           setResumeFile(undefined);
                         }}
-                        className="tw:flex tw:cursor-pointer tw:items-center tw:gap-2 tw:hover:text-cloud"
+                        className="tw:flex tw:cursor-pointer tw:items-center tw:gap-2 tw:uppercase! tw:transition-all tw:hover:text-error"
                       >
                         <span>Remove</span>
                         <Trash2 className="tw:h-5 tw:w-5" />
@@ -658,7 +698,7 @@ function Apply() {
                     <input
                       type="file"
                       accept="application/pdf"
-                      className="tw:font-stack-sans-text tw:text-transparent tw:file:mr-4 tw:file:cursor-pointer tw:file:border-3 tw:hover:file:border-cloud tw:file:border-gray-60 tw:file:bg-transparent tw:file:px-[20px] tw:file:py-[12px] tw:file:font-sometype-mono tw:file:text-[20px] tw:file:text-gray-60 tw:hover:file:text-cloud tw:file:uppercase"
+                      className="tw:font-stack-sans-text tw:text-transparent tw:transition-colors tw:file:mr-4 tw:file:cursor-pointer tw:file:border-3 tw:hover:file:border-cloud tw:file:border-gray-60 tw:file:bg-transparent tw:file:px-[20px] tw:file:py-[12px] tw:file:font-sometype-mono tw:file:text-[20px] tw:file:text-gray-60 tw:hover:file:text-cloud tw:file:uppercase"
                       onChange={(e) => {
                         setResumeFile(e.target.files?.[0]);
                       }}
@@ -668,10 +708,6 @@ function Apply() {
                     <HelpText invalid>{getFieldError("resume")}</HelpText>
                   )}
                 </FieldGroup>
-              </FieldCol>
-            </FieldRow>
-            <FieldRow className="tw:w-full">
-              <FieldCol widthClass="tw:w-full">
                 <FieldGroup>
                   <SelectField
                     label="Were you previously a part of TSE's TEST program?"
@@ -680,9 +716,13 @@ function Apply() {
                       updatePersonalInfo("prevTest", value);
                     }}
                     options={PREV_TEST_OPTIONS}
+                    invalid={hasFieldError("prevTest")}
                   />
+                  {hasFieldError("prevTest") && (
+                    <HelpText invalid>{getFieldError("prevTest")}</HelpText>
+                  )}
                 </FieldGroup>
-              </FieldCol>
+              
             </FieldRow>
             <FieldRow>
               <FieldRow>
@@ -709,7 +749,10 @@ function Apply() {
                   </ul>
                   <span>
                     If you are unsure about which program is right for you, please contact us at{" "}
-                    <a href="mailto:triton.software.engineering@gmail.com">
+                    <a
+                      href="mailto:triton.software.engineering@gmail.com"
+                      className="tw:text-gold-75! tw:no-underline! tw:hover:opacity-75"
+                    >
                       triton.software.engineering@gmail.com
                     </a>
                     .
@@ -718,7 +761,9 @@ function Apply() {
               </FieldRow>
               <FieldCol>
                 <FieldGroup>
-                  <FieldLabel>which role(s) will you apply for?</FieldLabel>
+                  <FieldLabel invalid={hasFieldError("roles")}>
+                    which role(s) will you apply for?
+                  </FieldLabel>
                   <HelpText>
                     <span>
                       Each role you select will have a corresponding free-response question.
@@ -753,8 +798,8 @@ function Apply() {
                     />
                   </div>
                 </FieldGroup>
-                {(roles.test_developer || roles.test_designer) && (
-                  <div className="tw:mt-3">
+                <div className="tw:mt-3">
+                  {(roles.test_developer || roles.test_designer) && (
                     <AlertBanner variant={graduatesThisSchoolYear ? "danger" : "warning"}>
                       {graduatesThisSchoolYear
                         ? `You are inelligible to apply for TEST because you are graduating this school year.`
@@ -762,8 +807,9 @@ function Apply() {
                   before continuing. Your application will not be considered if you do not meet the
                   qualifications for the TEST program.`}
                     </AlertBanner>
-                  </div>
-                )}
+                  )}
+                  {hasFieldError("roles") && <HelpText invalid>{getFieldError("roles")}</HelpText>}
+                </div>
               </FieldCol>
             </FieldRow>
           </FormSection>
@@ -776,9 +822,9 @@ function Apply() {
                   label="Tell us about yourself."
                   value={prompts.about}
                   onChange={updatePrompt}
-                  invalid={isPromptOverLimit("about")}
+                  invalid={isPromptInvalid("about")}
                   hint={getWordCountText("about")}
-                  invalidHint={getWordCountText("about")}
+                  invalidHint={getPromptInvalidHint("about")}
                   rows={7}
                 />
               </FieldCol>
@@ -790,9 +836,9 @@ function Apply() {
                   label="Why are you interested in being part of TSE?"
                   value={prompts.interest}
                   onChange={updatePrompt}
-                  invalid={isPromptOverLimit("interest")}
+                  invalid={isPromptInvalid("interest")}
                   hint={getWordCountText("interest")}
-                  invalidHint={getWordCountText("interest")}
+                  invalidHint={getPromptInvalidHint("interest")}
                   rows={7}
                 />
               </FieldCol>
@@ -805,9 +851,9 @@ function Apply() {
                     label="Why are you interested in the Designer role specifically? Please also include a link to your portfolio or body of work (if you have one), and make sure your link is publicly viewable, or provide instructions on how to access it."
                     value={prompts.designer}
                     onChange={updatePrompt}
-                    invalid={isPromptOverLimit("designer")}
+                    invalid={isPromptInvalid("designer")}
                     hint={getWordCountText("designer")}
-                    invalidHint={getWordCountText("designer")}
+                    invalidHint={getPromptInvalidHint("designer")}
                     rows={7}
                   />
                 </FieldCol>
@@ -821,9 +867,9 @@ function Apply() {
                     label="Why are you interested in the Developer role specifically?"
                     value={prompts.developer}
                     onChange={updatePrompt}
-                    invalid={isPromptOverLimit("developer")}
+                    invalid={isPromptInvalid("developer")}
                     hint={getWordCountText("developer")}
-                    invalidHint={getWordCountText("developer")}
+                    invalidHint={getPromptInvalidHint("developer")}
                     rows={7}
                   />
                 </FieldCol>
@@ -834,12 +880,16 @@ function Apply() {
                 <FieldCol widthClass="tw:w-full">
                   <TextArea
                     id="prompt_test_barriers"
-                    label="Why do you believe you are a good fit for the TEST program, and what do you hope to gain from the program? Additionally, please describe how your participation in this program would be helpful to you in overcoming historical barriers such as financial commitments, lack of role models/community/knowledge of graduate study, first-generation, etc."
+                    label="Why are you a strong fit for the TEST program, and what 
+                    do you hope to gain?"
+                    description="Additionally, please share any barriers you have faced in gaining field
+                    experience (e.g., financial constraints, lack of mentorship, being a
+                    first-generation student) and how this program will help you navigate them."
                     value={prompts.test_barriers}
                     onChange={updatePrompt}
-                    invalid={isPromptOverLimit("test_barriers")}
+                    invalid={isPromptInvalid("test_barriers")}
                     hint={getWordCountText("test_barriers")}
-                    invalidHint={getWordCountText("test_barriers")}
+                    invalidHint={getPromptInvalidHint("test_barriers")}
                     rows={7}
                   />
                 </FieldCol>
@@ -853,9 +903,9 @@ function Apply() {
                     label="Why are you interested in the TEST Designer role specifically?"
                     value={prompts.test_designer}
                     onChange={updatePrompt}
-                    invalid={isPromptOverLimit("test_designer")}
+                    invalid={isPromptInvalid("test_designer")}
                     hint={getWordCountText("test_designer")}
-                    invalidHint={getWordCountText("test_designer")}
+                    invalidHint={getPromptInvalidHint("test_designer")}
                     rows={7}
                   />
                 </FieldCol>
@@ -869,9 +919,9 @@ function Apply() {
                     label="Why are you interested in the TEST Developer role specifically?"
                     value={prompts.test_developer}
                     onChange={updatePrompt}
-                    invalid={isPromptOverLimit("test_developer")}
+                    invalid={isPromptInvalid("test_developer")}
                     hint={getWordCountText("test_developer")}
-                    invalidHint={getWordCountText("test_developer")}
+                    invalidHint={getPromptInvalidHint("test_developer")}
                     rows={7}
                   />
                 </FieldCol>
@@ -882,10 +932,17 @@ function Apply() {
             /**
              * Disable button while loading to prevent spam clicking and submitting duplicate applications
              */
-            <div className="tw:mb-24">
+            <div className="tw:mb-24 tw:flex tw:items-center tw:gap-6">
               <SubmitButton disabled={submitting}>
                 {submitting ? <LoadingSpinner /> : "Submit Application"}
               </SubmitButton>
+              {errorCount > 0 && (
+                <HelpText invalid>
+                  There {errorCount === 1 ? "is" : "are"} {errorCount}{" "}
+                  {errorCount === 1 ? "error" : "errors"} or unfilled fields in your application.
+                  Please resolve before you submit.
+                </HelpText>
+              )}
             </div>
           }
         </form>

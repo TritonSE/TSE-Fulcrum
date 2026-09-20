@@ -154,7 +154,9 @@ export function TextInput({
         }}
         {...props}
       />
-      {(hint || invalidHint) && <HelpText invalid={invalid}>{invalid ? invalidHint : hint}</HelpText>}
+      {(hint || invalidHint) && (
+        <HelpText invalid={invalid}>{invalid ? invalidHint : hint}</HelpText>
+      )}
     </FieldGroup>
   );
 }
@@ -168,12 +170,14 @@ export function TextArea({
   defaultValue,
   value,
   label,
+  description = "",
   invalid = false,
   hint = "",
   invalidHint = "",
   ...props
 }: TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label?: string;
+  description?: string;
   invalid?: boolean;
   hint?: string;
   invalidHint?: string;
@@ -188,6 +192,7 @@ export function TextArea({
           {label}
         </FieldLabel>
       )}
+      {description && <HelpText>{description}</HelpText>}
       <textarea
         className={`${controlClass} tw:h-auto tw:resize-y ${invalid ? "tw:!border-error" : hasValue || isFocused ? "tw:!border-gray-20" : ""} ${className}`}
         defaultValue={defaultValue}
@@ -245,7 +250,9 @@ export function Button({
           : "tw:border-gray-60 tw:text-gray-60 tw:hover:border-cloud tw:hover:text-cloud"
       }`}
     >
-      <span className="tw:font-sometype-mono tw:text-[20px]! tw:uppercase tw:font-[500]">{children}</span>
+      <span className="tw:font-sometype-mono tw:text-[20px]! tw:uppercase tw:font-[500]">
+        {children}
+      </span>
     </button>
   );
 }
@@ -308,7 +315,9 @@ export function Checkbox({
           />
         </svg>
       </span>
-      <span className="tw:text-[20px]! tw:text-gray-60 tw:group-has-[:checked]:text-cloud">{label}</span>
+      <span className="tw:text-[20px]! tw:text-gray-60 tw:group-has-[:checked]:text-cloud">
+        {label}
+      </span>
     </label>
   );
 }
