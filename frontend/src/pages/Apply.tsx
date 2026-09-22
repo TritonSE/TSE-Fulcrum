@@ -1,4 +1,3 @@
-import { Label } from "@radix-ui/react-select";
 import { LoadingSpinner } from "@tritonse/tse-constellation";
 import { FileText, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -338,7 +337,6 @@ function Apply() {
     setSubmitting(true);
 
     const newErrors = validateApplication();
-    console.log(newErrors);
     setErrors(newErrors);
 
     if (Object.values(newErrors).some((fieldErrors) => fieldErrors.length > 0)) {
