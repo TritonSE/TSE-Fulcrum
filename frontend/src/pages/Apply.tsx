@@ -668,59 +668,56 @@ function Apply() {
           <FormSectionLabel>Section 02: Your Application</FormSectionLabel>
           <FormSection>
             <FieldRow className="tw:w-4/5">
-                <FieldGroup className="tw:mb-[20px]">
-                  <FieldLabel invalid={hasFieldError("resume")}>Resume</FieldLabel>
-                  <HelpText invalid={hasFieldError("resume")}>
-                    Your resume must be a single page PDF. If your resume does not meet this
-                    requirement, your application will not be considered.
-                  </HelpText>
-                  {resumeFile ? (
-                    <div className="tw:flex tw:items-center tw:justify-between tw:transition-all tw:font-sometype-mono tw:text-[20px] tw:uppercase tw:text-gray-60">
-                      <div className="tw:flex tw:items-center tw:gap-3">
-                        <span>Uploaded File:</span>
-                        <FileText className="tw:h-5 tw:w-5" />
-                        <span className="tw:text-cloud">{resumeFile.name}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setResumeFile(undefined);
-                        }}
-                        className="tw:flex tw:cursor-pointer tw:items-center tw:gap-2 tw:uppercase! tw:transition-all tw:hover:text-error"
-                      >
-                        <span>Remove</span>
-                        <Trash2 className="tw:h-5 tw:w-5" />
-                      </button>
+              <FieldGroup className="tw:mb-[20px]">
+                <FieldLabel invalid={hasFieldError("resume")}>Resume</FieldLabel>
+                <HelpText invalid={hasFieldError("resume")}>
+                  Your resume must be a single page PDF. If your resume does not meet this
+                  requirement, your application will not be considered.
+                </HelpText>
+                {resumeFile ? (
+                  <div className="tw:flex tw:items-center tw:justify-between tw:transition-all tw:font-sometype-mono tw:text-[20px] tw:uppercase tw:text-gray-60">
+                    <div className="tw:flex tw:items-center tw:gap-3">
+                      <span>Uploaded File:</span>
+                      <FileText className="tw:h-5 tw:w-5" />
+                      <span className="tw:text-cloud">{resumeFile.name}</span>
                     </div>
-                  ) : (
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      className="tw:font-stack-sans-text tw:text-transparent tw:transition-colors tw:file:mr-4 tw:file:cursor-pointer tw:file:border-3 tw:hover:file:border-cloud tw:file:border-gray-60 tw:file:bg-transparent tw:file:px-[20px] tw:file:py-[12px] tw:file:font-sometype-mono tw:file:text-[20px] tw:file:text-gray-60 tw:hover:file:text-cloud tw:file:uppercase"
-                      onChange={(e) => {
-                        setResumeFile(e.target.files?.[0]);
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResumeFile(undefined);
                       }}
-                    />
-                  )}
-                  {hasFieldError("resume") && (
-                    <HelpText invalid>{getFieldError("resume")}</HelpText>
-                  )}
-                </FieldGroup>
-                <FieldGroup>
-                  <SelectField
-                    label="Were you previously a part of TSE's TEST program?"
-                    value={personalInfo.prevTest}
-                    onValueChange={(value) => {
-                      updatePersonalInfo("prevTest", value);
+                      className="tw:flex tw:cursor-pointer tw:items-center tw:gap-2 tw:uppercase! tw:transition-all tw:hover:text-error"
+                    >
+                      <span>Remove</span>
+                      <Trash2 className="tw:h-5 tw:w-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    className="tw:font-stack-sans-text tw:text-transparent tw:transition-colors tw:file:mr-4 tw:file:cursor-pointer tw:file:border-3 tw:hover:file:border-cloud tw:file:border-gray-60 tw:file:bg-transparent tw:file:px-[20px] tw:file:py-[12px] tw:file:font-sometype-mono tw:file:text-[20px] tw:file:text-gray-60 tw:hover:file:text-cloud tw:file:uppercase"
+                    onChange={(e) => {
+                      setResumeFile(e.target.files?.[0]);
                     }}
-                    options={PREV_TEST_OPTIONS}
-                    invalid={hasFieldError("prevTest")}
                   />
-                  {hasFieldError("prevTest") && (
-                    <HelpText invalid>{getFieldError("prevTest")}</HelpText>
-                  )}
-                </FieldGroup>
-              
+                )}
+                {hasFieldError("resume") && <HelpText invalid>{getFieldError("resume")}</HelpText>}
+              </FieldGroup>
+              <FieldGroup>
+                <SelectField
+                  label="Were you previously a part of TSE's TEST program?"
+                  value={personalInfo.prevTest}
+                  onValueChange={(value) => {
+                    updatePersonalInfo("prevTest", value);
+                  }}
+                  options={PREV_TEST_OPTIONS}
+                  invalid={hasFieldError("prevTest")}
+                />
+                {hasFieldError("prevTest") && (
+                  <HelpText invalid>{getFieldError("prevTest")}</HelpText>
+                )}
+              </FieldGroup>
             </FieldRow>
             <FieldRow>
               <FieldRow>

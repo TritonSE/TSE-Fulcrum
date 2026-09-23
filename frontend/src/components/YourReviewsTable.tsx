@@ -107,7 +107,8 @@ function YourReviewsTable({ stage, reviews, reloadReviews }: YourReviewsTablePro
               header: "Applicant",
             },
             {
-              accessorFn: (review) => formatApplicantYear(review.applicantYear, review.application.isTransfer),
+              accessorFn: (review) =>
+                formatApplicantYear(review.applicantYear, review.application.isTransfer),
               header: "Year",
             },
             {
