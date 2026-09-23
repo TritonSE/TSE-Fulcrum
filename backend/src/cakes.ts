@@ -6,8 +6,7 @@ import { pipelineIdentifiers } from "./config";
 import type { Infer } from "caketype";
 
 const LogInRequest = bake({
-  email: string,
-  password: string,
+  idToken: string,
 } as const);
 
 type LogInRequest = Infer<typeof LogInRequest>;
@@ -26,18 +25,6 @@ const CreateUserRequest = bake({
 
 type CreateUserRequest = Infer<typeof CreateUserRequest>;
 
-const ResetPasswordRequest = bake({
-  email: string,
-  passwordResetToken: string,
-  password: string,
-});
-
-type ResetPasswordRequest = Infer<typeof ResetPasswordRequest>;
-
-const RequestPasswordResetRequest = bake({
-  email: string,
-});
-
 const PipelineIdentifier = union(...pipelineIdentifiers);
 
 const BulkAdvanceOrRejectRequest = bake({
@@ -45,10 +32,4 @@ const BulkAdvanceOrRejectRequest = bake({
   applicationIds: array(string),
 });
 
-export {
-  BulkAdvanceOrRejectRequest,
-  CreateUserRequest,
-  LogInRequest,
-  RequestPasswordResetRequest,
-  ResetPasswordRequest,
-};
+export { BulkAdvanceOrRejectRequest, CreateUserRequest, LogInRequest };

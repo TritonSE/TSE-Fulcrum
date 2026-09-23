@@ -1,28 +1,13 @@
-import * as firebase from "firebase-admin/app";
-import { getDownloadURL, getStorage } from "firebase-admin/storage";
+import { getDownloadURL } from "firebase-admin/storage";
 import _ from "multer";
 
-import env from "../env";
+import { firebaseBucket } from "../firebase";
 
 import CryptoService from "./CryptoService";
 
 type ResumeUploadResult = {
   resumeUrl: string;
 };
-
-if (env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-  firebase.initializeApp({
-    credential: firebase.cert(
-      JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_KEY) as firebase.ServiceAccount,
-    ),
-    storageBucket: "tse-fulcrum.appspot.com",
-  });
-} else {
-  console.error("Missing Firebase service account key");
-}
-
-const firebaseStorage = getStorage();
-const firebaseBucket = firebaseStorage.bucket();
 
 class ResumeService {
   async upload(resumeFile: Express.Multer.File): Promise<ResumeUploadResult> {

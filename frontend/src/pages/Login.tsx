@@ -1,16 +1,19 @@
 import { Button } from "@tritonse/tse-constellation";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { use, useEffect, useState } from "react";
-import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 import api from "../api";
 import TSELogo from "../components/TSELogo";
 import { GlobalContext } from "../context/GlobalContext";
+import { auth } from "../firebase";
 import { useAlerts } from "../hooks/alerts";
+
+const provider = new GoogleAuthProvider();
 
 export default function Login() {
   const { user, setUser, redirectAfterLogin } = use(GlobalContext);
-  const [data, setData] = useState({ email: "", password: "" });
+  const [isSigningIn, setIsSigningIn] = useState(false);
   const { alerts, addAlert, clearAlerts } = useAlerts();
   const navigate = useNavigate();
 
@@ -23,54 +26,38 @@ export default function Login() {
     }
   }, [user]);
 
-  const setField = <K extends keyof typeof data>(key: K, value: (typeof data)[K]) => {
-    setData({ ...data, [key]: value });
-  };
-
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const onSignIn = () => {
     clearAlerts();
-    api
-      .logIn(data)
-      .then((loggedInUser) => {
+    setIsSigningIn(true);
+    signInWithPopup(auth, provider)
+      .then(async (credential) => {
+        const idToken = await credential.user.getIdToken();
+        const loggedInUser = await api.logIn({ idToken });
         if (loggedInUser === null) {
-          addAlert("Invalid email address or password.");
+          await signOut(auth);
+          addAlert("This Google account isn't registered for TSE Fulcrum. Contact an admin.");
           return;
         }
         setUser(loggedInUser);
         navigate(redirectAfterLogin, { replace: true });
       })
-      .catch(addAlert);
-  };
-
-  const onForgotPassword = () => {
-    navigate("/request-password-reset");
+      .catch(addAlert)
+      .finally(() => setIsSigningIn(false));
   };
 
   return (
     <TSELogo msg="TSE Fulcrum">
-      <Form onSubmit={onSubmit}>
-        <Form.Group controlId="email">
-          <Form.Label>Email address</Form.Label>
-          <Form.Control type="email" onChange={(e) => setField("email", e.target.value)} />
-        </Form.Group>
-        <br />
-        <Form.Group controlId="password">
-          <Form.Label>Password</Form.Label>
-          <Form.Control type="password" onChange={(e) => setField("password", e.target.value)} />
-        </Form.Group>
-        <br />
-        <div className="tw:flex tw:justify-around tw:gap-4">
-          <Button type="submit" className="tw:!bg-blue-600 tw:!px-3 tw:!rounded-lg">
-            Log in
-          </Button>
-          <Button onClick={onForgotPassword} className="tw:!bg-accent tw:!px-3 tw:!rounded-lg">
-            Forgot password
-          </Button>
-        </div>
-        <br />
-        {alerts}
-      </Form>
+      <div className="tw:flex tw:justify-center">
+        <Button
+          onClick={onSignIn}
+          disabled={isSigningIn}
+          className="tw:!bg-blue-600 tw:!px-3 tw:!rounded-lg"
+        >
+          Sign in with Google
+        </Button>
+      </div>
+      <br />
+      {alerts}
     </TSELogo>
   );
 }

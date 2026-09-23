@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { LogInRequest, RequestPasswordResetRequest, ResetPasswordRequest } from "../cakes";
+import { LogInRequest } from "../cakes";
 import env from "../env";
-import { UserService } from "../services";
+import { AuthService, UserService } from "../services";
 
 import { authWrapper, wrapper } from "./wrappers";
 
@@ -25,7 +25,7 @@ router.post(
       return { status: 401 };
     }
 
-    res.cookie("session", result.sessionToken, {
+    res.cookie("session", result.sessionCookie, {
       secure: env.NODE_ENV === "production",
       httpOnly: true,
       sameSite: "strict",
@@ -42,8 +42,16 @@ router.post(
 
 router.post(
   "/log-out",
-  authWrapper(async (user) => {
-    await UserService.logOut(user);
+  authWrapper(async (_user, req, res) => {
+    const cookie: unknown = req.cookies.session;
+    if (typeof cookie === "string") {
+      const decoded = await AuthService.verifySessionCookie(cookie);
+      if (decoded !== null) {
+        await AuthService.revokeSessionCookie(decoded.uid);
+      }
+    }
+
+    res.clearCookie("session", { path: "/api" });
     return { status: 200 };
   }),
 );
@@ -56,42 +64,6 @@ router.get(
       json: UserService.serialize(user),
     }),
   ),
-);
-
-router.post(
-  "/request-password-reset",
-  wrapper(async (req) => {
-    const bodyResult = RequestPasswordResetRequest.check(req.body);
-    if (!bodyResult.ok) {
-      return {
-        status: 400,
-        text: bodyResult.error.toString(),
-      };
-    }
-    await UserService.requestPasswordReset(bodyResult.value.email);
-    // We don't want to return an error if the email doesn't exist, because
-    // that would enable unauthenticated clients to check whether an account
-    // exists with a given email.
-    return { status: 200 };
-  }),
-);
-
-router.post(
-  "/reset-password",
-  wrapper(async (req) => {
-    const bodyResult = ResetPasswordRequest.check(req.body);
-    if (!bodyResult.ok) {
-      return {
-        status: 400,
-        text: bodyResult.error.toString(),
-      };
-    }
-
-    if (await UserService.resetPassword(bodyResult.value)) {
-      return { status: 200 };
-    }
-    return { status: 400 };
-  }),
 );
 
 export default router;
