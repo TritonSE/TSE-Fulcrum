@@ -70,6 +70,8 @@ class UserService {
 
     const user = await this.getByEmail(email);
     if (user === null) {
+      // TODO: Delete auto-generated user from Firebase userbase if they are not
+      // not valid
       console.error(`No user with email address: ${email}`);
       return null;
     }

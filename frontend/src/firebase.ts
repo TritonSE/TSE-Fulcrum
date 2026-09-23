@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCZcosPO_ZB7O1nFQy0euH-19XhKSawZks",
-  authDomain: "fulcrum-dev-fe70f.firebaseapp.com",
-  projectId: "fulcrum-dev-fe70f",
-  storageBucket: "fulcrum-dev-fe70f.firebasestorage.app",
-  messagingSenderId: "642358457725",
-  appId: "1:642358457725:web:44ca3ba06da1dbaebd8814",
-  measurementId: "G-0L7ZX2WY96",
+  apiKey: "AIzaSyBIq2RxaF0x-qN3MW-AJg_Kf2DKegIK_ys",
+  authDomain: "tse-fulcrum.firebaseapp.com",
+  projectId: "tse-fulcrum",
+  storageBucket: "tse-fulcrum.appspot.com",
+  messagingSenderId: "506277462634",
+  appId: "1:506277462634:web:9ee4c91ea8517c667dc013",
+  measurementId: "G-FS413WHV72",
 };
 
 const app = initializeApp(firebaseConfig);
