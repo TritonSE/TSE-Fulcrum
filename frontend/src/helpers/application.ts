@@ -3,23 +3,25 @@ import type { Progress, Stage } from "../api";
 export const APPLICANT_YEARS = [
   "1st",
   "2nd",
-  "3rd / 1st transfer",
-  "4th / 2nd transfer",
+  "3rd",
+  "4th",
+  "1st transfer",
+  "2nd transfer",
   "unknown",
 ] as const;
 
 export type ApplicantYear = (typeof APPLICANT_YEARS)[number];
 
-export const formatApplicantYear = (year: number): ApplicantYear => {
+export const formatApplicantYear = (year: number, isTransfer: boolean): ApplicantYear => {
   switch (year) {
     case 1:
       return "1st";
     case 2:
       return "2nd";
     case 3:
-      return "3rd / 1st transfer";
+      return isTransfer ? "1st transfer" : "3rd";
     case 4:
-      return "4th / 2nd transfer";
+      return isTransfer ? "2nd transfer" : "4th";
     default:
       return "unknown";
   }

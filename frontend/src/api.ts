@@ -97,9 +97,11 @@ export type Application = {
   // This makes it easy to sort chronologically.
   startQuarter: number;
   gradQuarter: number;
+  isTransfer: boolean;
 
   major: string;
   majorDept: string;
+  hearAboutTSE: string[];
   prevTest: string;
 
   resumeUrl: string;
@@ -112,7 +114,7 @@ export type Application = {
   rolePrompts: Record<string, string>;
 };
 
-type SubmitApplicationRequest = Omit<Application, "_id" | "applicantYear" | "yearApplied">;
+export type SubmitApplicationRequest = Omit<Application, "_id" | "applicantYear" | "yearApplied">;
 
 class Api {
   async logIn(request: LogInRequest): Promise<User | null> {

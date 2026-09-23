@@ -15,6 +15,7 @@ type Application = {
   // This makes it easy to sort chronologically.
   startQuarter: number;
   gradQuarter: number;
+  isTransfer: boolean;
 
   major: string;
   majorDept: string;
@@ -63,6 +64,11 @@ const ApplicationSchema = new Schema<Application>({
   gradQuarter: {
     type: Number,
     required: true,
+  },
+  isTransfer: {
+    type: Boolean,
+    required: true,
+    default: false,
   },
   major: {
     type: String,

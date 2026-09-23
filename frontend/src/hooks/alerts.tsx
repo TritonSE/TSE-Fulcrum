@@ -20,7 +20,7 @@ function useAlerts(): UseAlertsResult {
 
   return {
     alerts: (
-      <div className="tw:absolute tw:overflow-x-hideen tw:overflow-y-auto tw:top-[50px] tw:right-[20px] tw:z-50 tw:max-w-[500px] tw:max-h-[50%]">
+      <div className="tw:fixed tw:overflow-x-hidden tw:overflow-y-auto tw:top-[50px] tw:right-[20px] tw:z-50 tw:max-w-[500px] tw:max-h-[50%]">
         {alertList.map(({ message, variant }, i: number) => (
           <Alert
             /* eslint-disable-next-line react/no-array-index-key */
