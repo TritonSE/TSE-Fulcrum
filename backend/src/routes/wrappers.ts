@@ -35,14 +35,12 @@ function wrapper(handler: AsyncHandler): RequestHandler {
 
 async function getUser(req: Request): Promise<UserDocument | null> {
   const cookies: unknown = req.cookies;
-  if (
-    !(
-      typeof cookies === "object" &&
-      cookies !== null &&
-      "session" in cookies &&
-      typeof cookies.session === "string"
-    )
-  ) {
+  if (!(
+    typeof cookies === "object" &&
+    cookies !== null &&
+    "session" in cookies &&
+    typeof cookies.session === "string"
+  )) {
     console.info("No session token provided");
     return null;
   }

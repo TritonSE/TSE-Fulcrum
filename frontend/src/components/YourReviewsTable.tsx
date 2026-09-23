@@ -70,9 +70,7 @@ function YourReviewsTable({ stage, reviews, reloadReviews }: YourReviewsTablePro
       const reviewsOfStatus = reviews.filter((r) => getReviewStatus(r) === status);
       if (reviewsOfStatus.length > 0) {
         statusCounts.push(
-          `${reviewsOfStatus.length} ${reviewStatusHumanReadableNames[
-            status as ReviewStatus
-          ].toLowerCase()}`,
+          `${reviewsOfStatus.length} ${reviewStatusHumanReadableNames[status].toLowerCase()}`,
         );
       }
     });

@@ -287,7 +287,7 @@ function Apply() {
 
     if (result.success) return {};
 
-    return z.flattenError(result.error).fieldErrors as ApplicationErrors;
+    return z.flattenError(result.error).fieldErrors;
   };
 
   const hasFieldError = (field: ApplicationField): boolean => !!errors[field]?.length;

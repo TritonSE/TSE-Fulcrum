@@ -13,8 +13,6 @@ import routes from "./routes";
 import { InterviewService, UserService } from "./services";
 import { asyncLocalStorage } from "./storage";
 
-import type { ApplicationLocalStorage } from "./storage";
-
 async function onStartup() {
   // Create the admin account if necessary.
   const admin = await UserService.create({
@@ -43,7 +41,7 @@ async function main() {
   // Global middleware to provide context to all routes via async local storage
   app.use((req, _res, next) => {
     const deploymentUrl = req.get("origin") ?? `${req.protocol}://${req.get("host")}`;
-    asyncLocalStorage.run({ deploymentUrl } as ApplicationLocalStorage, () => {
+    asyncLocalStorage.run({ deploymentUrl }, () => {
       // Runs next request handler inside a context where it can access the local storage context
       next();
     });

@@ -156,7 +156,7 @@ class InterviewService {
 
     if (roomFromDB) {
       this.interviews.set(room, roomFromDB);
-      return roomFromDB as InterviewState;
+      return roomFromDB;
     }
 
     const defaultRoom: InterviewState = {
@@ -241,44 +241,41 @@ class InterviewService {
       socket.on("focus", (payload: FocusPayload) => {
         io.to(room).emit("focus", payload);
       });
-      socket.on(
-        "fetch",
-        async (payload: FetchPayload, ack?: (question: string | null) => void) => {
-          const obj = await this.getRoomState(room);
-          const { userId, version } = payload;
-          const question = await this.fetchReadme(INTERVIEW_README_FETCH_OPTIONS[version]);
-          if (!question) {
-            ack?.(null);
-            return;
-          }
+      socket.on("fetch", async (payload: FetchPayload, ack?: (question: string | null) => void) => {
+        const obj = await this.getRoomState(room);
+        const { userId, version } = payload;
+        const question = await this.fetchReadme(INTERVIEW_README_FETCH_OPTIONS[version]);
+        if (!question) {
+          ack?.(null);
+          return;
+        }
 
-          obj.question = question;
-          obj.stage = 0;
+        obj.question = question;
+        obj.stage = 0;
 
-          // Broadcast to any other connected sockets for this role (e.g. a second
-          // interviewer tab). The requesting socket applies the result itself via ack,
-          // since "message" events matching its own userId are ignored on the client.
-          socket.to(roomForRole(room, "interviewer")).emit("message", {
-            userId,
-            key: "question",
-            value: question,
-          } as Payload);
-          socket.to(roomForRole(room, "interviewer")).emit("message", {
-            userId,
-            key: "stage",
-            value: 0,
-          } as Payload);
-          io.to(roomForRole(room, "interviewee")).emit("message", {
-            userId,
-            key: "question",
-            value: getVisibleQuestion(question, 0),
-          } as Payload);
+        // Broadcast to any other connected sockets for this role (e.g. a second
+        // interviewer tab). The requesting socket applies the result itself via ack,
+        // since "message" events matching its own userId are ignored on the client.
+        socket.to(roomForRole(room, "interviewer")).emit("message", {
+          userId,
+          key: "question",
+          value: question,
+        });
+        socket.to(roomForRole(room, "interviewer")).emit("message", {
+          userId,
+          key: "stage",
+          value: 0,
+        });
+        io.to(roomForRole(room, "interviewee")).emit("message", {
+          userId,
+          key: "question",
+          value: getVisibleQuestion(question, 0),
+        });
 
-          await this.upsert(obj);
+        await this.upsert(obj);
 
-          ack?.(question);
-        },
-      );
+        ack?.(question);
+      });
     });
   }
 }
