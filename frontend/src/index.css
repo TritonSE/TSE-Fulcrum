@@ -1,5 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sometype+Mono:ital,wght@0,400..700;1,400..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Stack+Sans+Text:wght@200..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Stack+Sans+Notch:wght@200..700&display=swap");
 @import "tailwindcss" prefix(tw);
 
 @theme {
@@ -10,7 +13,17 @@
   --color-accent-light: #cedcdc;
   --color-link: #3680ff;
 
+  /* Application Form */
+  --color-cloud: #fafcfe;
+  --color-gray-60: #85898e;
+  --color-gray-20: #d6d8d9;
+  --color-gold-75: #f7ca62;
+  --color-error: #f09696;
+
   --font-code: "Source Code Pro", monospace;
+  --font-sometype-mono: "Sometype Mono", monospace;
+  --font-stack-sans-text: "Stack Sans Text", sans-serif;
+  --font-stack-sans-notch: "Stack Sans Notch", sans-serif;
 }
 
 @layer utilities {
@@ -32,14 +45,6 @@
   a {
     @apply tw:text-link tw:underline;
   }
-}
-
-.ApplicationForm > .row > :not(.form-text) {
-  margin-top: 1rem;
-}
-
-.ApplicationForm .alert {
-  margin-bottom: 0;
 }
 
 /* For the bulk accept/reject checkboxes in the applicants table */
