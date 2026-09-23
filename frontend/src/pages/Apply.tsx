@@ -419,7 +419,7 @@ function Apply() {
 
   if (new Date() > DEADLINE) {
     return (
-      <p className="tw:p-4 tw:font-stack-sans-text tw:text-cream-primary">
+      <p className="tw:p-4 tw:font-stack-sans-text tw:text-black">
         Applications for the current school year closed at {deadlineStr}.
       </p>
     );
@@ -427,7 +427,7 @@ function Apply() {
 
   if (new Date() < STARTDATE) {
     return (
-      <p className="tw:p-4 tw:font-stack-sans-text tw:text-cream-primary">
+      <p className="tw:p-4 tw:font-stack-sans-text tw:text-black">
         Applications for the current school year will open at {startdateStr}.
       </p>
     );
