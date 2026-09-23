@@ -12,6 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -28,12 +29,20 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
+        env:
+          VITE_APPLICATION_DEADLINE: ${{ secrets.VITE_APPLICATION_DEADLINE }}
+          VITE_APPLICATION_STARTDATE: ${{ secrets.VITE_APPLICATION_STARTDATE }}
+
+      - name: Prune dev dependencies
+        run: npm prune --production --prefix backend
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: |
+            backend
+            package.json
 
   deploy:
     runs-on: ubuntu-latest
