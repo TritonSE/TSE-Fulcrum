@@ -11,7 +11,7 @@ import type { Server as HTTPServer } from "node:http";
 
 type ValidKeys = "question" | "code" | "language" | "active" | "timerStart" | "stage";
 
-type InterviewVersion = "firstYear" | "secondYear";
+type InterviewVersion = "introduction" | "firstYear" | "secondYear";
 
 type Payload = {
   userId: string;
@@ -49,6 +49,7 @@ function readmeFetchOptions(url: string): https.RequestOptions {
 }
 
 const INTERVIEW_README_FETCH_OPTIONS: Record<InterviewVersion, https.RequestOptions> = {
+  introduction: readmeFetchOptions(env.README_URL),
   firstYear: readmeFetchOptions(env.README_URL_FIRSTYEAR),
   secondYear: readmeFetchOptions(env.README_URL_SECONDYEAR),
 };

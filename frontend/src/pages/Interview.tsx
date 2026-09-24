@@ -1,6 +1,7 @@
 import { RemoteSelectionManager } from "@convergencelabs/monaco-collab-ext";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import { Button } from "@tritonse/tse-constellation";
+import { Link, Pause, Play } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Dropdown } from "react-bootstrap";
 import Markdown from "react-markdown";
@@ -289,6 +290,9 @@ export default function Interview() {
   const [language, setLanguage] = useState<string>("python");
   const [userId] = useState<string>(Math.random().toString());
   const [questionContent, setQuestionContent] = useState<string>();
+  const [questionVersion, setQuestionVersion] = useState<
+    "introduction" | "firstYear" | "secondYear"
+  >("introduction");
   const [editorWidth, setEditorWidth] = useState<number>(50);
   const [mouseDown, setMouseDown] = useState<boolean>(false);
   const [blinking, setBlinking] = useState<boolean>(false);
@@ -304,7 +308,7 @@ export default function Interview() {
   const stageRef = useRef<number>(0); // exclusively for keeping the editor decorations up-to-date
 
   const [intervieweeFocused, setIntervieweeFocused] = useState<boolean>(true);
-  const [mode, setMode] = useState<"editor" | "preview">("preview");
+  const [mode, setMode] = useState<"editor" | "preview">("editor");
 
   const isFocused = useIsTabFocused();
 
@@ -314,6 +318,15 @@ export default function Interview() {
     if (!socket || role !== INTERVIEWEE || !active) return;
     socket.emit("focus", { role, focused: isFocused });
   }, [isFocused, active, socket, role]);
+
+  useEffect(() => {
+    // The Monaco question editor unmounts when switching to preview mode, so
+    // its refs must be cleared here rather than left stale until remount.
+    if (mode === "preview") {
+      questionEditor.current = null;
+      inactivePartDecorations.current = null;
+    }
+  }, [mode]);
 
   const editorOptions = {
     quickSuggestions: false,
@@ -490,7 +503,7 @@ export default function Interview() {
       if (text !== undefined) refreshInactivePartDecorations(text, newStage);
     },
   };
-  const fetchReadmeQuestion = (version: "firstYear" | "secondYear") => {
+  const fetchReadmeQuestion = (version: "introduction" | "firstYear" | "secondYear") => {
     if (!socket || !socket.connected) return;
 
     socket.emit("fetch", { userId, version }, (question: string | null) => {
@@ -574,43 +587,20 @@ export default function Interview() {
       <style>{css}</style>
       {role === INTERVIEWER && (
         <div className="tw:flex tw:flex-col tw:justify-center tw:w-full tw:gap-3 tw:p-3">
-          <div className="tw:flex tw:items-center tw:justify-center tw:h-12">
-            <Button
-              className="tw:!bg-blue-600 tw:!px-2 tw:!py-2 tw:!rounded-lg"
+          <div className="tw:flex tw:items-center tw:h-12">
+            <button
+              type="button"
+              className="tw:!bg-none tw:!px-2 tw:!py-2 tw:hover:underline"
               onClick={() => window.close()}
             >
               ← Back to Review
-            </Button>
-            <div className="tw:flex-1">&nbsp;</div>
-            <Button
+            </button>
+
+            <div className="tw:flex-1">&nbsp;&nbsp;&nbsp;</div>
+            <button
+              type="button"
               className={twMerge(
-                "tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg",
-                active ? "tw:!bg-amber-400" : "",
-              )}
-              onClick={toggleInterview}
-            >
-              {active ? "End" : "Begin"} Interview
-            </Button>
-            <div>&nbsp;&nbsp;&nbsp;</div>
-            <Button
-              className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
-              disabled={!active || stage <= 0}
-              onClick={() => changeStage(-1)}
-            >
-              ← Prev Part
-            </Button>
-            <div>&nbsp;</div>
-            <Button
-              className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
-              disabled={!active || stage >= partCount - 1}
-              onClick={() => changeStage(1)}
-            >
-              Next Part →
-            </Button>
-            <div>&nbsp;&nbsp;&nbsp;</div>
-            <Button
-              className={twMerge(
-                "tw:!bg-accent tw:!px-3 tw:!py-2 tw:!rounded-lg tw:transition-all tw:duration-500",
+                "tw:!bg-accent tw:!px-6 tw:!py-4 tw:!text-cloud tw:!rounded-lg tw:transition-all tw:duration-500",
                 blinking ? "tw:!bg-green-500" : "",
               )}
               onClick={() => {
@@ -622,41 +612,103 @@ export default function Interview() {
                 setTimeout(() => setBlinking(false), 250);
               }}
             >
-              Copy Link for Interviewee
-            </Button>
+              <span className="tw:inline-flex tw:items-center tw:gap-2">
+                <Link size={16} />
+                Copy Link for Interviewee
+              </span>
+            </button>
+
             <div>&nbsp;&nbsp;&nbsp;</div>
-            <Button
-              className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg"
-              onClick={() => fetchReadmeQuestion("firstYear")}
+            <button
+              type="button"
+              className={twMerge(
+                "tw:!bg-blue-600 tw:!px-6 tw:!py-4 tw:!rounded-lg tw:!text-cloud",
+                active ? "tw:!bg-amber-400" : "",
+              )}
+              onClick={toggleInterview}
             >
-              Fetch First Year
-            </Button>
-            <div>&nbsp;</div>
-            <Button
-              className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg"
-              onClick={() => fetchReadmeQuestion("secondYear")}
-            >
-              Fetch Second Year
-            </Button>
-            <div style={{ flex: 1 }}>&nbsp;</div>
-            <div className="mode-toggle">
-              <span>Preview</span>
+              <span className="tw:inline-flex tw:items-center tw:gap-2">
+                {active ? (
+                  <Pause size={16} fill="currentColor" />
+                ) : (
+                  <Play size={16} fill="currentColor" />
+                )}
+                {active ? "End" : "Begin"} Interview
+              </span>
+            </button>
+          </div>
+          <div className="tw:border-gray-20 tw:border-1 tw:w-full tw:my-3" />
+          <div className="tw:flex tw:flex-row">
+            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center">
+              Part Control
+              <div className="tw:flex tw:flex-row tw:items-center tw:gap-2">
+                <button
+                  type="button"
+                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:!py-2 tw:!rounded-lg tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+                  disabled={!active || stage <= 0}
+                  onClick={() => changeStage(-1)}
+                >
+                  ←
+                </button>
+
+                <div>
+                  Part {stage} of {partCount - 1}
+                </div>
+                <button
+                  type="button"
+                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:!py-2 tw:!rounded-lg tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+                  disabled={!active || stage >= partCount - 1}
+                  onClick={() => changeStage(1)}
+                >
+                  →
+                </button>
+              </div>
+            </div>
+            <div>&nbsp;&nbsp;&nbsp;</div>
+            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center">
+              Autopopulate Question
+              <div className="tw:flex tw:flex-row">
+                <select
+                  className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:border tw:border-gray-300"
+                  value={questionVersion}
+                  onChange={(e) =>
+                    setQuestionVersion(
+                      e.target.value as "introduction" | "firstYear" | "secondYear",
+                    )
+                  }
+                >
+                  <option value="introduction">Introduction</option>
+                  <option value="firstYear">First Year</option>
+                  <option value="secondYear">Second Year</option>
+                </select>
+                <div>&nbsp;</div>
+                <Button
+                  className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg"
+                  onClick={() => fetchReadmeQuestion(questionVersion)}
+                >
+                  Fetch
+                </Button>
+              </div>
+            </div>
+            <div className="mode-toggle tw:flex tw:flex-col tw:px-3">
+              <span className="tw:text-black">Preview Markdown </span>
               <div
                 role="switch"
-                aria-checked={mode === "editor"}
+                aria-checked={mode === "preview"}
                 tabIndex={0}
-                className={twMerge("mode-toggle-switch", mode === "editor" ? "active" : "")}
+                className={twMerge("mode-toggle-switch", mode === "preview" ? "active" : "")}
                 onClick={() => setMode(mode === "editor" ? "preview" : "editor")}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     setMode(mode === "editor" ? "preview" : "editor");
+                    const text = questionEditor.current?.editor.getModel()?.getValue();
+                    if (text !== undefined) refreshInactivePartDecorations(text, stage);
                   }
                 }}
               >
                 <div className="mode-toggle-switch-knob" />
               </div>
-              <span>Editor</span>
             </div>
             <div>&nbsp;&nbsp;&nbsp;</div>
             <Dropdown>
@@ -670,7 +722,6 @@ export default function Interview() {
               </Dropdown.Menu>
             </Dropdown>
           </div>
-          <div className="tw:w-full tw:text-center"> Currently rendering Part {stage}</div>
           {active && !intervieweeFocused && (
             <div className="tw:w-full tw:text-center tw:bg-red-500 tw:text-white tw:py-1 tw:rounded">
               Interviewee is currently unfocused (tab switched or window not focused)
