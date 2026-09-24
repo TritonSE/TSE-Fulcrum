@@ -304,7 +304,7 @@ function Apply() {
 
     if (result.success) return {};
 
-    return z.flattenError(result.error).fieldErrors as ApplicationErrors;
+    return z.flattenError(result.error).fieldErrors;
   };
 
   const hasFieldError = (field: ApplicationField): boolean => !!errors[field]?.length;
@@ -696,7 +696,9 @@ function Apply() {
                     <div className="tw:flex tw:min-w-0 tw:flex-1 tw:items-center tw:gap-3">
                       <span className="tw:shrink-0 tw:whitespace-nowrap">Uploaded File:</span>
                       <FileText className="tw:h-5 tw:w-5 tw:shrink-0" />
-                      <div className="tw:text-cloud tw:min-w-0 tw:flex-1 tw:truncate">{resumeFile.name}</div>
+                      <div className="tw:text-cloud tw:min-w-0 tw:flex-1 tw:truncate">
+                        {resumeFile.name}
+                      </div>
                     </div>
                     <button
                       type="button"
