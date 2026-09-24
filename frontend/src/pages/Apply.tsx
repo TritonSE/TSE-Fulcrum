@@ -1,6 +1,6 @@
 import { LoadingSpinner } from "@tritonse/tse-constellation";
 import { FileText, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
 import api from "../api";
@@ -65,6 +65,8 @@ const PREV_TEST_OPTIONS = [
 ];
 
 const PREV_TEST_VALUES = PREV_TEST_OPTIONS.map((option) => option.value);
+
+const APPLY_BG = "#08090A";
 
 const SHORT_ANSWER_MAX_WORDS = 150; // Maximum number of words for short answer questions
 
@@ -255,6 +257,21 @@ function Apply() {
   const [errors, setErrors] = useState<ApplicationErrors>({});
   const [resumeFile, setResumeFile] = useState<File | undefined>(undefined);
 
+  // Paint the page chrome dark while on this page so overscroll and short content aren't white.
+  // Kinda roundabout solution, but simple enough since fulcrom doesnt have any dark pages
+  useEffect(() => {
+    const targets = [document.documentElement, document.body];
+    const prev = targets.map((el) => el.style.backgroundColor);
+    targets.forEach((el) => {
+      el.style.backgroundColor = APPLY_BG;
+    });
+    return () => {
+      targets.forEach((el, i) => {
+        el.style.backgroundColor = prev[i];
+      });
+    };
+  }, []);
+
   const getWordCountText = (promptKey: string): string =>
     `Max ${SHORT_ANSWER_MAX_WORDS} words: ${countWords(
       prompts[promptKey] || "",
@@ -419,7 +436,7 @@ function Apply() {
 
   if (new Date() > DEADLINE) {
     return (
-      <p className="tw:p-4 tw:font-stack-sans-text tw:text-black">
+      <p className="tw:p-4 tw:font-stack-sans-text tw:text-cloud">
         Applications for the current school year closed at {deadlineStr}.
       </p>
     );
@@ -427,7 +444,7 @@ function Apply() {
 
   if (new Date() < STARTDATE) {
     return (
-      <p className="tw:p-4 tw:font-stack-sans-text tw:text-black">
+      <p className="tw:p-4 tw:font-stack-sans-text tw:text-cloud">
         Applications for the current school year will open at {startdateStr}.
       </p>
     );
@@ -441,14 +458,14 @@ function Apply() {
 
   // all html related material below here
   return (
-    <div className="tw:relative  tw:bg-[#08090A]">
+    <div className="tw:relative tw:min-h-full tw:bg-[#08090A]">
       <div className="tw:mx-auto tw:max-w-[80rem] tw:p-4">
         <form className="tw:flex tw:flex-col" onSubmit={onSubmit}>
           <div className="tw:pt-[100px] tw:pb-[60px]">
-            <p className="tw:text-cloud tw:text-[48px]! tw:font-stack-sans-notch">
+            <p className="tw:text-cloud tw:text-[32px]! tw:md:text-[48px]! tw:font-stack-sans-notch">
               Triton Software Engineering Application 2026-27
             </p>
-            <p className="tw:font-stack-sans-text tw:text-[20px]! tw:text-cream-primary">
+            <p className="tw:font-stack-sans-text tw:text-[14px]! tw:md:text-[20px]! tw:text-cream-primary">
               Thank you for your interest in Triton Software Engineering! <br /> The deadline to
               submit your application is <span className="tw:text-gold-75">{deadlineStr}.</span>
             </p>
@@ -457,7 +474,7 @@ function Apply() {
           <FormSectionLabel>Section 01: About You</FormSectionLabel>
           <FormSection>
             <FormBlock>
-              <div className="tw:grid tw:grid-cols-[1fr_1fr] tw:gap-x-[60px] tw:gap-y-[20px]">
+              <div className="tw:grid tw:grid-cols-[1fr] tw:md:grid-cols-[1fr_1fr] tw:gap-x-[60px] tw:gap-y-[10px] tw:md:gap-y-[20px]">
                 <TextInput
                   type="text"
                   onChange={(e) => {
@@ -500,7 +517,7 @@ function Apply() {
               </div>
             </FormBlock>
             <FormBlock>
-              <div className="tw:grid tw:grid-cols-[4fr_3fr_5fr] tw:gap-x-[20px] tw:gap-y-[20px]">
+              <div className="tw:grid tw:grid-cols-[1fr_1fr] tw:md:grid-cols-[4fr_3fr_5fr] tw:gap-x-[10px] tw:md:gap-x-[20px] tw:md:gap-y-[20px]">
                 <FieldGroup>
                   <SelectField
                     label="Start Quarter"
@@ -529,9 +546,9 @@ function Apply() {
                   invalid={hasFieldError("startYear")}
                   invalidHint={getFieldError("startYear")}
                 />
-                <FieldGroup>
-                  <FieldLabel invisible>.</FieldLabel>
-                  <div className="tw:flex tw:flex-col tw:justify-center tw:pl-[60px]">
+                <FieldGroup className="tw:col-span-2 tw:md:col-span-1 tw:-mt-12 tw:mb-4 tw:md:mb-0 tw:md:mt-0">
+                  <FieldLabel>&nbsp;</FieldLabel>
+                  <div className="tw:flex tw:flex-col tw:justify-center tw:md:pl-[60px]">
                     <HelpText>
                       For your Start Quarter, we’re looking for your first quarter as an
                       undergraduate student at UC San Diego, excluding any previous post-secondary
@@ -568,9 +585,9 @@ function Apply() {
                   />
                   <HelpText className="tw:invisible">.</HelpText>
                 </FieldGroup>
-                <FieldGroup>
-                  <FieldLabel invisible>.</FieldLabel>
-                  <div className="tw:flex tw:flex-col tw:justify-center tw:pl-[60px]">
+                <FieldGroup className="tw:col-span-2 tw:md:col-span-1 tw:-mt-12 tw:mb-4 tw:md:mb-0 tw:md:mt-0">
+                  <FieldLabel>&nbsp;</FieldLabel>
+                  <div className="tw:flex tw:flex-col tw:justify-center tw:md:pl-[60px]">
                     <HelpText>
                       For your Graduation Quarter, if you are unsure about your graduation date,
                       give us your best estimate.{" "}
@@ -578,7 +595,7 @@ function Apply() {
                   </div>
                 </FieldGroup>
               </div>
-              <FieldCol widthClass="tw:w-1/3">
+              <FieldCol widthClass="tw:md:w-1/3 tw:w-2/3">
                 <FieldGroup>
                   <FieldLabel invalid={hasFieldError("isTransfer")}>
                     Are you a transfer student?
@@ -608,7 +625,7 @@ function Apply() {
               </FieldCol>
             </FormBlock>
 
-            <div className="tw:grid tw:w-full tw:grid-cols-[1fr_1fr] tw:gap-x-[60px] tw:gap-y-[20px]">
+            <div className="tw:grid tw:w-full tw:md:grid-cols-[1fr_1fr] tw:gap-x-[60px] tw:gap-y-[20px]">
               <TextInput
                 type="text"
                 onChange={(e) => {
@@ -639,7 +656,7 @@ function Apply() {
                   <HelpText invalid={hasFieldError("hearAboutTse")}>
                     {getFieldError("hearAboutTse") || "Feel free to select multiple options."}
                   </HelpText>
-                  <div className="tw:grid-cols-3 tw:grid tw:gap-y-[20px] tw:gap-x-[100px] tw:pb-[20px]">
+                  <div className="tw:md:grid-cols-3 tw:grid-cols-2 tw:grid tw:gap-y-[10px] tw:gap-x-[20px] tw:md:gap-y-[20px] tw:md:gap-x-[100px] tw:pb-[20px]">
                     {HEAR_ABOUT_TSE_OPTIONS.map((option) => (
                       <Checkbox
                         key={option}
@@ -667,26 +684,26 @@ function Apply() {
           </FormSection>
           <FormSectionLabel>Section 02: Your Application</FormSectionLabel>
           <FormSection>
-            <FieldRow className="tw:w-4/5">
-              <FieldGroup className="tw:mb-[20px]">
+            <FieldRow className="tw:md:w-4/5 tw:w-full">
+              <FieldGroup className="tw:mb-[20px] tw:min-w-0 tw:max-w-full">
                 <FieldLabel invalid={hasFieldError("resume")}>Resume</FieldLabel>
                 <HelpText invalid={hasFieldError("resume")}>
                   Your resume must be a single page PDF. If your resume does not meet this
                   requirement, your application will not be considered.
                 </HelpText>
                 {resumeFile ? (
-                  <div className="tw:flex tw:items-center tw:justify-between tw:transition-all tw:font-sometype-mono tw:text-[20px] tw:uppercase tw:text-gray-60">
-                    <div className="tw:flex tw:items-center tw:gap-3">
-                      <span>Uploaded File:</span>
-                      <FileText className="tw:h-5 tw:w-5" />
-                      <span className="tw:text-cloud">{resumeFile.name}</span>
+                  <div className="tw:flex tw:min-w-0 tw:md:flex-row tw:items-center tw:justify-between tw:gap-3 tw:transition-all tw:font-sometype-mono tw:text-[14px] tw:md:text-[20px] tw:uppercase tw:text-gray-60">
+                    <div className="tw:flex tw:min-w-0 tw:flex-1 tw:items-center tw:gap-3">
+                      <span className="tw:shrink-0 tw:whitespace-nowrap">Uploaded File:</span>
+                      <FileText className="tw:h-5 tw:w-5 tw:shrink-0" />
+                      <div className="tw:text-cloud tw:min-w-0 tw:flex-1 tw:truncate">{resumeFile.name}</div>
                     </div>
                     <button
                       type="button"
                       onClick={() => {
                         setResumeFile(undefined);
                       }}
-                      className="tw:flex tw:cursor-pointer tw:items-center tw:gap-2 tw:uppercase! tw:transition-all tw:hover:text-error"
+                      className="tw:flex tw:shrink-0 tw:cursor-pointer tw:items-center tw:gap-2 tw:uppercase! tw:transition-all tw:hover:text-error"
                     >
                       <span>Remove</span>
                       <Trash2 className="tw:h-5 tw:w-5" />
@@ -696,7 +713,7 @@ function Apply() {
                   <input
                     type="file"
                     accept="application/pdf"
-                    className="tw:font-stack-sans-text tw:text-transparent tw:transition-colors tw:file:mr-4 tw:file:cursor-pointer tw:file:border-3 tw:hover:file:border-cloud tw:file:border-gray-60 tw:file:bg-transparent tw:file:px-[20px] tw:file:py-[12px] tw:file:font-sometype-mono tw:file:text-[20px] tw:file:text-gray-60 tw:hover:file:text-cloud tw:file:uppercase"
+                    className="tw:font-stack-sans-text tw:text-transparent tw:transition-colors tw:file:mr-4 tw:file:cursor-pointer tw:file:border-2 tw:md:file:border-3 tw:hover:file:border-cloud tw:file:border-gray-60 tw:file:bg-transparent tw:file:px-[10px] tw:file:py-[6px] tw:md:file:px-[20px] tw:md:file:py-[12px] tw:file:font-sometype-mono tw:file:text-[14px]! tw:md:file:text-[20px]! tw:file:text-gray-60 tw:hover:file:text-cloud tw:file:uppercase"
                     onChange={(e) => {
                       setResumeFile(e.target.files?.[0]);
                     }}
