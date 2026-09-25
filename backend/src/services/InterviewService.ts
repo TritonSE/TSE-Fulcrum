@@ -103,7 +103,7 @@ class InterviewService {
 
     if (roomFromDB) {
       this.interviews.set(room, roomFromDB);
-      return roomFromDB as InterviewState;
+      return roomFromDB;
     }
 
     const defaultRoom: InterviewState = {
