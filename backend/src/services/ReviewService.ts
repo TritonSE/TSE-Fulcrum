@@ -222,6 +222,7 @@ class ReviewService {
     const gradeLevel = ApplicationService.determineApplicantGradeLevel(
       applicationDoc.startQuarter,
       applicationDoc.gradQuarter,
+      applicationDoc.isTransfer,
       new Date().getFullYear(),
     );
 
@@ -344,6 +345,7 @@ class ReviewService {
       applicantYear: ApplicationService.determineApplicantGradeLevel(
         application.startQuarter,
         application.gradQuarter,
+        application.isTransfer,
         new Date().getFullYear(),
       ),
     };
