@@ -66,17 +66,16 @@ class ApplicationService {
   public determineApplicantGradeLevel(
     startQuarter: number,
     gradQuarter: number,
+    isTransfer: boolean,
     currentYear: number,
   ): number {
-    const totalQuartersAtUCSD = this.calculateQuarterDiff(startQuarter, gradQuarter);
-
     // Assume it's fall, since we do recruitment during fall and this makes it easier to test
     // Fulcrum throughout other quarters
     const yearsSinceStart = Math.ceil(
       this.calculateQuarterDiff(startQuarter, currentYear * 4 + 2) / 3,
     );
 
-    return totalQuartersAtUCSD < 7 ? yearsSinceStart + 2 : yearsSinceStart;
+    return isTransfer ? yearsSinceStart + 2 : yearsSinceStart;
   }
 
   /* Helper function to calculate academic quarters between two encoded quarter values */
@@ -92,6 +91,7 @@ class ApplicationService {
       applicantYear: this.determineApplicantGradeLevel(
         application.startQuarter,
         application.gradQuarter,
+        application.isTransfer,
         new Date().getFullYear(),
       ),
     };
