@@ -466,8 +466,22 @@ function Apply() {
               Triton Software Engineering Application 2026-27
             </p>
             <p className="tw:font-stack-sans-text tw:text-[14px]! tw:md:text-[20px]! tw:text-cream-primary">
-              Thank you for your interest in Triton Software Engineering! <br /> The deadline to
-              submit your application is <span className="tw:text-gold-75">{deadlineStr}.</span>
+              Thank you for your interest in Triton Software Engineering!{" "}
+              <ul className="tw:list-disc tw:p-3">
+                {" "}
+                <li>
+                  The deadline to submit your application is{" "}
+                  <span className="tw:text-gold-75">{deadlineStr}.</span>
+                </li>
+                <li>
+                  TSE applicants must be graduating Spring 2027 or after (meaning that you will be
+                  enrolled as an undergraduate at UCSD during winter and spring 2027).
+                </li>
+                <li>
+                  Because the goal for TEST applicants is to continue at TSE members next year, TEST
+                  applicants must be graduating Spring 2028 or after.
+                </li>{" "}
+              </ul>
             </p>
           </div>
 
