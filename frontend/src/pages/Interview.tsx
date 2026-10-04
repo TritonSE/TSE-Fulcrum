@@ -480,14 +480,14 @@ export default function Interview() {
       const val = payload.value as string;
 
       setQuestionContent(val);
+      setPartCount(countParts(val));
+      refreshInactivePartDecorations(val, stage);
 
       if (role !== INTERVIEWEE && questionEditor.current) {
         const mod = questionEditor.current.editor.getModel();
         if (!mod) return;
 
         mod.setValue(val);
-        setPartCount(countParts(val));
-        refreshInactivePartDecorations(val, stage);
       }
     },
     code: (payload: Payload) => {
@@ -708,7 +708,7 @@ export default function Interview() {
                   const text = questionEditor.current?.editor.getModel()?.getValue();
                   if (text !== undefined) {
                     refreshInactivePartDecorations(text, stage);
-                    setQuestionContent(getVisibleQuestion(text, stage));
+                    setQuestionContent(text);
                   }
                 }}
               />
