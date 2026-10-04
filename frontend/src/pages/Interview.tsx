@@ -1,17 +1,18 @@
 import { RemoteSelectionManager } from "@convergencelabs/monaco-collab-ext";
 import Editor, { type Monaco } from "@monaco-editor/react";
-import { Button } from "@tritonse/tse-constellation";
-import { Link, Pause, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Link, Pause, Play } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Dropdown } from "react-bootstrap";
 import Markdown from "react-markdown";
 import { useLocation } from "react-router-dom";
 import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import cpp from "react-syntax-highlighter/dist/esm/languages/prism/cpp";
 import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { io, type Socket } from "socket.io-client";
 import { twMerge } from "tailwind-merge";
 
+import { SegmentedToggle } from "../components/SegmentedToggle";
 import TSELogo from "../components/TSELogo";
 import { useIsTabFocused } from "../hooks/focus";
 
@@ -205,7 +206,15 @@ function MarkdownImage({
   height,
   width,
 }: React.ClassAttributes<HTMLImageElement> & React.ImgHTMLAttributes<HTMLImageElement>) {
-  return <img src={src?.replace("&amp;", "&")} alt={alt} height={height} width={width} />;
+  return (
+    <img
+      className="tw:inline-block"
+      src={src?.replace("&amp;", "&")}
+      alt={alt}
+      height={height}
+      width={width}
+    />
+  );
 }
 
 function Timer({ role, since, start }: TimerProps) {
@@ -497,7 +506,7 @@ export default function Interview() {
     },
     timerStart: (payload: Payload) => setTimerStart(payload.value as number),
     stage: (payload: Payload) => {
-      const newStage = payload.value as number;
+      const newStage = (payload.value as number | undefined) ?? 0;
       setStage(newStage);
       const text = questionEditor.current?.editor.getModel()?.getValue();
       if (text !== undefined) refreshInactivePartDecorations(text, newStage);
@@ -586,7 +595,7 @@ export default function Interview() {
     <>
       <style>{css}</style>
       {role === INTERVIEWER && (
-        <div className="tw:flex tw:flex-col tw:justify-center tw:w-full tw:gap-3 tw:p-3">
+        <div className="tw:flex tw:flex-col tw:justify-center tw:w-full">
           <div className="tw:flex tw:items-center tw:h-12">
             <button
               type="button"
@@ -600,7 +609,7 @@ export default function Interview() {
             <button
               type="button"
               className={twMerge(
-                "tw:!bg-accent tw:!px-6 tw:!py-4 tw:!text-cloud tw:!rounded-lg tw:transition-all tw:duration-500",
+                "tw:!bg-accent tw:!px-3 tw:h-[40px] tw:!text-cloud tw:!rounded-lg tw:transition-all tw:duration-500",
                 blinking ? "tw:!bg-green-500" : "",
               )}
               onClick={() => {
@@ -622,7 +631,7 @@ export default function Interview() {
             <button
               type="button"
               className={twMerge(
-                "tw:!bg-blue-600 tw:!px-6 tw:!py-4 tw:!rounded-lg tw:!text-cloud",
+                "tw:!bg-blue-600 tw:!px-3 tw:h-[40px] tw:!rounded-lg tw:!text-cloud",
                 active ? "tw:!bg-amber-400" : "",
               )}
               onClick={toggleInterview}
@@ -637,90 +646,88 @@ export default function Interview() {
               </span>
             </button>
           </div>
-          <div className="tw:border-gray-20 tw:border-1 tw:w-full tw:my-3" />
-          <div className="tw:flex tw:flex-row">
-            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center">
-              Part Control
-              <div className="tw:flex tw:flex-row tw:items-center tw:gap-2">
+          <div className="tw:border-gray-20 tw:border-1 tw:w-full tw:my-2 " />
+          <div className="tw:flex tw:flex-row tw:mb-2 tw:gap-3">
+            <div className="tw:flex tw:flex-row tw:border tw:rounded-lg tw:border-gray-400 ">
+              <select
+                className="tw:!px-3 tw:!py-2 tw:!rounded-lg  tw:focus:outline-none"
+                value={questionVersion}
+                onChange={(e) =>
+                  setQuestionVersion(e.target.value as "introduction" | "firstYear" | "secondYear")
+                }
+              >
+                <option value="introduction">Introduction</option>
+                <option value="firstYear">First Year</option>
+                <option value="secondYear">Second Year</option>
+              </select>
+              <div>&nbsp;</div>
+              <button
+                type="button"
+                className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:rounded-r-lg! tw:text-cloud!"
+                onClick={() => fetchReadmeQuestion(questionVersion)}
+              >
+                Fetch
+              </button>
+            </div>
+
+            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center tw:w-1/6">
+              <div className="tw:flex tw:flex-row tw:items-center tw:h-[40px] tw:w-full">
                 <button
                   type="button"
-                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:!py-2 tw:!rounded-lg tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-l-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
                   disabled={!active || stage <= 0}
                   onClick={() => changeStage(-1)}
                 >
-                  ←
+                  <ChevronLeft size={16} />
                 </button>
 
-                <div>
-                  Part {stage} of {partCount - 1}
+                <div className="tw:h-full tw:border-t tw:border-gray-400 tw:border-b tw:flex-1 tw:min-w-0 tw:flex tw:items-center tw:justify-start tw:px-3">
+                  <span className="tw:truncate">
+                    Part {stage} of {partCount - 1}
+                  </span>
                 </div>
                 <button
                   type="button"
-                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:!py-2 tw:!rounded-lg tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-r-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
                   disabled={!active || stage >= partCount - 1}
                   onClick={() => changeStage(1)}
                 >
-                  →
+                  <ChevronRight size={16} />
                 </button>
               </div>
             </div>
-            <div>&nbsp;&nbsp;&nbsp;</div>
-            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center">
-              Autopopulate Question
-              <div className="tw:flex tw:flex-row">
-                <select
-                  className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:border tw:border-gray-300"
-                  value={questionVersion}
-                  onChange={(e) =>
-                    setQuestionVersion(
-                      e.target.value as "introduction" | "firstYear" | "secondYear",
-                    )
-                  }
-                >
-                  <option value="introduction">Introduction</option>
-                  <option value="firstYear">First Year</option>
-                  <option value="secondYear">Second Year</option>
-                </select>
-                <div>&nbsp;</div>
-                <Button
-                  className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg"
-                  onClick={() => fetchReadmeQuestion(questionVersion)}
-                >
-                  Fetch
-                </Button>
-              </div>
-            </div>
-            <div className="mode-toggle tw:flex tw:flex-col tw:px-3">
-              <span className="tw:text-black">Preview Markdown </span>
-              <div
-                role="switch"
-                aria-checked={mode === "preview"}
-                tabIndex={0}
-                className={twMerge("mode-toggle-switch", mode === "preview" ? "active" : "")}
-                onClick={() => setMode(mode === "editor" ? "preview" : "editor")}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setMode(mode === "editor" ? "preview" : "editor");
-                    const text = questionEditor.current?.editor.getModel()?.getValue();
-                    if (text !== undefined) refreshInactivePartDecorations(text, stage);
+            <div className="tw:flex tw:items-center">
+              <SegmentedToggle
+                options={[
+                  { value: "editor", label: "Markdown" },
+                  { value: "preview", label: "Preview" },
+                ]}
+                value={mode}
+                onChange={(newMode) => {
+                  setMode(newMode);
+                  const text = questionEditor.current?.editor.getModel()?.getValue();
+                  if (text !== undefined) {
+                    refreshInactivePartDecorations(text, stage);
+                    setQuestionContent(getVisibleQuestion(text, stage));
                   }
                 }}
-              >
-                <div className="mode-toggle-switch-knob" />
-              </div>
+              />
             </div>
-            <div>&nbsp;&nbsp;&nbsp;</div>
-            <Dropdown>
-              <Dropdown.Toggle>Set Language</Dropdown.Toggle>
-              <Dropdown.Menu>
+            <div className="tw:flex-1" />
+
+            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center">
+              <select
+                className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:border tw:border-gray-300"
+                value={language}
+                onChange={(e) => updateEditorLanguage(e.target.value, true)}
+              >
                 {LANGS.map((lang) => (
-                  <Dropdown.Item key={lang} onClick={() => updateEditorLanguage(lang, true)}>
+                  <option key={lang} value={lang}>
                     {lang[0].toUpperCase() + lang.slice(1)}
-                  </Dropdown.Item>
+                  </option>
                 ))}
-              </Dropdown.Menu>
-            </Dropdown>
+              </select>
+            </div>
           </div>
           {active && !intervieweeFocused && (
             <div className="tw:w-full tw:text-center tw:bg-red-500 tw:text-white tw:py-1 tw:rounded">
@@ -764,6 +771,8 @@ export default function Interview() {
               }}
             >
               <Markdown
+                // Render inline HTML (e.g. sized/centered <img>), then strip anything unsafe
+                rehypePlugins={[rehypeRaw, rehypeSanitize]}
                 components={{
                   code: CodeBlock,
                   /**
