@@ -415,7 +415,7 @@ function Apply() {
           .submitApplication(application)
           .then(() => {
             addAlert(
-              "Thank you for applying to Triton Software Engineering! You will receive a confirmation email shortly. Please monitor your UCSD email for updates on your application status. We promise to get back to you!",
+              "Thank you for applying to Triton Software Engineering! You will receive a confirmation email shortly (be sure to check your junk folder or UCSD Spam Quarantine if you don't see it). Please monitor your UCSD email for updates on your application status. We promise to get back to you!",
               "success",
             );
           })
