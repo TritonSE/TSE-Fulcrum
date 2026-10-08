@@ -188,8 +188,20 @@ class InterviewService {
   create(server: HTTPServer): void {
     const io = new Server(server);
     io.on("connection", async (socket) => {
-      const url = socket.handshake.headers.referer ?? "";
-      const room = url.split("/")[4];
+      // Prefer the path sent by the client; Safari may trim the Referer header to the origin
+      const authPath = (socket.handshake.auth as { path?: unknown }).path;
+      let url = "";
+      if (typeof authPath === "string") {
+        url = authPath;
+      } else {
+        try {
+          url = new URL(socket.handshake.headers.referer ?? "").pathname;
+        } catch {
+          // Missing or malformed Referer; leave url empty so the socket is rejected
+        }
+      }
+      // Paths are /review/:reviewId/interview or /interview/:reviewId
+      const room = url.split("/")[2];
 
       if (!room) {
         socket.disconnect();

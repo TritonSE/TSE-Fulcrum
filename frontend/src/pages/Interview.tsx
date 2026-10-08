@@ -530,7 +530,8 @@ export default function Interview() {
   useEffect(() => {
     document.title = "TSE Fulcrum - Technical Interview";
 
-    const sock = io();
+    // sending path explicitly; otherwise, safari may drop referer url
+    const sock = io({ auth: { path: window.location.pathname } });
     sock.on("connect", () => {
       setSocket(sock);
       sock.emit("getState");
