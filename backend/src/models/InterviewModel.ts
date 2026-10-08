@@ -10,6 +10,7 @@ type InterviewState = {
   active: boolean;
   timerStart: number;
   lastUpdate: Date;
+  stage: number;
 };
 
 Schema.Types.String.checkRequired((v) => typeof v === "string");
@@ -48,6 +49,12 @@ const InterviewSchema = new Schema<InterviewState>({
   lastUpdate: {
     type: Date,
     required: true,
+  },
+
+  stage: {
+    type: Number,
+    required: true,
+    default: 0,
   },
 });
 
