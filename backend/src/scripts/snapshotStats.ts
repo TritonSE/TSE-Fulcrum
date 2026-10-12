@@ -8,18 +8,13 @@
 // TODO:
 // This script uses the current commit to ingest application stats, regardless
 // of year. As our application evolves, new pipelines are added, different stats
-// are required, etc. We should work to decouple this from the current commit to 
+// are required, etc. We should work to decouple this from the current commit to
 // more accurately reflect application data over time.
 
 import mongoose from "mongoose";
 
 import env from "../env";
-import {
-  ApplicationModel,
-  connectStatsSnapshots,
-  ProgressModel,
-  ReviewModel,
-} from "../models";
+import { ApplicationModel, connectStatsSnapshots, ProgressModel, ReviewModel } from "../models";
 import { StatsService } from "../services";
 import { STATS_VERSION } from "../services/StatsService";
 import { promptConfirmation } from "../utils";
