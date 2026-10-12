@@ -36,6 +36,12 @@ const env = {
   MONGODB_URL: getEnv("MONGODB_URL", "mongodb://127.0.0.1:27017/tse-fulcrum"),
 
   /**
+   * MongoDB connection URL for the cluster holding past years' dashboard stats snapshots.
+   * Optional: if empty, the dashboard only shows the current database's year.
+   */
+  STATS_MONGODB_URL: getEnv("STATS_MONGODB_URL", ""),
+
+  /**
    * Username for the email account used to send emails.
    */
   EMAIL_USERNAME: getEnv("EMAIL_USERNAME", ""),

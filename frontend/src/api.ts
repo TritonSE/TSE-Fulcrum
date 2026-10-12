@@ -109,6 +109,41 @@ export type Application = {
 
 export type SubmitApplicationRequest = Omit<Application, "_id" | "applicantYear" | "yearApplied">;
 
+export type Stats = {
+  year: number;
+  availableYears: number[];
+  totalApplicants: number;
+  // transferCount is the portion of count who are transfer students
+  byYear: { gradeLevel: string; count: number; transferCount: number }[];
+  byPipeline: { pipelineIdentifier: PipelineIdentifier; count: number }[];
+  byRoleCombo: { roles: PipelineIdentifier[]; count: number }[];
+  // Split by role combination so roles can be filtered without double counting
+  applicationsByDay: { date: string; roles: PipelineIdentifier[]; count: number }[];
+  // Bucketed by hour ("yyyy-MM-ddTHH"). Missing from snapshots taken before it existed
+  applicationsByHour?: { hour: string; roles: PipelineIdentifier[]; count: number }[];
+  hearAbout: { source: string; count: number }[];
+  scoresByStage: {
+    stageId: number;
+    stageName: string;
+    pipelineIdentifier: PipelineIdentifier;
+    // Highest possible weighted score, or null if unknown
+    maxScore: number | null;
+    scores: number[];
+  }[];
+  funnel: {
+    pipelineIdentifier: PipelineIdentifier;
+    accepted: number;
+    stages: {
+      stageId: number;
+      stageName: string;
+      reached: number;
+      passed: number;
+      rejected: number;
+      pending: number;
+    }[];
+  }[];
+};
+
 class Api {
   async logIn(request: LogInRequest): Promise<User | null> {
     const response = await this.uncheckedPost("/api/auth/log-in", request);
@@ -190,6 +225,10 @@ class Api {
     return (
       await this.get(`/api/progress?${new URLSearchParams(Object.entries(filter))}`)
     ).json() as Promise<Progress[]>;
+  }
+
+  async getStats(year: number): Promise<Stats> {
+    return (await this.get(`/api/stats?year=${year}`)).json() as Promise<Stats>;
   }
 
   async getStageById(stageId: number): Promise<Stage> {
