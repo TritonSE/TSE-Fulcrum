@@ -19,8 +19,6 @@ import { useAlerts } from "../hooks/alerts";
 
 import type { Pipeline, PipelineIdentifier, Stats } from "../api";
 
-// Validated categorical slots (light mode). Slot 3 is below 3:1 contrast, so every chart
-// card offers a table view as relief.
 const SERIES_1 = "#2a78d6";
 const SERIES_2 = "#eb6834";
 const SERIES_3 = "#1baf7a";

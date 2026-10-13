@@ -119,7 +119,7 @@ export type Stats = {
   byRoleCombo: { roles: PipelineIdentifier[]; count: number }[];
   // Split by role combination so roles can be filtered without double counting
   applicationsByDay: { date: string; roles: PipelineIdentifier[]; count: number }[];
-  // Bucketed by hour ("yyyy-MM-ddTHH"). Missing from snapshots taken before it existed
+  // Bucketed by hour ("yyyy-MM-ddTHH")
   applicationsByHour?: { hour: string; roles: PipelineIdentifier[]; count: number }[];
   hearAbout: { source: string; count: number }[];
   scoresByStage: {

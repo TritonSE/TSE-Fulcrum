@@ -15,6 +15,8 @@ const SCORE_REGEX = /^(?:.*_)?score$/;
 
 const TIMEZONE = "America/Los_Angeles";
 
+const knownHearAboutOptions = new Set(hearAboutOptions);
+
 type FunnelStage = {
   stageId: number;
   stageName: string;
@@ -24,6 +26,8 @@ type FunnelStage = {
   pending: number;
 };
 
+// Bump this as stats struct changes
+const STATS_VERSION = 1;
 type Stats = {
   year: number;
   availableYears: number[];
@@ -148,10 +152,6 @@ function computeFunnel(progresses: ProgressDocument[]): Stats["funnel"] {
     };
   });
 }
-
-const STATS_VERSION = 1;
-
-const knownHearAboutOptions = new Set(hearAboutOptions);
 
 class StatsService {
   // live stats for years in the current database; past years come from snapshots on the
