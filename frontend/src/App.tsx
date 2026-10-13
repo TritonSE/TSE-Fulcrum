@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { GlobalContextProvider } from "./context/GlobalContext";
 import LoggedInLayout from "./layouts/LoggedInLayout";
 import Apply from "./pages/Apply";
+import Dashboard from "./pages/Dashboard";
 import EditReview from "./pages/EditReview";
 import Home from "./pages/Home";
 import Interview from "./pages/Interview";
@@ -24,6 +25,7 @@ export default function App() {
               <Route path="/review/:reviewId/edit" element={<EditReview />} />
               <Route path="/review/:reviewId/interview" element={<Interview />} />
               <Route path="/reviews" element={<ViewReviews />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/stage/:stageId/applications" element={<StageApplications />} />
             </Route>
             <Route path="/login" element={<Login />} />

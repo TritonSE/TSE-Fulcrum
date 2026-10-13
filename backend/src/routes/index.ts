@@ -7,6 +7,7 @@ import progress from "./progress";
 import resume from "./resume";
 import review from "./review";
 import stage from "./stage";
+import stats from "./stats";
 import user from "./user";
 
 const router = Router();
@@ -18,6 +19,7 @@ router.use("/progress", progress);
 router.use("/review", review);
 router.use("/resume", resume);
 router.use("/stage", stage);
+router.use("/stats", stats);
 router.use("/user", user);
 
 export default router;
