@@ -12,7 +12,7 @@ cd TSE-Fulcrum
 npm install
 ```
 
-Set up environment variables by creating a `.env` file in both the frontend and backend directories. Refer to the [VP Technology Playbook](https://docs.google.com/document/d/1l42jEF3dwdAbuj4iPoBCdZ3-0AGCOeL__s6r7J-kdgA/edit?usp=sharing) for the environment variables used for past deployments.
+Set up environment variables by creating a `.env` file in both the frontend and backend directories. Refer to the [VP Technology Playbook](https://docs.google.com/document/d/12v-ySthXm7X3LjR0RrkceZnXtVAiuLiec2gulc8aI9o/edit?usp=sharing) for the environment variables used for past deployments.
 
 ## Running Fulcrum
 

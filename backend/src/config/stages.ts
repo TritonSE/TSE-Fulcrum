@@ -165,7 +165,7 @@ const stages: Stage[] = [
         maxValue: 5,
         description: "Out of 5",
         rubricLink:
-          "https://docs.google.com/document/d/1R4DDKGWaRkSOtzzJNMzWEoqzhOuGKH6Ty0VYO_7CDDg/edit?usp=sharing",
+          "https://docs.google.com/document/d/1yPENEXE36oDyPH0YgTyti86YWO40lvwBJyg-eZMCj7g/edit?usp=sharing",
       },
       blurb_score: {
         type: "number",
@@ -210,7 +210,7 @@ const stages: Stage[] = [
         maxValue: 23,
         description: "Out of 23 points",
         rubricLink:
-          "https://docs.google.com/spreadsheets/d/1cVX-QezWZO4-tT4D8dwWee7ISSI-7rGhs6fBIWJfsBc/edit",
+          "https://docs.google.com/spreadsheets/d/1OjJV_PjEMAoPt_rsbSEGrnlqlQtUXadcySYBeaVcSGk/edit?usp=sharing",
       },
       blurb_score: {
         type: "number",
@@ -220,7 +220,7 @@ const stages: Stage[] = [
         maxValue: 4,
         description: "Out of 4 points",
         rubricLink:
-          "https://docs.google.com/document/d/1A8MVKJqx0dXNK0OuB_yfByCfq7wr2cwL7J_1HmzXdoM/edit",
+          "https://docs.google.com/document/d/1Uc1H1sxDfbBRXoXuxTR0RbD7ZGmXb_ONniWPt7IJgOQ/edit?usp=sharing",
       },
     },
     fieldOrder: ["resume_score", "blurb_score"],
@@ -252,7 +252,7 @@ const stages: Stage[] = [
         description:
           "1 for bad, 2 for okay, 3 for great (see Appendix I of the technical interview guide)",
         rubricLink:
-          "https://docs.google.com/document/d/1b8JM76fFYOrfXS51nc9Tkrb2h2Ail7d_fUrxVM3ISlI/edit?usp=sharing",
+          "https://docs.google.com/document/d/17GbuBu3YCrDfV3AEH9FgrG_eCp475x0kxSiyO1hRT-I/edit?usp=sharing",
       },
       behavioral_notes: {
         type: "string",
@@ -368,7 +368,7 @@ const stages: Stage[] = [
         maxValue: 5,
         description: "Out of 5",
         rubricLink:
-          "https://docs.google.com/document/d/1w5t8JU_ho2tyV-zUt1REqBn7lpoOAsvMZqooJk_YvGc/edit?usp=sharing",
+          "https://docs.google.com/document/d/1hgpTKXzis8l5l-rL9K48Lcxu4lreFOki1ot2w7-6GoM/edit?usp=sharing",
         weight: 2,
       },
       grade_level: {
