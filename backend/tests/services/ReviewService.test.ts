@@ -239,7 +239,9 @@ describe("reviewService tests", () => {
       // First-years can go to any reviewer, so the first 7 first-years are spread evenly over all 7 reviewers
       const firstYearReviewerEmails = new Set<string | undefined>();
       for (let i = 0; i < 7; i++) {
-        firstYearReviewerEmails.add((await ReviewModel.findById(phoneScreens[i]._id))!.reviewerEmail);
+        firstYearReviewerEmails.add(
+          (await ReviewModel.findById(phoneScreens[i]._id))!.reviewerEmail,
+        );
       }
       expect(firstYearReviewerEmails).toEqual(new Set(users.map((user) => user.email)));
 
