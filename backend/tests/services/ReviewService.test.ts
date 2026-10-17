@@ -236,25 +236,14 @@ describe("reviewService tests", () => {
         await ReviewService.assign(phoneScreen._id.toString(), null);
       }
 
-      // Ensure 1st vs non-1st years were distributed correctly
-      for (const user of users) {
-        if (user.onlyFirstYearPhoneScreen) {
-          expect(
-            await ReviewModel.count({ reviewerEmail: user.email, stageId: phoneStageId }),
-          ).toBe(3);
-        } else {
-          expect(
-            await ReviewModel.count({ reviewerEmail: user.email, stageId: phoneStageId }),
-          ).toBe(1);
-        }
+      // First-years can go to any reviewer, so the first 7 first-years are spread evenly over all 7 reviewers
+      const firstYearReviewerEmails = new Set<string | undefined>();
+      for (let i = 0; i < 7; i++) {
+        firstYearReviewerEmails.add((await ReviewModel.findById(phoneScreens[i]._id))!.reviewerEmail);
       }
+      expect(firstYearReviewerEmails).toEqual(new Set(users.map((user) => user.email)));
 
-      for (let i = 0; i < 9; i++) {
-        expect(["reviewer1@ucsd.edu", "reviewer2@ucsd.edu", "reviewer3@ucsd.edu"]).toContain(
-          (await ReviewModel.findById(phoneScreens[i]._id))!.reviewerEmail,
-        );
-      }
-
+      // Non-1st years can only go to reviewers without onlyFirstYearPhoneScreen
       for (let i = 9; i < 13; i++) {
         expect([
           "reviewer4@ucsd.edu",
@@ -288,44 +277,16 @@ describe("reviewService tests", () => {
         await ReviewService.assign(technicalInterview._id.toString(), null);
       }
 
-      // Ensure 1st vs non-1st years were distributed correctly
-      for (const user of users) {
-        if (user.onlyFirstYearTechnical) {
-          expect([2, 3]).toContain(
-            await ReviewModel.count({ reviewerEmail: user.email, stageId: technicalStageId }),
-          );
-        }
+      // First-years can go to any reviewer, so the first 7 first-years are spread evenly over all 7 reviewers
+      const firstYearReviewerEmails = new Set<string | undefined>();
+      for (let i = 0; i < 7; i++) {
+        firstYearReviewerEmails.add(
+          (await ReviewModel.findById(technicalInterviews[i]._id))!.reviewerEmail,
+        );
       }
+      expect(firstYearReviewerEmails).toEqual(new Set(users.map((user) => user.email)));
 
-      // Solo interviewer should get 2 non-1st year interviews, while others should get 1 each
-      expect(
-        await ReviewModel.count({
-          reviewerEmail: "reviewer5@ucsd.edu",
-          stageId: technicalStageId,
-        }),
-      ).toBe(1);
-      expect(
-        await ReviewModel.count({
-          reviewerEmail: "reviewer6@ucsd.edu",
-          stageId: technicalStageId,
-        }),
-      ).toBe(1);
-      expect(
-        await ReviewModel.count({
-          reviewerEmail: "reviewer7@ucsd.edu",
-          stageId: technicalStageId,
-        }),
-      ).toBe(2);
-
-      for (let i = 0; i < 9; i++) {
-        expect([
-          "reviewer1@ucsd.edu",
-          "reviewer2@ucsd.edu",
-          "reviewer3@ucsd.edu",
-          "reviewer4@ucsd.edu",
-        ]).toContain((await ReviewModel.findById(technicalInterviews[i]._id))!.reviewerEmail);
-      }
-
+      // Non-1st years can only go to reviewers without onlyFirstYearTechnical
       for (let i = 9; i < 13; i++) {
         expect(["reviewer5@ucsd.edu", "reviewer6@ucsd.edu", "reviewer7@ucsd.edu"]).toContain(
           (await ReviewModel.findById(technicalInterviews[i]._id))!.reviewerEmail,

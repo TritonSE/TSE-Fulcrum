@@ -228,10 +228,8 @@ class ReviewService {
 
     // Define filters for each stage
     const stageFilters: Partial<Record<StageIdentifier, (reviewer: UserDocument) => boolean>> = {
-      developer_phone_screen: (reviewer) =>
-        gradeLevel === 1 ? reviewer.onlyFirstYearPhoneScreen : !reviewer.onlyFirstYearPhoneScreen,
-      developer_technical: (reviewer) =>
-        gradeLevel === 1 ? reviewer.onlyFirstYearTechnical : !reviewer.onlyFirstYearTechnical,
+      developer_phone_screen: (reviewer) => gradeLevel === 1 || !reviewer.onlyFirstYearPhoneScreen,
+      developer_technical: (reviewer) => gradeLevel === 1 || !reviewer.onlyFirstYearTechnical,
     };
 
     const stageFilter = stageFilters[stage.identifier];
