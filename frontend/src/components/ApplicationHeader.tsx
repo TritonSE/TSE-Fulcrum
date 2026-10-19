@@ -112,6 +112,7 @@ export default function ApplicationHeader({
             ? formatFieldNameHumanReadable(application?.prevTest)
             : "No",
         )}
+        {field("Transfer Student", application?.isTransfer ? "Yes" : "No")}
         <a href={application?.resumeUrl} target="_blank" rel="noreferrer noopener">
           Resume
         </a>

@@ -12,12 +12,14 @@ describe("applicationService tests", () => {
       gradQuarter: Quarter,
       gradYear: number,
       expectedYear: number,
+      isTransfer: boolean = false,
     ) => {
       const absoluteStart = ApplicationService.calculateQuarter(startQuarter, startYear);
       const absoluteGrad = ApplicationService.calculateQuarter(gradQuarter, gradYear);
       const result = ApplicationService.determineApplicantGradeLevel(
         absoluteStart,
         absoluteGrad,
+        isTransfer,
         CURRENT_YEAR,
       );
       expect(result).toBe(expectedYear);
@@ -117,41 +119,68 @@ describe("applicationService tests", () => {
 
     describe("1st year transfer", () => {
       it("traditional degree timeline", () => {
-        expectGradeLevel("Fall", 2025, "Spring", 2027, 3);
+        expectGradeLevel("Fall", 2025, "Spring", 2027, 3, true);
       });
 
       it("graduates in winter", () => {
-        expectGradeLevel("Fall", 2025, "Winter", 2027, 3);
+        expectGradeLevel("Fall", 2025, "Winter", 2027, 3, true);
       });
 
       it("graduates in fall", () => {
-        expectGradeLevel("Fall", 2025, "Fall", 2026, 3);
+        expectGradeLevel("Fall", 2025, "Fall", 2026, 3, true);
       });
 
       it("graduates a year early", () => {
-        expectGradeLevel("Fall", 2025, "Spring", 2026, 3);
+        expectGradeLevel("Fall", 2025, "Spring", 2026, 3, true);
       });
 
       it("graduates in winter a year early", () => {
-        expectGradeLevel("Fall", 2025, "Winter", 2026, 3);
+        expectGradeLevel("Fall", 2025, "Winter", 2026, 3, true);
       });
 
       it("graduates in fall a year early", () => {
-        expectGradeLevel("Fall", 2025, "Fall", 2025, 3);
+        expectGradeLevel("Fall", 2025, "Fall", 2025, 3, true);
       });
     });
 
     describe("2nd year transfer", () => {
       it("traditional degree timeline", () => {
-        expectGradeLevel("Fall", 2024, "Spring", 2026, 4);
+        expectGradeLevel("Fall", 2024, "Spring", 2026, 4, true);
       });
 
       it("graduates in winter", () => {
-        expectGradeLevel("Fall", 2024, "Winter", 2026, 4);
+        expectGradeLevel("Fall", 2024, "Winter", 2026, 4, true);
       });
 
       it("graduates in fall", () => {
-        expectGradeLevel("Fall", 2024, "Fall", 2025, 4);
+        expectGradeLevel("Fall", 2024, "Fall", 2025, 4, true);
+      });
+
+      it("graduates following fall", () => {
+        expectGradeLevel("Fall", 2024, "Fall", 2026, 4, true);
+      });
+
+      it("graduates following winter", () => {
+        expectGradeLevel("Fall", 2024, "Winter", 2027, 4, true);
+      });
+
+      it("graduates following spring", () => {
+        expectGradeLevel("Fall", 2024, "Spring", 2027, 4, true);
+      });
+    });
+
+    // shouldn't really happen given the conditions of UCSD's transfer program
+    describe("3rd year transfer", () => {
+      it("traditional degree timeline", () => {
+        expectGradeLevel("Fall", 2023, "Spring", 2026, 5, true);
+      });
+
+      it("graduates in winter", () => {
+        expectGradeLevel("Fall", 2023, "Winter", 2026, 5, true);
+      });
+
+      it("graduates in fall", () => {
+        expectGradeLevel("Fall", 2023, "Fall", 2025, 5, true);
       });
     });
   });

@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import morgan from "morgan";
 
 import env from "./env";
+import { connectStatsSnapshots } from "./models";
 import routes from "./routes";
 import { InterviewService, UserService } from "./services";
 import { asyncLocalStorage } from "./storage";
@@ -28,6 +29,13 @@ async function onStartup() {
 async function main() {
   await mongoose.connect(env.MONGODB_URL);
   console.info("Connected to database");
+
+  if (env.STATS_MONGODB_URL) {
+    await connectStatsSnapshots(env.STATS_MONGODB_URL);
+    console.info("Connected to stats database");
+  } else {
+    console.info("No stats database specified. Dashboard will only access current year.");
+  }
 
   await onStartup();
 

@@ -6,6 +6,7 @@ import ProgressService from "./ProgressService";
 import ResumeService from "./ResumeService";
 import ReviewService from "./ReviewService";
 import StageService from "./StageService";
+import StatsService from "./StatsService";
 import UserService from "./UserService";
 
 export {
@@ -17,5 +18,6 @@ export {
   ResumeService,
   ReviewService,
   StageService,
+  StatsService,
   UserService,
 };

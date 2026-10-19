@@ -59,11 +59,11 @@ export function FieldGroup({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={`tw:flex tw:flex-col tw:gap-3 ${className}`}>{children}</div>;
+  return <div className={`tw:flex tw:flex-col tw:gap-1 tw:md:gap-3 ${className}`}>{children}</div>;
 }
 
 const labelClass =
-  "tw:font-sometype-mono tw:text-[20px]! tw:font-medium tw:tracking-[0.6px] tw:uppercase tw:transition-colors";
+  "tw:font-sometype-mono tw:text-[14px]! tw:md:text-[20px]! tw:font-medium tw:tracking-[0.6px] tw:uppercase tw:transition-colors";
 
 export function FieldLabel({
   children,
@@ -99,14 +99,14 @@ export function HelpText({
 }) {
   return (
     <p
-      className={`${invalid ? "tw:text-error" : "tw:text-gray-60"} tw:font-stack-sans-text tw:text-sm tw:leading-[125%] tw:transition-colors ${className}`}
+      className={`${invalid ? "tw:text-error" : "tw:text-gray-60"} tw:font-stack-sans-text tw:text-xs tw:md:text-sm tw:leading-[125%] tw:transition-colors ${className}`}
     >
       {children}
     </p>
   );
 }
 const controlClass =
-  "tw:h-[57px] tw:w-full tw:border-[3px] tw:text-[20px]! tw:border-gray-60 tw:hover:border-gray-20 tw:transition-colors tw:bg-transparent tw:px-[20px] tw:py-[16px] tw:font-stack-sans-text tw:text-cream-primary tw:placeholder:text-gray-60 tw:focus:outline-none tw:focus:border-cream-primary";
+  "tw:h-[40px] tw:md:h-[57px] tw:w-full tw:md:border-[3px] tw:border-2 tw:text-[14px]! tw:md:text-[20px]! tw:border-gray-60 tw:hover:border-gray-20 tw:transition-colors tw:bg-transparent tw:px-[8px] tw:md:px-[20px] tw:md:py-[16px] tw:font-stack-sans-text tw:text-cream-primary tw:placeholder:text-gray-60 tw:focus:outline-none tw:focus:border-cream-primary";
 
 export function TextInput({
   className = "",
@@ -194,7 +194,7 @@ export function TextArea({
       )}
       {description && <HelpText>{description}</HelpText>}
       <textarea
-        className={`${controlClass} tw:h-auto tw:resize-y ${invalid ? "tw:!border-error" : hasValue || isFocused ? "tw:!border-gray-20" : ""} ${className}`}
+        className={`${controlClass} tw:h-auto! tw:py-2 tw:resize-y ${invalid ? "tw:!border-error" : hasValue || isFocused ? "tw:!border-gray-20" : ""} ${className}`}
         defaultValue={defaultValue}
         value={value}
         onChange={(e) => {
@@ -244,13 +244,13 @@ export function Button({
     <button
       type="button"
       onClick={onClick}
-      className={`tw:flex-1 tw:cursor-pointer tw:border-[3px] tw:px-5 tw:py-[12px] tw:text-center tw:transition-colors  ${
+      className={`tw:flex-1 tw:cursor-pointer tw:border-2 tw:md:border-[3px] tw:px-5 tw:py-[6px] tw:md:py-[12px] tw:text-center tw:transition-colors  ${
         active
           ? "tw:border-cloud tw:text-black tw:bg-cloud"
           : "tw:border-gray-60 tw:text-gray-60 tw:hover:border-cloud tw:hover:text-cloud"
       }`}
     >
-      <span className="tw:font-sometype-mono tw:text-[20px]! tw:uppercase tw:font-[500]">
+      <span className="tw:font-sometype-mono tw:text-[14px] tw:md:text-[20px]! tw:uppercase tw:font-[500]">
         {children}
       </span>
     </button>
@@ -289,7 +289,7 @@ export function Checkbox({
         disabled ? "tw:cursor-not-allowed tw:opacity-50" : "tw:cursor-pointer"
       }`}
     >
-      <span className="tw:relative tw:flex! tw:h-8 tw:w-8 tw:shrink-0 tw:items-center tw:justify-center tw:border-3 tw:border-gray-60 tw:transition-colors tw:group-has-[:checked]:border-[#D6D8D9] tw:hover:border-[#D6D8D9] tw:group-has-[:checked]:bg-[#D6D8D9]">
+      <span className="tw:relative tw:flex! tw:h-6 tw:w-6 tw:md:h-8 tw:md:w-8 tw:shrink-0 tw:items-center tw:justify-center tw:border-2 tw:md:border-3 tw:border-gray-60 tw:transition-colors tw:group-has-[:checked]:border-[#D6D8D9] tw:hover:border-[#D6D8D9] tw:group-has-[:checked]:bg-[#D6D8D9]">
         <input
           id={id}
           type="checkbox"
@@ -315,7 +315,7 @@ export function Checkbox({
           />
         </svg>
       </span>
-      <span className="tw:text-[20px]! tw:text-gray-60 tw:group-has-[:checked]:text-cloud">
+      <span className="tw:md:text-[20px]! tw:text-[14px]! tw:text-gray-60 tw:group-has-[:checked]:text-cloud">
         {label}
       </span>
     </label>
@@ -412,10 +412,12 @@ export function SelectField({
         required={required}
       >
         <SelectPrimitive.Trigger
-          className={`${controlClass} tw:flex tw:cursor-pointer tw:items-center tw:justify-between tw:data-[placeholder]:text-gray-60 ${invalid ? "tw:!border-error" : hasValue || isFocused ? "tw:!border-gray-20" : ""}`}
+          className={`${controlClass} tw:py-1 tw:h-auto tw:min-h-[40px] tw:md:min-h-[57px] tw:flex tw:cursor-pointer tw:items-center tw:justify-between tw:text-left tw:data-[placeholder]:text-gray-60 ${invalid ? "tw:!border-error" : hasValue || isFocused ? "tw:!border-gray-20" : ""}`}
         >
-          <SelectPrimitive.Value placeholder={placeholder} />
-          <SelectPrimitive.Icon className="tw:ml-3 tw:text-gray-60">
+          <span className="tw:min-w-0 tw:flex-1 tw:whitespace-normal tw:wrap-break-word tw:text-left">
+            <SelectPrimitive.Value placeholder={placeholder} />
+          </span>
+          <SelectPrimitive.Icon className="tw:ml-3 tw:shrink-0 tw:text-gray-60">
             <ChevronIcon />
           </SelectPrimitive.Icon>
         </SelectPrimitive.Trigger>
@@ -430,7 +432,7 @@ export function SelectField({
                 <SelectPrimitive.Item
                   key={option.value}
                   value={option.value}
-                  className="tw:cursor-pointer tw:px-5 tw:py-3 tw:text-gray-60 tw:outline-none tw:text-[20px]! tw:transition-colors tw:data-[highlighted]:text-gray-20 tw:data-[state=checked]:text-gray-20"
+                  className="tw:cursor-pointer tw:px-5 tw:py-3 tw:text-gray-60 tw:outline-none tw:text-[14px] tw:md:text-[20px]! tw:transition-colors tw:data-[highlighted]:text-gray-20 tw:data-[state=checked]:text-gray-20"
                 >
                   <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
                 </SelectPrimitive.Item>

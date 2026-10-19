@@ -95,6 +95,7 @@ function Navbar() {
           <NavLink to="/reviews">
             <span>All Applicants</span>
           </NavLink>
+          <NavLink to="/dashboard">Dashboard</NavLink>
         </div>
         {pipelines.map((pipeline) => (
           <div key={pipeline.identifier} className="tw:flex tw:flex-col">

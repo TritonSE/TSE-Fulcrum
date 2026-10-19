@@ -222,15 +222,14 @@ class ReviewService {
     const gradeLevel = ApplicationService.determineApplicantGradeLevel(
       applicationDoc.startQuarter,
       applicationDoc.gradQuarter,
+      applicationDoc.isTransfer,
       new Date().getFullYear(),
     );
 
     // Define filters for each stage
     const stageFilters: Partial<Record<StageIdentifier, (reviewer: UserDocument) => boolean>> = {
-      developer_phone_screen: (reviewer) =>
-        gradeLevel === 1 ? reviewer.onlyFirstYearPhoneScreen : !reviewer.onlyFirstYearPhoneScreen,
-      developer_technical: (reviewer) =>
-        gradeLevel === 1 ? reviewer.onlyFirstYearTechnical : !reviewer.onlyFirstYearTechnical,
+      developer_phone_screen: (reviewer) => gradeLevel === 1 || !reviewer.onlyFirstYearPhoneScreen,
+      developer_technical: (reviewer) => gradeLevel === 1 || !reviewer.onlyFirstYearTechnical,
     };
 
     const stageFilter = stageFilters[stage.identifier];
@@ -344,6 +343,7 @@ class ReviewService {
       applicantYear: ApplicationService.determineApplicantGradeLevel(
         application.startQuarter,
         application.gradQuarter,
+        application.isTransfer,
         new Date().getFullYear(),
       ),
     };
