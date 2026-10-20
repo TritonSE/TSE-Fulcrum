@@ -1,17 +1,20 @@
 import { RemoteSelectionManager } from "@convergencelabs/monaco-collab-ext";
 import Editor, { type Monaco } from "@monaco-editor/react";
-import { Button } from "@tritonse/tse-constellation";
+import { ChevronLeft, ChevronRight, Link, Pause, Play } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { Dropdown } from "react-bootstrap";
 import Markdown from "react-markdown";
 import { useLocation } from "react-router-dom";
 import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import cpp from "react-syntax-highlighter/dist/esm/languages/prism/cpp";
 import { dark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { io, type Socket } from "socket.io-client";
 import { twMerge } from "tailwind-merge";
 
+import { SegmentedToggle } from "../components/SegmentedToggle";
 import TSELogo from "../components/TSELogo";
+import { useIsTabFocused } from "../hooks/focus";
 
 import type { editor as MonacoEditor } from "monaco-editor";
 
@@ -24,12 +27,87 @@ const INTERVIEW_DURATION = 50 * 60 * SECOND; // 50 minutes
 const INTERVIEWEE = 0;
 const INTERVIEWER = 1;
 
+// Marks a boundary between parts in the question markdown, e.g. `<!-- PART -->`.
+// Kept in sync with backend/src/services/InterviewService.ts.
+const PART_MARKER = /<!--\s*PART\s*-->/;
+const countParts = (question: string) => question.split(PART_MARKER).length;
+
+// Character offset where each part (after part 0) begins, in document order.
+const getPartStartOffsets = (question: string): number[] => {
+  const regex = /<!--\s*PART\s*-->/g;
+  const offsets: number[] = [];
+  let match = regex.exec(question);
+
+  while (match !== null) {
+    offsets.push(match.index + match[0].length);
+    match = regex.exec(question);
+  }
+
+  return offsets;
+};
+
+// Mirrors InterviewService.ts so the interviewer's preview
+// shows exactly what the interviewee is currently gated to see.
+//
+// These are only invoked on the Interviewer's side. Interviewee question
+// visibility is handled server-side.
+const splitQuestionParts = (question: string): string[] =>
+  question.split(PART_MARKER).map((part) => part.trim());
+
+const clampStage = (stg: number, partCount: number): number => {
+  if (partCount <= 0) return 0;
+  return Math.min(Math.max(stg, 0), partCount - 1);
+};
+
+const getVisibleQuestion = (question: string, stg: number): string => {
+  const parts = splitQuestionParts(question);
+  const visibleThrough = clampStage(stg, parts.length);
+
+  return parts.slice(0, visibleThrough + 1).join("\n\n");
+};
+
 const css = `
   .divider:hover {
     background: var(--bs-primary) !important;
   }
   .timer:hover {
     opacity: 1 !important;
+  }
+  .interview-inactive-part-bg {
+    background-color: rgba(255, 0, 0, 0.12);
+  }
+  .mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    user-select: none;
+  }
+  .mode-toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border-radius: 12px;
+    background: #555;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .mode-toggle-switch.active {
+    background: var(--bs-primary, #0d6efd);
+  }
+  .mode-toggle-switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.2s;
+  }
+  .mode-toggle-switch.active .mode-toggle-switch-knob {
+    transform: translateX(20px);
   }
 `;
 
@@ -41,9 +119,10 @@ type InterviewState = {
   active: boolean;
   timerStart: number;
   lastUpdate: Date;
+  stage: number;
 };
 
-type ValidKeys = "question" | "code" | "language" | "active" | "timerStart";
+type ValidKeys = "question" | "code" | "language" | "active" | "timerStart" | "stage";
 
 type Payload = {
   userId: string;
@@ -127,7 +206,15 @@ function MarkdownImage({
   height,
   width,
 }: React.ClassAttributes<HTMLImageElement> & React.ImgHTMLAttributes<HTMLImageElement>) {
-  return <img src={src?.replace("&amp;", "&")} alt={alt} height={height} width={width} />;
+  return (
+    <img
+      className="tw:inline-block"
+      src={src?.replace("&amp;", "&")}
+      alt={alt}
+      height={height}
+      width={width}
+    />
+  );
 }
 
 function Timer({ role, since, start }: TimerProps) {
@@ -212,17 +299,44 @@ export default function Interview() {
   const [language, setLanguage] = useState<string>("python");
   const [userId] = useState<string>(Math.random().toString());
   const [questionContent, setQuestionContent] = useState<string>();
+  const [questionVersion, setQuestionVersion] = useState<
+    "introduction" | "firstYear" | "secondYear"
+  >("introduction");
   const [editorWidth, setEditorWidth] = useState<number>(50);
   const [mouseDown, setMouseDown] = useState<boolean>(false);
   const [blinking, setBlinking] = useState<boolean>(false);
   const [selectFrom, setSelectFrom] = useState<number>(-1);
   const [selectTo, setSelectTo] = useState<number>(-1);
+  const [stage, setStage] = useState<number>(0); // prefer changeStage over setStage
+  const [partCount, setPartCount] = useState<number>(1);
 
   const questionEditor = useRef<EditorInstance | null>(null);
   const codeEditor = useRef<EditorInstance | null>(null);
   const remoteSelection = useRef<RemoteSelection | null>(null);
+  const inactivePartDecorations = useRef<MonacoEditor.IEditorDecorationsCollection | null>(null);
+  const stageRef = useRef<number>(0); // exclusively for keeping the editor decorations up-to-date
+
+  const [intervieweeFocused, setIntervieweeFocused] = useState<boolean>(true);
+  const [mode, setMode] = useState<"editor" | "preview">("editor");
+
+  const isFocused = useIsTabFocused();
 
   const role = location.pathname.includes("/review/") ? INTERVIEWER : INTERVIEWEE;
+
+  useEffect(() => {
+    if (!socket || role !== INTERVIEWEE || !active) return;
+    socket.emit("focus", { role, focused: isFocused });
+  }, [isFocused, active, socket, role]);
+
+  useEffect(() => {
+    // The Monaco question editor unmounts when switching to preview mode, so
+    // its refs must be cleared here rather than left stale until remount.
+    if (mode === "preview") {
+      questionEditor.current = null;
+      inactivePartDecorations.current = null;
+    }
+  }, [mode]);
+
   const editorOptions = {
     quickSuggestions: false,
     suggest: {
@@ -241,6 +355,40 @@ export default function Interview() {
       key,
       value,
     });
+  };
+  const refreshInactivePartDecorations = (text: string, currentStage: number) => {
+    if (role !== INTERVIEWER || !questionEditor.current) return;
+
+    const { editor, monaco } = questionEditor.current;
+    const mod = editor.getModel();
+    if (!mod) return;
+
+    const partStartOffsets = getPartStartOffsets(text);
+    const dimFromOffset = partStartOffsets[currentStage];
+
+    const decorations =
+      dimFromOffset === undefined
+        ? []
+        : [
+            {
+              range: new monaco.Range(
+                mod.getPositionAt(dimFromOffset).lineNumber,
+                1,
+                mod.getLineCount(),
+                mod.getLineMaxColumn(mod.getLineCount()),
+              ),
+              options: {
+                isWholeLine: true,
+                className: "interview-inactive-part-bg",
+              },
+            },
+          ];
+
+    if (inactivePartDecorations.current) {
+      inactivePartDecorations.current.set(decorations);
+    } else {
+      inactivePartDecorations.current = editor.createDecorationsCollection(decorations);
+    }
   };
   const onMount =
     (isCode: boolean) => (editor: MonacoEditor.IStandaloneCodeEditor, monaco: Monaco) => {
@@ -284,13 +432,27 @@ export default function Interview() {
       editor.onDidChangeModelContent((e) => {
         if (e.isFlush) return;
 
-        sendMessage(isCode ? "code" : "question", editor.getValue());
+        const val = editor.getValue();
+        sendMessage(isCode ? "code" : "question", val);
+        if (!isCode) {
+          setQuestionContent(val);
+          setPartCount(countParts(val));
+          refreshInactivePartDecorations(val, stageRef.current);
+        }
       });
 
       if (socket) {
         socket.emit("getState");
       }
     };
+  const changeStage = (delta: number) => {
+    const newStage = Math.max(0, Math.min(stage + delta, partCount - 1));
+    setStage(newStage);
+    sendMessage("stage", newStage);
+
+    const text = questionEditor.current?.editor.getModel()?.getValue();
+    if (text !== undefined) refreshInactivePartDecorations(text, newStage);
+  };
   const updateEditorLanguage = (lang: string, send = false) => {
     setLanguage(lang);
     if (send) sendMessage("language", lang);
@@ -307,14 +469,21 @@ export default function Interview() {
 
     setTimerStart(0);
     sendMessage("timerStart", 0);
+
+    changeStage(-999);
+    sendMessage("stage", 0);
+
+    setIntervieweeFocused(true);
   };
   const callbacks: Callbacks = {
     question: (payload: Payload) => {
       const val = payload.value as string;
 
-      if (role === INTERVIEWEE) {
-        setQuestionContent(val);
-      } else if (questionEditor.current) {
+      setQuestionContent(val);
+      setPartCount(countParts(val));
+      refreshInactivePartDecorations(val, stage);
+
+      if (role !== INTERVIEWEE && questionEditor.current) {
         const mod = questionEditor.current.editor.getModel();
         if (!mod) return;
 
@@ -331,14 +500,38 @@ export default function Interview() {
       mod.setValue(val);
     },
     language: (payload: Payload) => updateEditorLanguage(payload.value as string),
-    active: (payload: Payload) => setActive(payload.value as boolean),
+    active: (payload: Payload) => {
+      setActive(payload.value as boolean);
+      setIntervieweeFocused(true);
+    },
     timerStart: (payload: Payload) => setTimerStart(payload.value as number),
+    stage: (payload: Payload) => {
+      const newStage = (payload.value as number | undefined) ?? 0;
+      setStage(newStage);
+      const text = questionEditor.current?.editor.getModel()?.getValue();
+      if (text !== undefined) refreshInactivePartDecorations(text, newStage);
+    },
   };
+  const fetchReadmeQuestion = (version: "introduction" | "firstYear" | "secondYear") => {
+    if (!socket || !socket.connected) return;
+
+    socket.emit("fetch", { userId, version }, (question: string | null) => {
+      if (question === null) return;
+
+      callbacks.question({ userId, key: "question", value: question });
+      callbacks.stage({ userId, key: "stage", value: 0 });
+    });
+  };
+
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
 
   useEffect(() => {
     document.title = "TSE Fulcrum - Technical Interview";
 
-    const sock = io();
+    // sending path explicitly; otherwise, safari may drop referer url
+    const sock = io({ auth: { path: window.location.pathname } });
     sock.on("connect", () => {
       setSocket(sock);
       sock.emit("getState");
@@ -360,6 +553,15 @@ export default function Interview() {
         return;
 
       remoteSelection.current.setOffsets(select.from, select.to);
+    });
+    sock.on("focus", (payload: { role: number; focused: boolean }) => {
+      if (payload.role === role) return;
+
+      // listens to all focus messages indiscriminately, meaning if two
+      // socket clients connect to the interviewee room, may cause issues
+      // when clients send independent 'focus' messages. just means we cant have
+      // two interviewees at the same time, which is already the case
+      setIntervieweeFocused(payload.focused);
     });
     sock.on("state", (state: InterviewState) => {
       Object.entries(callbacks).forEach(([event, callback]) => {
@@ -394,51 +596,145 @@ export default function Interview() {
     <>
       <style>{css}</style>
       {role === INTERVIEWER && (
-        <div className="tw:flex tw:items-center tw:justify-center tw:h-12 tw:mb-3">
-          <Button
-            className="tw:!bg-blue-600 tw:!px-2 tw:!py-2 tw:!rounded-lg"
-            onClick={() => window.close()}
-          >
-            ← Back to Review
-          </Button>
-          <div className="tw:flex-1">&nbsp;</div>
-          <Button
-            className={twMerge(
-              "tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:!rounded-lg",
-              active ? "tw:!bg-amber-400" : "",
-            )}
-            onClick={toggleInterview}
-          >
-            {active ? "End" : "Begin"} Interview
-          </Button>
-          <div>&nbsp;&nbsp;&nbsp;</div>
-          <Button
-            className={twMerge(
-              "tw:!bg-accent tw:!px-3 tw:!py-2 tw:!rounded-lg tw:transition-all tw:duration-500",
-              blinking ? "tw:!bg-green-500" : "",
-            )}
-            onClick={() => {
-              void navigator.clipboard.writeText(
-                window.location.origin +
-                  location.pathname.replace("/interview", "").replace("/review/", "/interview/"),
-              );
-              setBlinking(true);
-              setTimeout(() => setBlinking(false), 250);
-            }}
-          >
-            Copy Link for Interviewee
-          </Button>
-          <div style={{ flex: 1 }}>&nbsp;</div>
-          <Dropdown>
-            <Dropdown.Toggle>Set Language</Dropdown.Toggle>
-            <Dropdown.Menu>
-              {LANGS.map((lang) => (
-                <Dropdown.Item key={lang} onClick={() => updateEditorLanguage(lang, true)}>
-                  {lang[0].toUpperCase() + lang.slice(1)}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
+        <div className="tw:flex tw:flex-col tw:justify-center tw:w-full">
+          <div className="tw:flex tw:items-center tw:h-12">
+            <button
+              type="button"
+              className="tw:!bg-none tw:!px-2 tw:!py-2 tw:hover:underline"
+              onClick={() => window.close()}
+            >
+              ← Back to Review
+            </button>
+
+            <div className="tw:flex-1">&nbsp;&nbsp;&nbsp;</div>
+            <button
+              type="button"
+              className={twMerge(
+                "tw:!bg-accent tw:!px-3 tw:h-[40px] tw:!text-cloud tw:!rounded-lg tw:transition-all tw:duration-500",
+                blinking ? "tw:!bg-green-500" : "",
+              )}
+              onClick={() => {
+                void navigator.clipboard.writeText(
+                  window.location.origin +
+                    location.pathname.replace("/interview", "").replace("/review/", "/interview/"),
+                );
+                setBlinking(true);
+                setTimeout(() => setBlinking(false), 250);
+              }}
+            >
+              <span className="tw:inline-flex tw:items-center tw:gap-2">
+                <Link size={16} />
+                Copy Link for Interviewee
+              </span>
+            </button>
+
+            <div>&nbsp;&nbsp;&nbsp;</div>
+            <button
+              type="button"
+              className={twMerge(
+                "tw:!bg-blue-600 tw:!px-3 tw:h-[40px] tw:!rounded-lg tw:!text-cloud",
+                active ? "tw:!bg-amber-400" : "",
+              )}
+              onClick={toggleInterview}
+            >
+              <span className="tw:inline-flex tw:items-center tw:gap-2">
+                {active ? (
+                  <Pause size={16} fill="currentColor" />
+                ) : (
+                  <Play size={16} fill="currentColor" />
+                )}
+                {active ? "End" : "Begin"} Interview
+              </span>
+            </button>
+          </div>
+          <div className="tw:border-gray-20 tw:border-1 tw:w-full tw:my-2 " />
+          <div className="tw:flex tw:flex-row tw:mb-2 tw:gap-3">
+            <div className="tw:flex tw:flex-row tw:border tw:rounded-lg tw:border-gray-400 ">
+              <select
+                className="tw:!px-3 tw:!py-2 tw:!rounded-lg  tw:focus:outline-none"
+                value={questionVersion}
+                onChange={(e) =>
+                  setQuestionVersion(e.target.value as "introduction" | "firstYear" | "secondYear")
+                }
+              >
+                <option value="introduction">Introduction</option>
+                <option value="firstYear">First Year</option>
+                <option value="secondYear">Second Year</option>
+              </select>
+              <div>&nbsp;</div>
+              <button
+                type="button"
+                className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:rounded-r-lg! tw:text-cloud!"
+                onClick={() => fetchReadmeQuestion(questionVersion)}
+              >
+                Fetch
+              </button>
+            </div>
+
+            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center tw:w-1/6">
+              <div className="tw:flex tw:flex-row tw:items-center tw:h-[40px] tw:w-full">
+                <button
+                  type="button"
+                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-l-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+                  disabled={!active || stage <= 0}
+                  onClick={() => changeStage(-1)}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div className="tw:h-full tw:border-t tw:border-gray-400 tw:border-b tw:flex-1 tw:min-w-0 tw:flex tw:items-center tw:justify-start tw:px-3">
+                  <span className="tw:truncate">
+                    Part {stage} of {partCount - 1}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-r-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+                  disabled={!active || stage >= partCount - 1}
+                  onClick={() => changeStage(1)}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+            <div className="tw:flex tw:items-center">
+              <SegmentedToggle
+                options={[
+                  { value: "editor", label: "Markdown" },
+                  { value: "preview", label: "Preview" },
+                ]}
+                value={mode}
+                onChange={(newMode) => {
+                  setMode(newMode);
+                  const text = questionEditor.current?.editor.getModel()?.getValue();
+                  if (text !== undefined) {
+                    refreshInactivePartDecorations(text, stage);
+                    setQuestionContent(text);
+                  }
+                }}
+              />
+            </div>
+            <div className="tw:flex-1" />
+
+            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center">
+              <select
+                className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:border tw:border-gray-300"
+                value={language}
+                onChange={(e) => updateEditorLanguage(e.target.value, true)}
+              >
+                {LANGS.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang[0].toUpperCase() + lang.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {active && !intervieweeFocused && (
+            <div className="tw:w-full tw:text-center tw:bg-red-500 tw:text-white tw:py-1 tw:rounded">
+              Interviewee is currently unfocused (tab switched or window not focused)
+            </div>
+          )}
         </div>
       )}
       {(role === INTERVIEWER || (role === INTERVIEWEE && active)) && (
@@ -454,7 +750,7 @@ export default function Interview() {
           }}
           onMouseUp={() => setMouseDown(false)}
         >
-          {role === INTERVIEWER ? (
+          {role === INTERVIEWER && mode === "editor" ? (
             <Editor
               width={`calc(${editorWidth}vw - ${separatorWidth / 2}px)`}
               height="100vh"
@@ -476,6 +772,8 @@ export default function Interview() {
               }}
             >
               <Markdown
+                // Render inline HTML (e.g. sized/centered <img>), then strip anything unsafe
+                rehypePlugins={[rehypeRaw, rehypeSanitize]}
                 components={{
                   code: CodeBlock,
                   /**
@@ -485,7 +783,7 @@ export default function Interview() {
                   img: MarkdownImage,
                 }}
               >
-                {questionContent}
+                {getVisibleQuestion(questionContent ?? "", stage)}
               </Markdown>
             </div>
           )}
