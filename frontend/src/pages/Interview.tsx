@@ -596,7 +596,7 @@ export default function Interview() {
     <>
       <style>{css}</style>
       {role === INTERVIEWER && (
-        <div className="tw:flex tw:flex-col tw:justify-center tw:w-full">
+        <div className="tw:flex tw:flex-col tw:justify-center tw:w-full  tw:text-xs tw:lg:text-[16px]">
           <div className="tw:flex tw:items-center tw:h-12">
             <button
               type="button"
@@ -648,86 +648,92 @@ export default function Interview() {
             </button>
           </div>
           <div className="tw:border-gray-20 tw:border-1 tw:w-full tw:my-2 " />
-          <div className="tw:flex tw:flex-row tw:mb-2 tw:gap-3">
-            <div className="tw:flex tw:flex-row tw:border tw:rounded-lg tw:border-gray-400 ">
-              <select
-                className="tw:!px-3 tw:!py-2 tw:!rounded-lg  tw:focus:outline-none"
-                value={questionVersion}
-                onChange={(e) =>
-                  setQuestionVersion(e.target.value as "introduction" | "firstYear" | "secondYear")
-                }
-              >
-                <option value="introduction">Introduction</option>
-                <option value="firstYear">First Year</option>
-                <option value="secondYear">Second Year</option>
-              </select>
-              <div>&nbsp;</div>
-              <button
-                type="button"
-                className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:rounded-r-lg! tw:text-cloud!"
-                onClick={() => fetchReadmeQuestion(questionVersion)}
-              >
-                Fetch
-              </button>
-            </div>
-
-            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center tw:w-1/6">
-              <div className="tw:flex tw:flex-row tw:items-center tw:h-[40px] tw:w-full">
+          <div className="tw:flex tw:flex-col tw:lg:flex-row tw:mb-2 tw:gap-3">
+            <div className="tw:flex tw:flex-row tw:gap-3">
+              <div className="tw:flex tw:flex-row tw:border tw:rounded-lg tw:border-gray-400 ">
+                <select
+                  className="tw:!px-3 tw:!py-2 tw:!rounded-lg  tw:focus:outline-none"
+                  value={questionVersion}
+                  onChange={(e) =>
+                    setQuestionVersion(
+                      e.target.value as "introduction" | "firstYear" | "secondYear",
+                    )
+                  }
+                >
+                  <option value="introduction">Introduction</option>
+                  <option value="firstYear">First Year</option>
+                  <option value="secondYear">Second Year</option>
+                </select>
+                <div>&nbsp;</div>
                 <button
                   type="button"
-                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-l-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
-                  disabled={!active || stage <= 0}
-                  onClick={() => changeStage(-1)}
+                  className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:rounded-r-lg! tw:text-cloud!"
+                  onClick={() => fetchReadmeQuestion(questionVersion)}
                 >
-                  <ChevronLeft size={16} />
-                </button>
-
-                <div className="tw:h-full tw:border-t tw:border-gray-400 tw:border-b tw:flex-1 tw:min-w-0 tw:flex tw:items-center tw:justify-start tw:px-3">
-                  <span className="tw:truncate">
-                    Part {stage} of {partCount - 1}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-r-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
-                  disabled={!active || stage >= partCount - 1}
-                  onClick={() => changeStage(1)}
-                >
-                  <ChevronRight size={16} />
+                  Fetch
                 </button>
               </div>
-            </div>
-            <div className="tw:flex tw:items-center">
-              <SegmentedToggle
-                options={[
-                  { value: "editor", label: "Markdown" },
-                  { value: "preview", label: "Preview" },
-                ]}
-                value={mode}
-                onChange={(newMode) => {
-                  setMode(newMode);
-                  const text = questionEditor.current?.editor.getModel()?.getValue();
-                  if (text !== undefined) {
-                    refreshInactivePartDecorations(text, stage);
-                    setQuestionContent(text);
-                  }
-                }}
-              />
-            </div>
-            <div className="tw:flex-1" />
 
-            <div className="tw:flex tw:flex-col tw:justify-center tw:items-center">
-              <select
-                className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:border tw:border-gray-300"
-                value={language}
-                onChange={(e) => updateEditorLanguage(e.target.value, true)}
-              >
-                {LANGS.map((lang) => (
-                  <option key={lang} value={lang}>
-                    {lang[0].toUpperCase() + lang.slice(1)}
-                  </option>
-                ))}
-              </select>
+              <div className="tw:flex tw:flex-col tw:justify-center tw:items-center tw:w-44">
+                <div className="tw:flex tw:flex-row tw:items-center tw:h-[40px] tw:w-full">
+                  <button
+                    type="button"
+                    className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-l-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+                    disabled={!active || stage <= 0}
+                    onClick={() => changeStage(-1)}
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+
+                  <div className="tw:h-full tw:border-t tw:border-gray-400 tw:border-b tw:flex-1 tw:min-w-0 tw:flex tw:items-center tw:justify-start tw:px-3">
+                    <span className="tw:truncate">
+                      Part {stage} of {partCount - 1}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-r-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
+                    disabled={!active || stage >= partCount - 1}
+                    onClick={() => changeStage(1)}
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="tw:flex tw:flex-row tw:gap-3 tw:flex-1">
+              <div className="tw:flex tw:items-center">
+                <SegmentedToggle
+                  options={[
+                    { value: "editor", label: "Markdown" },
+                    { value: "preview", label: "Preview" },
+                  ]}
+                  value={mode}
+                  onChange={(newMode) => {
+                    setMode(newMode);
+                    const text = questionEditor.current?.editor.getModel()?.getValue();
+                    if (text !== undefined) {
+                      refreshInactivePartDecorations(text, stage);
+                      setQuestionContent(text);
+                    }
+                  }}
+                />
+              </div>
+              <div className="tw:flex-1" />
+
+              <div className="tw:flex tw:flex-col tw:justify-center tw:items-center">
+                <select
+                  className="tw:!px-3 tw:!py-2 tw:!rounded-lg tw:border tw:border-gray-300"
+                  value={language}
+                  onChange={(e) => updateEditorLanguage(e.target.value, true)}
+                >
+                  {LANGS.map((lang) => (
+                    <option key={lang} value={lang}>
+                      {lang[0].toUpperCase() + lang.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
           {active && !intervieweeFocused && (
