@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import { ApplicationModel, ProgressModel } from "../models";
 
+import ApplicationService from "./ApplicationService";
 import EmailService from "./EmailService";
 import PipelineService from "./PipelineService";
 import ReviewService from "./ReviewService";
@@ -100,8 +101,30 @@ class ProgressService {
   async bulkAdvanceApplications(applicationIds: string[], pipelineIdentifier: PipelineIdentifier) {
     const results = [];
 
+    // encourages greedy `advanceApplication` that prioritizes onlyFirstYear
+    // flag holders when assigning first year reviews, by assigning non-first years first
+    const applications = await ApplicationModel.find({ _id: { $in: applicationIds } });
+    const currentYear = new Date().getFullYear();
+    const firstYearIds = new Set(
+      applications
+        .filter(
+          (application) =>
+            ApplicationService.determineApplicantGradeLevel(
+              application.startQuarter,
+              application.gradQuarter,
+              application.isTransfer,
+              currentYear,
+            ) === 1,
+        )
+        .map((application) => application._id.toHexString()),
+    );
+    const orderedApplicationIds = [
+      ...applicationIds.filter((applicationId) => !firstYearIds.has(applicationId)),
+      ...applicationIds.filter((applicationId) => firstYearIds.has(applicationId)),
+    ];
+
     // Synchronously advance each application
-    for (const applicationId of applicationIds) {
+    for (const applicationId of orderedApplicationIds) {
       // eslint-disable-next-line no-await-in-loop
       const result = await this.advanceApplication(
         new mongoose.Types.ObjectId(applicationId),
