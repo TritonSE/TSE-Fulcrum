@@ -652,7 +652,7 @@ export default function Interview() {
             <div className="tw:flex tw:flex-row tw:gap-3">
               <div className="tw:flex tw:flex-row tw:border tw:rounded-lg tw:border-gray-400 ">
                 <select
-                  className="tw:!px-3 tw:!py-2 tw:!rounded-lg  tw:focus:outline-none"
+                  className="tw:px-2 tw:lg:!px-3 tw:lg:!py-2 tw:!rounded-lg  tw:focus:outline-none"
                   value={questionVersion}
                   onChange={(e) =>
                     setQuestionVersion(
@@ -667,15 +667,15 @@ export default function Interview() {
                 <div>&nbsp;</div>
                 <button
                   type="button"
-                  className="tw:!bg-blue-600 tw:!px-3 tw:!py-2 tw:rounded-r-lg! tw:text-cloud!"
+                  className="tw:!bg-blue-600 tw:!px-3 tw:lg:!py-2 tw:rounded-r-lg! tw:text-cloud!"
                   onClick={() => fetchReadmeQuestion(questionVersion)}
                 >
                   Fetch
                 </button>
               </div>
 
-              <div className="tw:flex tw:flex-col tw:justify-center tw:items-center tw:w-44">
-                <div className="tw:flex tw:flex-row tw:items-center tw:h-[40px] tw:w-full">
+              <div className="tw:flex tw:flex-col tw:justify-center tw:items-center tw:w-44 tw:lg:w-auto">
+                <div className="tw:flex tw:flex-row tw:items-center tw:lg:h-[40px] tw:h-[30px] tw:w-full">
                   <button
                     type="button"
                     className="tw:!bg-blue-600 tw:!text-cloud tw:!px-3 tw:h-full tw:rounded-l-lg! tw:disabled:!bg-gray-400 tw:disabled:!cursor-not-allowed"
